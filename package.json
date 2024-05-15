@@ -25,6 +25,8 @@
     "eslint-config-oclif": "^5",
     "eslint-config-oclif-typescript": "^3",
     "eslint-config-prettier": "^9",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.2",
     "mocha": "^10",
     "mock-fs": "^5.2.0",
     "oclif": "^4",
@@ -56,8 +58,7 @@
       "@oclif/plugin-plugins"
     ],
     "topicSeparator": " ",
-    "topics": {
-    }
+    "topics": {}
   },
   "repository": "hereya/hereya-cli",
   "scripts": {
@@ -69,7 +70,11 @@
     "posttest": "npm run lint",
     "prepack": "oclif manifest && oclif readme",
     "test": "mocha --forbid-only \"src/**/*.test.ts\"",
-    "version": "oclif readme && git add README.md"
+    "version": "oclif readme && git add README.md",
+    "prepare": "husky install"
   },
-  "types": "dist/index.d.ts"
+  "types": "dist/index.d.ts",
+  "lint-staged": {
+    "**/*": "eslint . --ext .ts --fix"
+  }
 }

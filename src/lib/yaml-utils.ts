@@ -1,4 +1,4 @@
-import { writeFile, readFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { parse, stringify } from 'yaml';
 
 export async function save<T extends object>(content: T, file: string) {
