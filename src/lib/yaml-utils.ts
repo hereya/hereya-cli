@@ -1,0 +1,28 @@
+import { writeFile, readFile } from 'node:fs/promises';
+import { parse, stringify } from 'yaml';
+
+export async function save<T extends object>(content: T, file: string) {
+    try {
+        await writeFile(file, stringify(content), {encoding: 'utf8'})
+    } catch (error) {
+        throw new Error(`could not save data to file ${file} ${error}`)
+    }
+}
+
+export async function load<T extends object>(file: string): Promise<{ data: T, found: boolean }> {
+    let data: T = {} as T
+    let found = false
+
+    try {
+        const content = await readFile(file, {encoding: 'utf8'})
+        data = parse(content)
+        found = true
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+        if (error.code !== 'ENOENT') {
+            throw new Error(`could not load file ${file}: ${error}`)
+        }
+    }
+
+    return {data: data || {}, found}
+}

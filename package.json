@@ -10,13 +10,15 @@
   "dependencies": {
     "@oclif/core": "^3",
     "@oclif/plugin-help": "^6",
-    "@oclif/plugin-plugins": "^5"
+    "@oclif/plugin-plugins": "^5",
+    "yaml": "^2.4.2"
   },
   "devDependencies": {
     "@oclif/prettier-config": "^0.2.1",
     "@oclif/test": "^3",
     "@types/chai": "^4",
     "@types/mocha": "^10",
+    "@types/mock-fs": "^4.13.4",
     "@types/node": "^18",
     "chai": "^4",
     "eslint": "^8",
@@ -24,6 +26,7 @@
     "eslint-config-oclif-typescript": "^3",
     "eslint-config-prettier": "^9",
     "mocha": "^10",
+    "mock-fs": "^5.2.0",
     "oclif": "^4",
     "shx": "^0.3.3",
     "ts-node": "^10",
@@ -54,13 +57,11 @@
     ],
     "topicSeparator": " ",
     "topics": {
-      "hello": {
-        "description": "Say hello to the world and others"
-      }
     }
   },
   "repository": "hereya/hereya-cli",
   "scripts": {
+    "generate": "oclif generate command $COMMAND && shx mkdir src/commands/$COMMAND && shx mv src/commands/$COMMAND.ts src/commands/$COMMAND/index.ts && shx mv test/commands/$COMMAND.test.ts src/commands/$COMMAND/index.test.ts && shx rm -rf test",
     "dev": "./bin/dev.js",
     "build": "shx rm -rf dist && tsc -b",
     "lint": "eslint . --ext .ts",
