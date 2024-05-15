@@ -1,8 +1,7 @@
 import { Args, Command, Flags } from '@oclif/core'
-import * as path from 'node:path';
 
-import * as yaml from '../../lib/yaml-utils.js';
-
+import { getBackend } from '../../backend/index.js';
+import { Config, loadConfig, saveConfig } from '../../lib/config.js';
 
 
 export default class Init extends Command {
@@ -13,43 +12,45 @@ export default class Init extends Command {
     static override description = 'initialize hereya in a project directory'
 
     static override examples = [
-        '<%= config.bin %> <%= command.id %> myProject',
         '<%= config.bin %> <%= command.id %> myProject -w=defaultWorkspace',
+        '<%= config.bin %> <%= command.id %> myProject -w=defaultWorkspace --chdir=./myProject',
     ]
 
     static override flags = {
         chdir: Flags.string({
-            default: process.cwd(),
             description: 'directory to run command in',
             required: false,
         }),
         workspace: Flags.string({
             char: 'w',
             description: 'workspace to set as default',
-            required: false,
+            required: true,
         }),
 
     }
 
     public async run(): Promise<void> {
         const { args, flags } = await this.parse(Init)
-        const { found } = await yaml.load(path.join(flags.chdir, "hereya.yaml"))
-        if (found) {
+        const config$ = await loadConfig({ projectRootDir: flags.chdir })
+        if (config$.found) {
             this.warn(`Project already initialized.`)
             return
         }
 
-        const { project } = args
-        const content = {
-            project,
+        const backend = await getBackend()
+        const initProjectOutput = await backend.init({
+            project: args.project,
             workspace: flags.workspace,
+        })
+
+        const content: Config = {
+            project: initProjectOutput.project.id,
+            workspace: initProjectOutput.workspace.name,
         }
 
-        await yaml.save( content, path.join(flags.chdir, "hereya.yaml"))
+        await saveConfig({ config: content, projectRootDir: flags.chdir })
 
-        this.log(`Initialized ${project}.`)
-        if (flags.workspace) {
-            this.log(`Default workspace set to ${flags.workspace}.`)
-        }
+        this.log(`Initialized ${content.project}.`)
+        this.log(`Current workspace set to ${content.workspace}.`)
     }
 }
