@@ -11,6 +11,9 @@
     "@oclif/core": "^3",
     "@oclif/plugin-help": "^6",
     "@oclif/plugin-plugins": "^5",
+    "sequelize": "^6.37.3",
+    "sqlite3": "^5.1.7",
+    "umzug": "^3.8.0",
     "yaml": "^2.4.2"
   },
   "devDependencies": {
@@ -30,6 +33,7 @@
     "mocha": "^10",
     "mock-fs": "^5.2.0",
     "oclif": "^4",
+    "sequelize-cli": "^6.6.2",
     "shx": "^0.3.3",
     "ts-node": "^10",
     "typescript": "^5"
@@ -71,7 +75,8 @@
     "prepack": "oclif manifest && oclif readme",
     "test": "mocha --forbid-only \"src/**/*.test.ts\"",
     "version": "oclif readme && git add README.md",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "migration:generate": "sequelize-cli migration:generate"
   },
   "types": "dist/index.d.ts",
   "lint-staged": {
