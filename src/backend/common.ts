@@ -13,6 +13,7 @@ export interface InitProjectOutput {
         name: string
     }
     workspace: {
+        id: string;
         name: string;
     }
 }

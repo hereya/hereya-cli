@@ -14,7 +14,7 @@ describe('init', () => {
     setup.command(['init', 'myProject', '--workspace=demo', '--chdir=./tmp/myProject'])
     .it('creates hereya.yaml and set current workspace', ctx => {
         expect(() => fs.accessSync('./tmp/myProject/hereya.yaml')).to.not.throw()
-        expect(ctx.stdout).to.contain('Initialized myProject')
+        expect(ctx.stdout).to.contain('Initialized project myProject')
         expect(ctx.stdout).to.contain('Current workspace set to demo')
     })
 
