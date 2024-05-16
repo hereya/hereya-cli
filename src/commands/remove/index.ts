@@ -1,10 +1,10 @@
 import { Args, Command, Flags } from '@oclif/core'
 import * as cfg from '../../lib/config.js';
 import { loadConfig } from '../../lib/config.js';
-import { resolvePackage } from '../../lib/package.js';
 import { getInfrastructure } from '../../infrastructure/index.js';
-import { logEnv, removeEnv } from '../../lib/env.js';
+import { getWorkspaceEnv, logEnv, removeEnv } from '../../lib/env.js';
 import { getBackend } from '../../backend/index.js';
+import { resolvePackage } from '../../lib/package/index.js';
 
 export default class Remove extends Command {
     static override args = {
@@ -48,10 +48,18 @@ export default class Remove extends Command {
             this.error(infrastructure$.reason)
         }
         const { infrastructure } = infrastructure$
+        const getWorkspaceEnvOutput = await getWorkspaceEnv({
+            workspace: config.workspace,
+            project: config.project,
+        })
+        if (!getWorkspaceEnvOutput.success) {
+            this.error(getWorkspaceEnvOutput.reason)
+        }
+        const { env: workspaceEnv } = getWorkspaceEnvOutput
         const destroyOutput = await infrastructure.destroy({
             project: config.project,
             workspace: config.workspace,
-            workspaceEnv: {}, // todo: get workspace env vars from backend
+            workspaceEnv,
             pkgName: args.package,
             canonicalName,
             pkgUrl: packageUri,

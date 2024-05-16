@@ -1,8 +1,15 @@
-import { z } from 'zod';
-import { IacType } from '../iac/common.js';
-import { InfrastructureType } from '../infrastructure/common.js';
-import { getRepoContent } from './github.js';
+import { PackageManager } from './common.js';
+import { GitHubPackageManager } from './github.js';
+import { MockPackageManager } from './mock.js';
 import * as yaml from 'yaml';
+import { z } from 'zod';
+import { IacType } from '../../iac/common.js';
+import { InfrastructureType } from '../../infrastructure/common.js';
+
+export function getPackageManager(): PackageManager {
+    if (process.env.USE_MOCK) return new MockPackageManager();
+    return new GitHubPackageManager()
+}
 
 export async function resolvePackage(input: ResolvePackageInput): Promise<ResolvePackageOutput> {
     const pkgParts = input.package.split('/')
@@ -11,9 +18,10 @@ export async function resolvePackage(input: ResolvePackageInput): Promise<Resolv
     }
     const [owner, repo] = pkgParts
     const pkgUrl = `https://github.com/${input.package}`
+    const packageManager = getPackageManager()
     const metadataContentCandidates = (await Promise.all([
-        getRepoContent({ owner, repo, path: 'hereyarc.yaml' }),
-        getRepoContent({ owner, repo, path: 'hereyarc.yml' }),
+        packageManager.getRepoContent({ owner, repo, path: 'hereyarc.yaml' }),
+        packageManager.getRepoContent({ owner, repo, path: 'hereyarc.yml' }),
     ])).filter(content$ => content$.found)
 
     if (metadataContentCandidates.length === 0) {

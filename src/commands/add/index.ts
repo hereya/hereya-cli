@@ -1,9 +1,9 @@
 import { Args, Command, Flags } from '@oclif/core'
 import { addPackage, loadConfig } from '../../lib/config.js';
 import { getInfrastructure } from '../../infrastructure/index.js';
-import { addEnv, logEnv } from '../../lib/env.js';
+import { addEnv, getWorkspaceEnv, logEnv } from '../../lib/env.js';
 import { getBackend } from '../../backend/index.js';
-import { resolvePackage } from '../../lib/package.js';
+import { resolvePackage } from '../../lib/package/index.js';
 
 
 export default class Add extends Command {
@@ -49,10 +49,19 @@ export default class Add extends Command {
         }
         const { infrastructure } = infrastructure$
 
+        const getWorkspaceEnvOutput = await getWorkspaceEnv({
+            workspace: config.workspace,
+            project: config.project,
+        })
+        if (!getWorkspaceEnvOutput.success) {
+            this.error(getWorkspaceEnvOutput.reason)
+        }
+        const { env: workspaceEnv } = getWorkspaceEnvOutput
+
         const provisionOutput = await infrastructure.provision({
             project: config.project,
             workspace: config.workspace,
-            workspaceEnv: {}, // todo: get workspace env vars from backend
+            workspaceEnv,
             pkgName: args.package,
             canonicalName,
             pkgUrl: packageUri,

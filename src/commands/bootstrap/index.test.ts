@@ -5,7 +5,7 @@ describe('bootstrap', () => {
     .stdout()
     .stderr()
     .command(['bootstrap', 'fake'])
-    .it('reject wrong infrastructure type', ctx => {
+    .it('rejects wrong infrastructure type', ctx => {
         expect(ctx.stderr).to.contain('Infrastructure type fake is not supported yet!')
     })
 

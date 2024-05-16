@@ -70,6 +70,26 @@ export type GetProjectEnvOutput = {
     env: { [key: string]: string }
 }
 
+export async function getWorkspaceEnv(input: GetWorkspaceEnvInput): Promise<GetWorkspaceEnvOutput> {
+    return {
+        success: true,
+        env: {}
+    }
+}
+
+export type GetWorkspaceEnvInput = {
+    workspace: string;
+    project: string;
+}
+
+export type GetWorkspaceEnvOutput = {
+    success: true;
+    env: { [key: string]: string }
+} | {
+    success: false;
+    reason: string;
+}
+
 export function logEnv(env: { [key: string]: string }, logFn: (_: string) => void = console.log): void {
     for (const [key, value] of Object.entries(env)) {
         logFn(`${key}=${value}`)
