@@ -46,6 +46,10 @@ export class LocalInfrastructure implements Infrastructure {
         return { success: true, env: output.env };
     }
 
+    async resolveEnv(input: { value: string }) {
+        return { value: input.value };
+    }
+
     private async download(pkgUrl: string, destPath: string) {
         if (await this.isNotEmpty(destPath)) {
             console.log(`Package already downloaded at ${destPath}`);

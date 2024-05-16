@@ -10,8 +10,9 @@ export enum InfrastructureType {
 export interface Infrastructure {
     bootstrap(): Promise<void>;
     provision(input: ProvisionInput): Promise<ProvisionOutput>;
-
     destroy(input: DestroyInput): Promise<DestroyOutput>;
+
+    resolveEnv(input: ResolveEnvInput): Promise<ResolveEnvOutput>;
 }
 
 export type ProvisionInput = {
@@ -36,3 +37,11 @@ export type ProvisionOutput = {
 export type DestroyInput = ProvisionInput;
 
 export type DestroyOutput = ProvisionOutput;
+
+export type ResolveEnvInput = {
+    value: string;
+}
+
+export type ResolveEnvOutput = {
+    value: string;
+}

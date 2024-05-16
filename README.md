@@ -29,9 +29,11 @@ USAGE
 <!-- usagestop -->
 # Commands
 <!-- commands -->
-* [`hereya hello PERSON`](#hereya-hello-person)
-* [`hereya hello world`](#hereya-hello-world)
+
+* [`hereya add PACKAGE`](#hereya-add-package)
+* [`hereya bootstrap INFRASTRUCTURETYPE`](#hereya-bootstrap-infrastructuretype)
 * [`hereya help [COMMAND]`](#hereya-help-command)
+* [`hereya init PROJECT`](#hereya-init-project)
 * [`hereya plugins`](#hereya-plugins)
 * [`hereya plugins add PLUGIN`](#hereya-plugins-add-plugin)
 * [`hereya plugins:inspect PLUGIN...`](#hereya-pluginsinspect-plugin)
@@ -42,48 +44,61 @@ USAGE
 * [`hereya plugins uninstall [PLUGIN]`](#hereya-plugins-uninstall-plugin)
 * [`hereya plugins unlink [PLUGIN]`](#hereya-plugins-unlink-plugin)
 * [`hereya plugins update`](#hereya-plugins-update)
+* [`hereya remove PACKAGE`](#hereya-remove-package)
+* [`hereya run CMD`](#hereya-run-cmd)
 
-## `hereya hello PERSON`
+## `hereya add PACKAGE`
 
-Say hello
+add a package to the project
 
 ```
 USAGE
-  $ hereya hello PERSON -f <value>
+  $ hereya add PACKAGE [--chdir <value>]
 
 ARGUMENTS
-  PERSON  Person to say hello to
+  PACKAGE  The package to add. Packages are gitHub repositories. Use the format owner/repository
 
 FLAGS
-  -f, --from=<value>  (required) Who is saying hello
+  --chdir=<value>  directory to run command in
 
 DESCRIPTION
-  Say hello
+  add a package to the project
 
 EXAMPLES
-  $ hereya hello friend --from oclif
-  hello friend from oclif! (./src/commands/hello/index.ts)
+  $ hereya add cloudy/docker_postgres
 ```
 
-_See code: [src/commands/hello/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/hello/index.ts)_
+_See code: [src/commands/add/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/add/index.ts)_
 
-## `hereya hello world`
+## `hereya bootstrap INFRASTRUCTURETYPE`
 
-Say hello world
+install necessary resources for hereya operations in an infrastructure
 
 ```
 USAGE
-  $ hereya hello world
+  $ hereya bootstrap INFRASTRUCTURETYPE [-f]
+
+ARGUMENTS
+  INFRASTRUCTURETYPE  infrastructure to bootstrap. Options are local, aws, azure, gcp
+
+FLAGS
+  -f, --force  redeploy hereya resources if already deployed
 
 DESCRIPTION
-  Say hello world
+  install necessary resources for hereya operations in an infrastructure
 
 EXAMPLES
-  $ hereya hello world
-  hello world! (./src/commands/hello/world.ts)
+  $ hereya bootstrap aws
+
+  $ hereya bootstrap local
+
+  $ hereya bootstrap gcp
+
+  $ hereya bootstrap azure
 ```
 
-_See code: [src/commands/hello/world.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/hello/world.ts)_
+_See
+code: [src/commands/bootstrap/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/bootstrap/index.ts)_
 
 ## `hereya help [COMMAND]`
 
@@ -104,6 +119,32 @@ DESCRIPTION
 ```
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.0.22/src/commands/help.ts)_
+
+## `hereya init PROJECT`
+
+initialize hereya in a project directory
+
+```
+USAGE
+  $ hereya init PROJECT -w <value> [--chdir <value>]
+
+ARGUMENTS
+  PROJECT  project name
+
+FLAGS
+  -w, --workspace=<value>  (required) workspace to set as default
+      --chdir=<value>      directory to run command in
+
+DESCRIPTION
+  initialize hereya in a project directory
+
+EXAMPLES
+  $ hereya init myProject -w=defaultWorkspace
+
+  $ hereya init myProject -w=defaultWorkspace --chdir=./myProject
+```
+
+_See code: [src/commands/init/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/init/index.ts)_
 
 ## `hereya plugins`
 
@@ -393,4 +434,54 @@ DESCRIPTION
 ```
 
 _See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v5.0.21/src/commands/plugins/update.ts)_
+
+## `hereya remove PACKAGE`
+
+remove a package from the project
+
+```
+USAGE
+  $ hereya remove PACKAGE [--chdir <value>]
+
+ARGUMENTS
+  PACKAGE  The package to remove. Packages are gitHub repositories. Use the format owner/repository
+
+FLAGS
+  --chdir=<value>  directory to run command in
+
+DESCRIPTION
+  remove a package from the project
+
+EXAMPLES
+  $ hereya remove cloudy/docker_postgres
+```
+
+_See
+code: [src/commands/remove/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/remove/index.ts)_
+
+## `hereya run CMD`
+
+run a command with hereya env vars
+
+```
+USAGE
+  $ hereya run CMD... [-w <value>] [--chdir <value>]
+
+ARGUMENTS
+  CMD...  command to run
+
+FLAGS
+  -w, --workspace=<value>  name of the workspace to run the command in
+      --chdir=<value>      directory to run command in
+
+DESCRIPTION
+  run a command with hereya env vars
+
+EXAMPLES
+  $ hereya run -- npm run dev
+
+  $ hereya run -w uat -- node index.js
+```
+
+_See code: [src/commands/run/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/run/index.ts)_
 <!-- commandsstop -->
