@@ -1,9 +1,9 @@
 import { Args, Command, Flags } from '@oclif/core'
-import { addPackage, loadConfig } from '../../lib/config.js';
 import { getInfrastructure } from '../../infrastructure/index.js';
 import { addEnv, getWorkspaceEnv, logEnv } from '../../lib/env.js';
 import { getBackend } from '../../backend/index.js';
 import { resolvePackage } from '../../lib/package/index.js';
+import { getConfigManager } from '../../lib/config/index.js';
 
 
 export default class Add extends Command {
@@ -30,7 +30,9 @@ export default class Add extends Command {
     public async run(): Promise<void> {
         const { args, flags } = await this.parse(Add)
 
-        const loadConfigOutput = await loadConfig({ projectRootDir: flags.chdir })
+        const configManager = getConfigManager()
+
+        const loadConfigOutput = await configManager.loadConfig({ projectRootDir: flags.chdir })
         if (!loadConfigOutput.found) {
             this.warn(`Project not initialized. Run 'hereya init' first.`)
             return
@@ -83,13 +85,13 @@ export default class Add extends Command {
             projectRootDir: flags.chdir,
             workspace: config.workspace,
         })
-        await addPackage({
+        await configManager.addPackage({
             package: args.package,
             projectRootDir: flags.chdir,
         })
 
         const backend = await getBackend()
-        const { config: newConfig } = await loadConfig({ projectRootDir: flags.chdir })
+        const { config: newConfig } = await configManager.loadConfig({ projectRootDir: flags.chdir })
         await backend.saveState(newConfig)
     }
 }

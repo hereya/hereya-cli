@@ -1,7 +1,8 @@
 import { Args, Command, Flags } from '@oclif/core'
 
 import { getBackend } from '../../backend/index.js';
-import { Config, loadConfig, saveConfig } from '../../lib/config.js';
+import { Config } from '../../lib/config/common.js';
+import { getConfigManager } from '../../lib/config/index.js';
 
 
 export default class Init extends Command {
@@ -31,7 +32,9 @@ export default class Init extends Command {
 
     public async run(): Promise<void> {
         const { args, flags } = await this.parse(Init)
-        const config$ = await loadConfig({ projectRootDir: flags.chdir })
+
+        const configManager = getConfigManager()
+        const config$ = await configManager.loadConfig({ projectRootDir: flags.chdir })
         if (config$.found) {
             this.warn(`Project already initialized.`)
             return
@@ -48,7 +51,7 @@ export default class Init extends Command {
             workspace: initProjectOutput.workspace.name,
         }
 
-        await saveConfig({ config: content, projectRootDir: flags.chdir })
+        await configManager.saveConfig({ config: content, projectRootDir: flags.chdir })
 
         this.log(`Initialized project ${initProjectOutput.project.name}.`)
         this.log(`Current workspace set to ${initProjectOutput.workspace.name}.`)

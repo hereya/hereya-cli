@@ -25,11 +25,9 @@ describe('package', () => {
         });
 
         myTest
-        .add('packages', [] as string[])
         .do((ctx) => {
             MockPackageManager.getRepoContent.setImplementation(async ({ path }) => {
-                ctx.packages.push(path)
-                if (path === 'hereyarc.yml') {
+                if (path === 'hereyarc.yaml') {
                     return {
                         found: true,
                         content: `
@@ -44,14 +42,41 @@ describe('package', () => {
                 }
             })
         })
-        .it(`works for either yml or yaml extensions`, async ctx => {
+        .it(`works for yaml extensions`, async ctx => {
             const output = await resolvePackage({ package: 'org/myPkg' })
-            expect(ctx.packages).to.deep.equal(['hereyarc.yaml', 'hereyarc.yml'])
             expect(output).to.have.property('found', true);
             expect(output).to.deep.contain({
                 packageUri: 'https://github.com/org/myPkg',
                 canonicalName: 'org-myPkg',
                 metadata: { iac: 'terraform', infra: 'local' }
+            });
+        })
+
+        myTest
+        .do((ctx) => {
+            MockPackageManager.getRepoContent.setImplementation(async ({ path }) => {
+                if (path === 'hereyarc.yml') {
+                    return {
+                        found: true,
+                        content: `
+                        iac: cdk
+                        infra: aws
+                        `
+                    }
+                }
+                return {
+                    found: false,
+                    reason: 'not found'
+                }
+            })
+        })
+        .it(`works for yml extensions`, async ctx => {
+            const output = await resolvePackage({ package: 'org/myPkg' })
+            expect(output).to.have.property('found', true);
+            expect(output).to.deep.contain({
+                packageUri: 'https://github.com/org/myPkg',
+                canonicalName: 'org-myPkg',
+                metadata: { iac: 'cdk', infra: 'aws' }
             });
         })
     });

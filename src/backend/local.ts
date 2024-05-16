@@ -1,5 +1,5 @@
 import { Backend, InitProjectInput, InitProjectOutput } from './common.js';
-import { Config } from '../lib/config.js';
+import { Config } from '../lib/config/common.js';
 import { getAnyPath } from '../lib/filesystem.js';
 import * as path from 'node:path';
 import * as os from 'node:os';

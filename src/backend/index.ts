@@ -2,7 +2,7 @@ import { Backend } from './common.js';
 import { LocalBackend } from './local.js';
 import { randomUUID } from 'node:crypto';
 import { util } from 'zod';
-import { Config } from '../lib/config.js';
+import { Config } from '../lib/config/common.js';
 import Omit = util.Omit;
 
 export async function getBackend(): Promise<Backend> {

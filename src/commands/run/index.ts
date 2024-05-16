@@ -1,7 +1,7 @@
 import { Args, Command, Flags } from '@oclif/core'
 import { execa } from '@esm2cjs/execa'
-import { loadConfig } from '../../lib/config.js';
 import { getProjectEnv } from '../../lib/env.js';
+import { getConfigManager } from '../../lib/config/index.js';
 
 export default class Run extends Command {
     static args = {
@@ -32,7 +32,8 @@ export default class Run extends Command {
     public async run(): Promise<void> {
         const { args, argv, flags } = await this.parse(Run)
 
-        const loadConfigOutput = await loadConfig({ projectRootDir: flags.chdir })
+        const configManager = getConfigManager()
+        const loadConfigOutput = await configManager.loadConfig({ projectRootDir: flags.chdir })
         if (!loadConfigOutput.found) {
             this.warn(`Project not initialized. Run 'hereya init' first.`)
             return

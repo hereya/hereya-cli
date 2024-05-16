@@ -1,10 +1,9 @@
 import { Args, Command, Flags } from '@oclif/core'
-import * as cfg from '../../lib/config.js';
-import { loadConfig } from '../../lib/config.js';
 import { getInfrastructure } from '../../infrastructure/index.js';
 import { getWorkspaceEnv, logEnv, removeEnv } from '../../lib/env.js';
 import { getBackend } from '../../backend/index.js';
 import { resolvePackage } from '../../lib/package/index.js';
+import { getConfigManager } from '../../lib/config/index.js';
 
 export default class Remove extends Command {
     static override args = {
@@ -30,7 +29,8 @@ export default class Remove extends Command {
     public async run(): Promise<void> {
         const { args, flags } = await this.parse(Remove)
 
-        const loadConfigOutput = await cfg.loadConfig({ projectRootDir: flags.chdir })
+        const configManager = getConfigManager()
+        const loadConfigOutput = await configManager.loadConfig({ projectRootDir: flags.chdir })
         if (!loadConfigOutput.found) {
             this.warn(`Project not initialized. Run 'hereya init' first.`)
             return
@@ -80,13 +80,13 @@ export default class Remove extends Command {
             projectRootDir: flags.chdir,
             workspace: config.workspace
         })
-        await cfg.removePackage({
+        await configManager.removePackage({
             projectRootDir: flags.chdir,
             package: args.package
         })
 
         const backend = await getBackend()
-        const { config: newConfig } = await loadConfig({ projectRootDir: flags.chdir })
+        const { config: newConfig } = await configManager.loadConfig({ projectRootDir: flags.chdir })
         await backend.saveState(newConfig)
     }
 }

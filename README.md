@@ -29,7 +29,6 @@ USAGE
 <!-- usagestop -->
 # Commands
 <!-- commands -->
-
 * [`hereya add PACKAGE`](#hereya-add-package)
 * [`hereya bootstrap INFRASTRUCTURETYPE`](#hereya-bootstrap-infrastructuretype)
 * [`hereya help [COMMAND]`](#hereya-help-command)

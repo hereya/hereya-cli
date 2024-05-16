@@ -1,4 +1,4 @@
-import { Config } from '../lib/config.js';
+import { Config } from '../lib/config/common.js';
 
 export interface Backend {
     init(options: InitProjectInput): Promise<InitProjectOutput>;
