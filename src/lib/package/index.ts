@@ -1,14 +1,14 @@
 import { PackageManager } from './common.js';
 import { GitHubPackageManager } from './github.js';
-import { MockPackageManager } from './mock.js';
 import * as yaml from 'yaml';
 import { z } from 'zod';
 import { IacType } from '../../iac/common.js';
 import { InfrastructureType } from '../../infrastructure/common.js';
 
+export const packageManager: PackageManager = new GitHubPackageManager();
+
 export function getPackageManager(): PackageManager {
-    if (process.env.USE_MOCK) return new MockPackageManager();
-    return new GitHubPackageManager()
+    return packageManager;
 }
 
 export async function resolvePackage(input: ResolvePackageInput): Promise<ResolvePackageOutput> {
