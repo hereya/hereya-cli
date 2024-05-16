@@ -1,5 +1,7 @@
 export interface Iac {
     apply(input: ApplyInput): Promise<ApplyOutput>;
+
+    destroy(input: DestroyInput): Promise<DestroyOutput>;
 }
 
 export enum IacType {
@@ -19,3 +21,6 @@ export type ApplyOutput = {
     success: false;
     reason: string;
 }
+
+export type DestroyInput = ApplyInput;
+export type DestroyOutput = ApplyOutput;

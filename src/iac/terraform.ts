@@ -1,4 +1,4 @@
-import { ApplyInput, ApplyOutput, Iac } from './common.js';
+import { ApplyInput, ApplyOutput, DestroyInput, DestroyOutput, Iac } from './common.js';
 import { runShell } from '../lib/shell.js';
 
 export class Terraform implements Iac {
@@ -26,6 +26,33 @@ export class Terraform implements Iac {
                 env
             }
 
+        } catch (error: any) {
+            return {
+                success: false,
+                reason: error.message
+            }
+        }
+    }
+
+    async destroy(input: DestroyInput): Promise<DestroyOutput> {
+        const applyOutput = await this.apply(input)
+        if (!applyOutput.success) {
+            return applyOutput
+        }
+        const { env } = applyOutput
+        try {
+            runShell(
+                'terraform',
+                ['destroy', '-auto-approve'],
+                {
+                    directory: input.pkgPath,
+                    env
+                }
+            )
+            return {
+                success: true,
+                env
+            }
         } catch (error: any) {
             return {
                 success: false,

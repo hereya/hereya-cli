@@ -1,20 +1,20 @@
 import { Args, Command, Flags } from '@oclif/core'
-import { addPackage, loadConfig } from '../../lib/config.js';
-import { getInfrastructure } from '../../infrastructure/index.js';
-import { addEnv, logEnv } from '../../lib/env.js';
-import { getBackend } from '../../backend/index.js';
+import * as cfg from '../../lib/config.js';
+import { loadConfig } from '../../lib/config.js';
 import { resolvePackage } from '../../lib/package.js';
+import { getInfrastructure } from '../../infrastructure/index.js';
+import { logEnv, removeEnv } from '../../lib/env.js';
+import { getBackend } from '../../backend/index.js';
 
-
-export default class Add extends Command {
+export default class Remove extends Command {
     static override args = {
         package: Args.string({
-            description: 'The package to add. Packages are gitHub repositories. Use the format owner/repository',
+            description: 'The package to remove. Packages are gitHub repositories. Use the format owner/repository',
             required: true
         }),
     }
 
-    static override description = 'add a package to the project'
+    static override description = 'remove a package from the project'
 
     static override examples = [
         '<%= config.bin %> <%= command.id %> cloudy/docker_postgres',
@@ -28,9 +28,9 @@ export default class Add extends Command {
     }
 
     public async run(): Promise<void> {
-        const { args, flags } = await this.parse(Add)
+        const { args, flags } = await this.parse(Remove)
 
-        const loadConfigOutput = await loadConfig({ projectRootDir: flags.chdir })
+        const loadConfigOutput = await cfg.loadConfig({ projectRootDir: flags.chdir })
         if (!loadConfigOutput.found) {
             this.warn(`Project not initialized. Run 'hereya init' first.`)
             return
@@ -48,8 +48,7 @@ export default class Add extends Command {
             this.error(infrastructure$.reason)
         }
         const { infrastructure } = infrastructure$
-
-        const provisionOutput = await infrastructure.provision({
+        const destroyOutput = await infrastructure.destroy({
             project: config.project,
             workspace: config.workspace,
             workspaceEnv: {}, // todo: get workspace env vars from backend
@@ -58,25 +57,24 @@ export default class Add extends Command {
             pkgUrl: packageUri,
             iacType: metadata.iac,
         })
-        if (!provisionOutput.success) {
-            this.error(provisionOutput.reason)
+        if (!destroyOutput.success) {
+            this.error(destroyOutput.reason)
         }
+        const { env } = destroyOutput
 
-        const { env } = provisionOutput
-        this.log(`Package ${args.package} added successfully`)
-        this.log(`Saving exported environment variables`)
-        // log env vars
+        this.log(`Infrastructure resources for ${args.package} have been destroyed`)
+
+        this.log('removing the following env vars from project')
         logEnv(env, this.log.bind(this))
-
-        await addEnv({
+        await removeEnv({
             env,
             infra: metadata.infra,
             projectRootDir: flags.chdir,
-            workspace: config.workspace,
+            workspace: config.workspace
         })
-        await addPackage({
-            package: args.package,
+        await cfg.removePackage({
             projectRootDir: flags.chdir,
+            package: args.package
         })
 
         const backend = await getBackend()

@@ -1,4 +1,3 @@
-import { z } from 'zod';
 import { IacType } from '../iac/common.js';
 
 export enum InfrastructureType {
@@ -10,23 +9,21 @@ export enum InfrastructureType {
 
 export interface Infrastructure {
     bootstrap(): Promise<void>;
-
     provision(input: ProvisionInput): Promise<ProvisionOutput>;
-}
 
-export const PackageMetadata = z.object({
-    iac: z.nativeEnum(IacType),
-    infra: z.nativeEnum(InfrastructureType),
-});
+    destroy(input: DestroyInput): Promise<DestroyOutput>;
+}
 
 export type ProvisionInput = {
     project: string;
     workspace: string;
     workspaceEnv: { [key: string]: string };
     pkgName: string;
+    canonicalName: string;
     pkgUrl: string;
     iacType: IacType;
 }
+
 
 export type ProvisionOutput = {
     success: true;
@@ -35,3 +32,7 @@ export type ProvisionOutput = {
     success: false;
     reason: string;
 }
+
+export type DestroyInput = ProvisionInput;
+
+export type DestroyOutput = ProvisionOutput;

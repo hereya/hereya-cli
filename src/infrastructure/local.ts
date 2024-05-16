@@ -12,7 +12,7 @@ export class LocalInfrastructure implements Infrastructure {
     }
 
     async provision(input: ProvisionInput): Promise<ProvisionOutput> {
-        const destPath = path.join(os.homedir(), '.hereya', input.project, input.workspace, input.pkgName.replace('/', '-'));
+        const destPath = path.join(os.homedir(), '.hereya', input.project, input.workspace, input.canonicalName);
         const downloadPath = await this.download(input.pkgUrl, destPath);
         const iac$ = getIac({ type: input.iacType });
         if (!iac$.supported) {
@@ -23,6 +23,25 @@ export class LocalInfrastructure implements Infrastructure {
         if (!output.success) {
             return { success: false, reason: output.reason };
         }
+
+        return { success: true, env: output.env };
+    }
+
+    async destroy(input: ProvisionInput): Promise<ProvisionOutput> {
+        const destPath = path.join(os.homedir(), '.hereya', input.project, input.workspace, input.canonicalName);
+        const downloadPath = await this.download(input.pkgUrl, destPath);
+        const iac$ = getIac({ type: input.iacType });
+        if (!iac$.supported) {
+            return { success: false, reason: iac$.reason };
+        }
+        const { iac } = iac$;
+        const output = await iac.destroy({ pkgPath: downloadPath, env: input.workspaceEnv });
+        if (!output.success) {
+            return { success: false, reason: output.reason };
+        }
+
+        // Remove downloaded package
+        await fs.rm(downloadPath, { recursive: true });
 
         return { success: true, env: output.env };
     }

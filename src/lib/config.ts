@@ -54,6 +54,18 @@ export type AddPackageInput = {
     package: string
 }
 
+export async function removePackage(input: RemovePackageInput): Promise<void> {
+    const { config } = await loadConfig({ projectRootDir: input.projectRootDir })
+    const newPackages = { ...config.packages }
+    delete newPackages[input.package]
+    await yaml.save({
+        ...config,
+        packages: newPackages,
+    }, await getConfigPath(input.projectRootDir))
+}
+
+export type RemovePackageInput = AddPackageInput
+
 async function getConfigPath(rootDir?: string): Promise<string> {
     return await getAnyPath(
         path.join(rootDir ?? process.cwd(), 'hereya.yaml'),
