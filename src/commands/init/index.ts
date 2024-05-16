@@ -51,6 +51,6 @@ export default class Init extends Command {
         await saveConfig({ config: content, projectRootDir: flags.chdir })
 
         this.log(`Initialized project ${initProjectOutput.project.name}.`)
-        this.log(`Current workspace set to ${content.workspace}.`)
+        this.log(`Current workspace set to ${initProjectOutput.workspace.name}.`)
     }
 }

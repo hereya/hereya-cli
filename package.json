@@ -11,7 +11,10 @@
     "@oclif/core": "^3",
     "@oclif/plugin-help": "^6",
     "@oclif/plugin-plugins": "^5",
-    "yaml": "^2.4.2"
+    "@octokit/rest": "^20.1.1",
+    "simple-git": "^3.24.0",
+    "yaml": "^2.4.2",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@oclif/prettier-config": "^0.2.1",
@@ -29,6 +32,7 @@
     "lint-staged": "^15.2.2",
     "mocha": "^10",
     "mock-fs": "^5.2.0",
+    "nock": "^13.5.4",
     "oclif": "^4",
     "shx": "^0.3.3",
     "ts-node": "^10",

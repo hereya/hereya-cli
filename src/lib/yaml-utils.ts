@@ -1,8 +1,10 @@
-import { readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { parse, stringify } from 'yaml';
+import * as path from 'node:path';
 
 export async function save<T extends object>(content: T, file: string) {
     try {
+        await mkdir(path.dirname(file), { recursive: true })
         await writeFile(file, stringify(content), {encoding: 'utf8'})
     } catch (error) {
         throw new Error(`could not save data to file ${file} ${error}`)
@@ -26,3 +28,4 @@ export async function load<T extends object>(file: string): Promise<{ data: T, f
 
     return {data: data || {}, found}
 }
+

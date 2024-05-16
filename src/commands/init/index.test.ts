@@ -21,11 +21,11 @@ describe('init', () => {
     setup
     .stderr()
     .do(() => {
-        fs.writeFileSync('./tmp/myProject/hereya.yaml', 'project: myProject\nworkspace: myWorkspace')
+        fs.writeFileSync('./tmp/myProject/hereya.yml', 'project: myProject\nworkspace: myWorkspace')
     })
     .command(['init', 'myProject2', '--workspace=dev', '--chdir=./tmp/myProject'])
     .it('does nothing if project already initialized', ctx => {
-        const content = fs.readFileSync('./tmp/myProject/hereya.yaml', 'utf8')
+        const content = fs.readFileSync('./tmp/myProject/hereya.yml', 'utf8')
         expect(content).to.contain('project: myProject\nworkspace: myWorkspace')
         expect(ctx.stderr).to.contain(`Project already initialized.`)
     });
