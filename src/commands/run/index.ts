@@ -2,7 +2,7 @@ import { execa } from '@esm2cjs/execa'
 import { Args, Command, Flags } from '@oclif/core'
 
 import { getConfigManager } from '../../lib/config/index.js';
-import { getProjectEnv } from '../../lib/env.js';
+import { getEnvManager } from '../../lib/env/index.js';
 
 export default class Run extends Command {
     static args = {
@@ -51,7 +51,8 @@ export default class Run extends Command {
             return this.error('you must specify a workspace to run the command in')
         }
 
-        const { env } = await getProjectEnv({
+        const envManager = getEnvManager()
+        const { env } = await envManager.getProjectEnv({
             projectRootDir: chdir,
             workspace,
         })

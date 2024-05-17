@@ -3,7 +3,8 @@ import { Args, Command, Flags } from '@oclif/core'
 import { getBackend } from '../../backend/index.js';
 import { getInfrastructure } from '../../infrastructure/index.js';
 import { getConfigManager } from '../../lib/config/index.js';
-import { getWorkspaceEnv, logEnv, removeEnv } from '../../lib/env.js';
+import { getEnvManager } from '../../lib/env/index.js';
+import { logEnv } from '../../lib/env-utils.js';
 import { resolvePackage } from '../../lib/package/index.js';
 
 export default class Remove extends Command {
@@ -52,7 +53,8 @@ export default class Remove extends Command {
         }
 
         const { infrastructure } = infrastructure$
-        const getWorkspaceEnvOutput = await getWorkspaceEnv({
+        const envManager = getEnvManager()
+        const getWorkspaceEnvOutput = await envManager.getWorkspaceEnv({
             project: config.project,
             workspace: config.workspace,
         })
@@ -80,7 +82,8 @@ export default class Remove extends Command {
 
         this.log('removing the following env vars from project')
         logEnv(env, this.log.bind(this))
-        await removeEnv({
+
+        await envManager.removeProjectEnv({
             env,
             infra: metadata.infra,
             projectRootDir: flags.chdir,

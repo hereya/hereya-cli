@@ -1,11 +1,14 @@
 import { Infrastructure, InfrastructureType } from './common.js';
 import { LocalInfrastructure } from './local.js';
 
+
+export const localInfrastructure = new LocalInfrastructure()
+
 export async function getInfrastructure(input: GetInfrastructureInput): Promise<GetInfrastructureOutput> {
     switch (input.type) {
         case InfrastructureType.local: {
             return {
-                infrastructure: new LocalInfrastructure(),
+                infrastructure: localInfrastructure,
                 supported: true
             }
         }

@@ -3,7 +3,8 @@ import { Args, Command, Flags } from '@oclif/core'
 import { getBackend } from '../../backend/index.js';
 import { getInfrastructure } from '../../infrastructure/index.js';
 import { getConfigManager } from '../../lib/config/index.js';
-import { addEnv, getWorkspaceEnv, logEnv } from '../../lib/env.js';
+import { getEnvManager } from '../../lib/env/index.js';
+import { logEnv } from '../../lib/env-utils.js';
 import { resolvePackage } from '../../lib/package/index.js';
 
 
@@ -31,9 +32,11 @@ export default class Add extends Command {
     public async run(): Promise<void> {
         const { args, flags } = await this.parse(Add)
 
+        const projectRootDir = flags.chdir || process.env.HEREYA_PROJECT_ROOT_DIR
+
         const configManager = getConfigManager()
 
-        const loadConfigOutput = await configManager.loadConfig({ projectRootDir: flags.chdir })
+        const loadConfigOutput = await configManager.loadConfig({ projectRootDir })
         if (!loadConfigOutput.found) {
             this.warn(`Project not initialized. Run 'hereya init' first.`)
             return
@@ -54,8 +57,8 @@ export default class Add extends Command {
         }
 
         const { infrastructure } = infrastructure$
-
-        const getWorkspaceEnvOutput = await getWorkspaceEnv({
+        const envManager = getEnvManager()
+        const getWorkspaceEnvOutput = await envManager.getWorkspaceEnv({
             project: config.project,
             workspace: config.workspace,
         })
@@ -84,19 +87,19 @@ export default class Add extends Command {
         // log env vars
         logEnv(env, this.log.bind(this))
 
-        await addEnv({
+        await envManager.addProjectEnv({
             env,
             infra: metadata.infra,
-            projectRootDir: flags.chdir,
+            projectRootDir,
             workspace: config.workspace,
         })
         await configManager.addPackage({
             package: args.package,
-            projectRootDir: flags.chdir,
+            projectRootDir,
         })
 
         const backend = await getBackend()
-        const { config: newConfig } = await configManager.loadConfig({ projectRootDir: flags.chdir })
+        const { config: newConfig } = await configManager.loadConfig({ projectRootDir })
         await backend.saveState(newConfig)
     }
 }

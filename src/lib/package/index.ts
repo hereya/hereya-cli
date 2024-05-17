@@ -31,13 +31,16 @@ export async function resolvePackage(input: ResolvePackageInput): Promise<Resolv
     }
 
     const metadataContent$ = metadataContentCandidates[0] as { content: string }
-    const metadata = PackageMetadata.parse(yaml.parse(metadataContent$.content))
-
-    return {
-        canonicalName: input.package.replace('/', '-'),
-        found: true,
-        metadata,
-        packageUri: pkgUrl
+    try {
+        const metadata = PackageMetadata.parse(yaml.parse(metadataContent$.content))
+        return {
+            canonicalName: input.package.replace('/', '-'),
+            found: true,
+            metadata,
+            packageUri: pkgUrl
+        }
+    } catch (error: any) {
+        return { found: false, reason: error.message }
     }
 }
 
