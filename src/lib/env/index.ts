@@ -1,7 +1,7 @@
 import path from 'node:path';
 
 import { InfrastructureType } from '../../infrastructure/common.js';
-import { getInfrastructure } from '../../infrastructure/index.js';
+import { resolveEnvValues } from '../env-utils.js';
 import { getAnyPath } from '../filesystem.js';
 import { load, save } from '../yaml-utils.js';
 
@@ -20,32 +20,9 @@ export class EnvManager {
 
     async getProjectEnv(input: GetProjectEnvInput): Promise<GetProjectEnvOutput> {
         const envPath = await this.getEnvPath(input)
-        const { data: env } = await load(envPath)
-        const resolvedEnv = Object.fromEntries(
-            await Promise.all(
-                Object.entries(env)
-                .map(async ([key, value]) => {
-                    const infraType = value.split(':')[0] as InfrastructureType
-                    const infra$ = await getInfrastructure({ type: infraType })
-                    if (!infra$.supported) {
-                        throw new Error(infra$.reason)
-                    }
-
-                    const { infrastructure } = infra$
-                    const valueWithoutInfra = value.split(':').slice(1).join(':')
-                    const { value: resolvedValue } = await infrastructure.resolveEnv({ value: valueWithoutInfra })
-                    return [key, resolvedValue]
-                })
-            )
-        )
+        const { data: env } = await load<{ [k: string]: string }>(envPath)
+        const resolvedEnv = await resolveEnvValues(env);
         return { env: resolvedEnv }
-    }
-
-    async getWorkspaceEnv(_: GetWorkspaceEnvInput): Promise<GetWorkspaceEnvOutput> {
-        return {
-            env: {},
-            success: true
-        }
     }
 
     async removeProjectEnv(input: RemoveEnvInput): Promise<void> {
@@ -92,17 +69,4 @@ export type GetProjectEnvInput = {
 
 export type GetProjectEnvOutput = {
     env: { [key: string]: string }
-}
-
-export type GetWorkspaceEnvInput = {
-    project: string;
-    workspace: string;
-}
-
-export type GetWorkspaceEnvOutput = {
-    env: { [key: string]: string }
-    success: true;
-} | {
-    reason: string;
-    success: false;
 }

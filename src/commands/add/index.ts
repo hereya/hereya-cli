@@ -1,11 +1,10 @@
 import { Args, Command, Flags } from '@oclif/core'
 
 import { getBackend } from '../../backend/index.js';
-import { getInfrastructure } from '../../infrastructure/index.js';
+import { provisionPackage } from '../../infrastructure/index.js';
 import { getConfigManager } from '../../lib/config/index.js';
 import { getEnvManager } from '../../lib/env/index.js';
 import { logEnv } from '../../lib/env-utils.js';
-import { resolvePackage } from '../../lib/package/index.js';
 
 
 export default class Add extends Command {
@@ -44,21 +43,8 @@ export default class Add extends Command {
 
         const { config } = loadConfigOutput
 
-        const resolvePackageOutput = await resolvePackage({ package: args.package })
-        if (!resolvePackageOutput.found) {
-            this.error(resolvePackageOutput.reason)
-        }
-
-        const { canonicalName, metadata, packageUri } = resolvePackageOutput
-
-        const infrastructure$ = await getInfrastructure({ type: metadata.infra })
-        if (!infrastructure$.supported) {
-            this.error(infrastructure$.reason)
-        }
-
-        const { infrastructure } = infrastructure$
-        const envManager = getEnvManager()
-        const getWorkspaceEnvOutput = await envManager.getWorkspaceEnv({
+        const backend = await getBackend()
+        const getWorkspaceEnvOutput = await backend.getWorkspaceEnv({
             project: config.project,
             workspace: config.workspace,
         })
@@ -68,25 +54,24 @@ export default class Add extends Command {
 
         const { env: workspaceEnv } = getWorkspaceEnvOutput
 
-        const provisionOutput = await infrastructure.provision({
-            canonicalName,
-            iacType: metadata.iac,
-            pkgName: args.package,
-            pkgUrl: packageUri,
+        const provisionOutput = await provisionPackage({
+            package: args.package,
             project: config.project,
             workspace: config.workspace,
             workspaceEnv,
         })
+
         if (!provisionOutput.success) {
             this.error(provisionOutput.reason)
         }
 
-        const { env } = provisionOutput
+        const { env, metadata } = provisionOutput
         this.log(`Package ${args.package} added successfully`)
         this.log(`Saving exported environment variables`)
         // log env vars
         logEnv(env, this.log.bind(this))
 
+        const envManager = getEnvManager()
         await envManager.addProjectEnv({
             env,
             infra: metadata.infra,
@@ -98,7 +83,7 @@ export default class Add extends Command {
             projectRootDir,
         })
 
-        const backend = await getBackend()
+
         const { config: newConfig } = await configManager.loadConfig({ projectRootDir })
         await backend.saveState(newConfig)
     }

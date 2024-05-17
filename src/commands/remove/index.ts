@@ -1,11 +1,10 @@
 import { Args, Command, Flags } from '@oclif/core'
 
 import { getBackend } from '../../backend/index.js';
-import { getInfrastructure } from '../../infrastructure/index.js';
+import { destroyPackage } from '../../infrastructure/index.js';
 import { getConfigManager } from '../../lib/config/index.js';
 import { getEnvManager } from '../../lib/env/index.js';
 import { logEnv } from '../../lib/env-utils.js';
-import { resolvePackage } from '../../lib/package/index.js';
 
 export default class Remove extends Command {
     static override args = {
@@ -41,22 +40,8 @@ export default class Remove extends Command {
         }
 
         const { config } = loadConfigOutput
-
-        const resolvePackageOutput = await resolvePackage({ package: args.package })
-        if (!resolvePackageOutput.found) {
-            this.error(resolvePackageOutput.reason)
-        }
-
-        const { canonicalName, metadata, packageUri } = resolvePackageOutput
-
-        const infrastructure$ = await getInfrastructure({ type: metadata.infra })
-        if (!infrastructure$.supported) {
-            this.error(infrastructure$.reason)
-        }
-
-        const { infrastructure } = infrastructure$
-        const envManager = getEnvManager()
-        const getWorkspaceEnvOutput = await envManager.getWorkspaceEnv({
+        const backend = await getBackend()
+        const getWorkspaceEnvOutput = await backend.getWorkspaceEnv({
             project: config.project,
             workspace: config.workspace,
         })
@@ -65,26 +50,25 @@ export default class Remove extends Command {
         }
 
         const { env: workspaceEnv } = getWorkspaceEnvOutput
-        const destroyOutput = await infrastructure.destroy({
-            canonicalName,
-            iacType: metadata.iac,
-            pkgName: args.package,
-            pkgUrl: packageUri,
+        const destroyOutput = await destroyPackage({
+            package: args.package,
             project: config.project,
             workspace: config.workspace,
             workspaceEnv,
         })
+
         if (!destroyOutput.success) {
             this.error(destroyOutput.reason)
         }
 
-        const { env } = destroyOutput
+        const { env, metadata } = destroyOutput
 
         this.log(`Infrastructure resources for ${args.package} have been destroyed`)
 
         this.log('removing the following env vars from project')
         logEnv(env, this.log.bind(this))
 
+        const envManager = getEnvManager()
         await envManager.removeProjectEnv({
             env,
             infra: metadata.infra,
@@ -96,7 +80,6 @@ export default class Remove extends Command {
             projectRootDir
         })
 
-        const backend = await getBackend()
         const { config: newConfig } = await configManager.loadConfig({ projectRootDir })
         await backend.saveState(newConfig)
     }

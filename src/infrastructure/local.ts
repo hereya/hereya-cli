@@ -13,7 +13,8 @@ export class LocalInfrastructure implements Infrastructure {
     }
 
     async destroy(input: ProvisionInput): Promise<ProvisionOutput> {
-        const destPath = path.join(os.homedir(), '.hereya', input.project, input.workspace, input.canonicalName);
+        // noinspection DuplicatedCode
+        const destPath = path.join(os.homedir(), '.hereya', input.project ?? 'workspaces', input.workspace, input.canonicalName);
         const downloadPath = await this.download(input.pkgUrl, destPath);
         const iac$ = getIac({ type: input.iacType });
         if (!iac$.supported) {
@@ -21,7 +22,7 @@ export class LocalInfrastructure implements Infrastructure {
         }
 
         const { iac } = iac$;
-        const output = await iac.destroy({ env: input.workspaceEnv, pkgPath: downloadPath });
+        const output = await iac.destroy({ env: input.workspaceEnv ?? {}, pkgPath: downloadPath });
         if (!output.success) {
             return { reason: output.reason, success: false };
         }
@@ -33,7 +34,8 @@ export class LocalInfrastructure implements Infrastructure {
     }
 
     async provision(input: ProvisionInput): Promise<ProvisionOutput> {
-        const destPath = path.join(os.homedir(), '.hereya', input.project, input.workspace, input.canonicalName);
+        // noinspection DuplicatedCode
+        const destPath = path.join(os.homedir(), '.hereya', input.project ?? 'workspaces', input.workspace, input.canonicalName);
         const downloadPath = await this.download(input.pkgUrl, destPath);
         const iac$ = getIac({ type: input.iacType });
         if (!iac$.supported) {
@@ -41,7 +43,7 @@ export class LocalInfrastructure implements Infrastructure {
         }
 
         const { iac } = iac$;
-        const output = await iac.apply({ env: input.workspaceEnv, pkgPath: downloadPath });
+        const output = await iac.apply({ env: input.workspaceEnv ?? {}, pkgPath: downloadPath });
         if (!output.success) {
             return { reason: output.reason, success: false };
         }

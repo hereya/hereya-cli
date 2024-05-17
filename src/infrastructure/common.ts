@@ -25,9 +25,9 @@ export type ProvisionInput = {
     iacType: IacType;
     pkgName: string;
     pkgUrl: string;
-    project: string;
+    project?: string;
     workspace: string;
-    workspaceEnv: { [key: string]: string };
+    workspaceEnv?: { [key: string]: string };
 }
 
 
