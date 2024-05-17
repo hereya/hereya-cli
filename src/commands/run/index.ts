@@ -1,8 +1,8 @@
-import { execa } from '@esm2cjs/execa'
 import { Args, Command, Flags } from '@oclif/core'
 
 import { getConfigManager } from '../../lib/config/index.js';
 import { getEnvManager } from '../../lib/env/index.js';
+import { runShell } from '../../lib/shell.js';
 
 export default class Run extends Command {
     static args = {
@@ -63,13 +63,13 @@ export default class Run extends Command {
         const cmdArgs = argv.slice(1) as string[]
 
         this.log(`Running command "${cmd} ${cmdArgs.join(' ')}" ...`)
-        const res = await execa(cmd, cmdArgs, {
-            cwd: projectRootDir,
+        const res = runShell(cmd, cmdArgs, {
+            directory: projectRootDir,
             env: { ...process.env, ...env },
             stdio: 'inherit',
         })
-        if (res.exitCode !== 0) {
-            this.error(res.stderr)
+        if (res.status !== 0) {
+            this.error(res.error?.message || 'Command failed')
         }
     }
 }

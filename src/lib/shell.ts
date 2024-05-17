@@ -10,8 +10,11 @@ export function runShell(cmd: string, args: string[], options: RunShellOptions =
     // Run the command
     const result = spawnSync(cmd, args, {
         cwd: options.directory ?? process.cwd(),
+        encoding: 'utf8',
         env: { ...process.env, ...options.env },
+        shell: true,
         stdio: options.stdio ?? 'inherit',
+
     })
 
     // Throw an error if the command failed
