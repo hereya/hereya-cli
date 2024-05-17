@@ -61,7 +61,11 @@
       "@oclif/plugin-plugins"
     ],
     "topicSeparator": " ",
-    "topics": {}
+    "topics": {
+      "workspace": {
+        "description": "Manage Hereya workspaces"
+      }
+    }
   },
   "repository": "hereya/hereya-cli",
   "scripts": {
