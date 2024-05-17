@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
-describe('workspace/create', () => {
+describe('workspace:create', () => {
     const homeDir = path.join(os.tmpdir(), 'hereya-test-workspace-create', randomUUID())
 
     const setupTest = test
