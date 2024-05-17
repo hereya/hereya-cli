@@ -33,27 +33,29 @@ export default class Run extends Command {
     public async run(): Promise<void> {
         const { args, argv, flags } = await this.parse(Run)
 
+        const projectRootDir = flags.chdir || process.env.HEREYA_PROJECT_ROOT_DIR
+
         const configManager = getConfigManager()
-        const loadConfigOutput = await configManager.loadConfig({ projectRootDir: flags.chdir })
+        const loadConfigOutput = await configManager.loadConfig({ projectRootDir })
         if (!loadConfigOutput.found) {
             this.warn(`Project not initialized. Run 'hereya init' first.`)
             return
         }
 
         const { config } = loadConfigOutput
-        let { chdir, workspace } = flags
+        let { workspace } = flags
 
         if (!workspace) {
             workspace = config.workspace
         }
 
         if (!workspace) {
-            return this.error('you must specify a workspace to run the command in')
+            this.error('you must specify a workspace to run the command in')
         }
 
         const envManager = getEnvManager()
         const { env } = await envManager.getProjectEnv({
-            projectRootDir: chdir,
+            projectRootDir,
             workspace,
         })
 
@@ -62,7 +64,7 @@ export default class Run extends Command {
 
         this.log(`Running command "${cmd} ${cmdArgs.join(' ')}" ...`)
         const res = await execa(cmd, cmdArgs, {
-            cwd: chdir,
+            cwd: projectRootDir,
             env: { ...process.env, ...env },
             stdio: 'inherit',
         })

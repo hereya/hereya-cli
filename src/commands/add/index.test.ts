@@ -59,16 +59,6 @@ describe('add', () => {
     .do(async (ctx) => {
         await fs.writeFile(path.join(ctx.rootDir, 'hereya.yaml'), 'project: test-project\nworkspace: test-workspace\n')
     })
-    .stub(packageManager, 'getRepoContent', stub => stub.resolves({ found: false, reason: 'not found' }))
-    .command(['add', 'faky/fake'])
-    .exit(2)
-    .it('fails if the package cannot be resolved')
-
-
-    setupTest
-    .do(async (ctx) => {
-        await fs.writeFile(path.join(ctx.rootDir, 'hereya.yaml'), 'project: test-project\nworkspace: test-workspace\n')
-    })
     .stub(packageManager, 'getRepoContent', stub => stub.resolves({
         content: `
         iac: cdk

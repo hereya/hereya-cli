@@ -31,8 +31,10 @@ export default class Remove extends Command {
     public async run(): Promise<void> {
         const { args, flags } = await this.parse(Remove)
 
+        const projectRootDir = flags.chdir || process.env.HEREYA_PROJECT_ROOT_DIR
+
         const configManager = getConfigManager()
-        const loadConfigOutput = await configManager.loadConfig({ projectRootDir: flags.chdir })
+        const loadConfigOutput = await configManager.loadConfig({ projectRootDir })
         if (!loadConfigOutput.found) {
             this.warn(`Project not initialized. Run 'hereya init' first.`)
             return
@@ -86,16 +88,16 @@ export default class Remove extends Command {
         await envManager.removeProjectEnv({
             env,
             infra: metadata.infra,
-            projectRootDir: flags.chdir,
+            projectRootDir,
             workspace: config.workspace
         })
         await configManager.removePackage({
             package: args.package,
-            projectRootDir: flags.chdir
+            projectRootDir
         })
 
         const backend = await getBackend()
-        const { config: newConfig } = await configManager.loadConfig({ projectRootDir: flags.chdir })
+        const { config: newConfig } = await configManager.loadConfig({ projectRootDir })
         await backend.saveState(newConfig)
     }
 }
