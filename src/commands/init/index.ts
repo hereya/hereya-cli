@@ -33,8 +33,10 @@ export default class Init extends Command {
     public async run(): Promise<void> {
         const { args, flags } = await this.parse(Init)
 
+        const projectRootDir = flags.chdir || process.env.HEREYA_PROJECT_ROOT_DIR
+
         const configManager = getConfigManager()
-        const config$ = await configManager.loadConfig({ projectRootDir: flags.chdir })
+        const config$ = await configManager.loadConfig({ projectRootDir })
         if (config$.found) {
             this.warn(`Project already initialized.`)
             return
@@ -51,7 +53,7 @@ export default class Init extends Command {
             workspace: initProjectOutput.workspace.name,
         }
 
-        await configManager.saveConfig({ config: content, projectRootDir: flags.chdir })
+        await configManager.saveConfig({ config: content, projectRootDir })
 
         this.log(`Initialized project ${initProjectOutput.project.name}.`)
         this.log(`Current workspace set to ${initProjectOutput.workspace.name}.`)
