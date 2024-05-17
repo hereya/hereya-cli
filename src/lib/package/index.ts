@@ -1,9 +1,10 @@
-import { PackageManager } from './common.js';
-import { GitHubPackageManager } from './github.js';
 import * as yaml from 'yaml';
 import { z } from 'zod';
+
 import { IacType } from '../../iac/common.js';
 import { InfrastructureType } from '../../infrastructure/common.js';
+import { PackageManager } from './common.js';
+import { GitHubPackageManager } from './github.js';
 
 export const packageManager: PackageManager = new GitHubPackageManager();
 
@@ -16,12 +17,13 @@ export async function resolvePackage(input: ResolvePackageInput): Promise<Resolv
     if (pkgParts.length !== 2) {
         return { found: false, reason: 'Invalid package format. Use owner/repository' }
     }
+
     const [owner, repo] = pkgParts
     const pkgUrl = `https://github.com/${input.package}`
     const packageManager = getPackageManager()
     const metadataContentCandidates = (await Promise.all([
-        packageManager.getRepoContent({ owner, repo, path: 'hereyarc.yaml' }),
-        packageManager.getRepoContent({ owner, repo, path: 'hereyarc.yml' }),
+        packageManager.getRepoContent({ owner, path: 'hereyarc.yaml', repo }),
+        packageManager.getRepoContent({ owner, path: 'hereyarc.yml', repo }),
     ])).filter(content$ => content$.found)
 
     if (metadataContentCandidates.length === 0) {
@@ -32,10 +34,10 @@ export async function resolvePackage(input: ResolvePackageInput): Promise<Resolv
     const metadata = PackageMetadata.parse(yaml.parse(metadataContent$.content))
 
     return {
+        canonicalName: input.package.replace('/', '-'),
         found: true,
-        packageUri: pkgUrl,
         metadata,
-        canonicalName: input.package.replace('/', '-')
+        packageUri: pkgUrl
     }
 }
 
@@ -44,10 +46,10 @@ export type ResolvePackageInput = {
 }
 
 export type ResolvePackageOutput = {
-    found: true
     canonicalName: string
-    packageUri: string
+    found: true
     metadata: z.infer<typeof PackageMetadata>
+    packageUri: string
 } | {
     found: false
     reason: string

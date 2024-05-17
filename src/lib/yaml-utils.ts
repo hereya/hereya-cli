@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { parse, stringify } from 'yaml';
 import * as path from 'node:path';
+import { parse, stringify } from 'yaml';
 
 export async function save<T extends object>(content: T, file: string) {
     try {
@@ -19,7 +19,7 @@ export async function load<T extends object>(file: string): Promise<{ data: T, f
         const content = await readFile(file, {encoding: 'utf8'})
         data = parse(content)
         found = true
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     } catch (error: any) {
         if (error.code !== 'ENOENT') {
             throw new Error(`could not load file ${file}: ${error}`)

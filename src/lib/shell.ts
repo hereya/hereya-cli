@@ -1,4 +1,4 @@
-import { spawnSync, StdioOptions } from 'node:child_process';
+import { StdioOptions, spawnSync } from 'node:child_process';
 
 export type RunShellOptions = {
     directory?: string
@@ -10,8 +10,8 @@ export function runShell(cmd: string, args: string[], options: RunShellOptions =
     // Run the command
     const result = spawnSync(cmd, args, {
         cwd: options.directory ?? process.cwd(),
+        env: { ...process.env, ...options.env },
         stdio: options.stdio ?? 'inherit',
-        env: Object.assign({}, process.env, options.env ?? {}),
     })
 
     // Throw an error if the command failed

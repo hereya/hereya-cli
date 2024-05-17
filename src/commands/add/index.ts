@@ -1,9 +1,10 @@
 import { Args, Command, Flags } from '@oclif/core'
-import { getInfrastructure } from '../../infrastructure/index.js';
-import { addEnv, getWorkspaceEnv, logEnv } from '../../lib/env.js';
+
 import { getBackend } from '../../backend/index.js';
-import { resolvePackage } from '../../lib/package/index.js';
+import { getInfrastructure } from '../../infrastructure/index.js';
 import { getConfigManager } from '../../lib/config/index.js';
+import { addEnv, getWorkspaceEnv, logEnv } from '../../lib/env.js';
+import { resolvePackage } from '../../lib/package/index.js';
 
 
 export default class Add extends Command {
@@ -37,37 +38,41 @@ export default class Add extends Command {
             this.warn(`Project not initialized. Run 'hereya init' first.`)
             return
         }
+
         const { config } = loadConfigOutput
 
         const resolvePackageOutput = await resolvePackage({ package: args.package })
         if (!resolvePackageOutput.found) {
             this.error(resolvePackageOutput.reason)
         }
-        const { packageUri, metadata, canonicalName } = resolvePackageOutput
+
+        const { canonicalName, metadata, packageUri } = resolvePackageOutput
 
         const infrastructure$ = await getInfrastructure({ type: metadata.infra })
         if (!infrastructure$.supported) {
             this.error(infrastructure$.reason)
         }
+
         const { infrastructure } = infrastructure$
 
         const getWorkspaceEnvOutput = await getWorkspaceEnv({
-            workspace: config.workspace,
             project: config.project,
+            workspace: config.workspace,
         })
         if (!getWorkspaceEnvOutput.success) {
             this.error(getWorkspaceEnvOutput.reason)
         }
+
         const { env: workspaceEnv } = getWorkspaceEnvOutput
 
         const provisionOutput = await infrastructure.provision({
+            canonicalName,
+            iacType: metadata.iac,
+            pkgName: args.package,
+            pkgUrl: packageUri,
             project: config.project,
             workspace: config.workspace,
             workspaceEnv,
-            pkgName: args.package,
-            canonicalName,
-            pkgUrl: packageUri,
-            iacType: metadata.iac,
         })
         if (!provisionOutput.success) {
             this.error(provisionOutput.reason)

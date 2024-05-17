@@ -1,8 +1,8 @@
 export interface ConfigManager {
-    loadConfig: (input: LoadConfigInput) => Promise<LoadConfigOutput>
-    saveConfig: (input: SaveConfigInput) => Promise<void>
     addPackage: (input: AddPackageInput) => Promise<void>
+    loadConfig: (input: LoadConfigInput) => Promise<LoadConfigOutput>
     removePackage: (input: RemovePackageInput) => Promise<void>
+    saveConfig: (input: SaveConfigInput) => Promise<void>
 }
 
 export interface LoadConfigInput {
@@ -12,20 +12,20 @@ export interface LoadConfigInput {
 
 export type LoadConfigOutput = {
     config: Config
-    found: true
-} | {
     found: false
+} | {
     config: Config
+    found: true
 }
 
 export interface Config {
-    project: string
-    workspace: string
     packages?: {
         [key: string]: {
             version: string
         }
     }
+    project: string
+    workspace: string
 }
 
 export interface SaveConfigInput {
@@ -34,8 +34,8 @@ export interface SaveConfigInput {
 }
 
 export type AddPackageInput = {
-    projectRootDir?: string
     package: string
+    projectRootDir?: string
 }
 
 export type RemovePackageInput = AddPackageInput

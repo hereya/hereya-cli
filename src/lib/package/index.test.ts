@@ -1,11 +1,12 @@
 import { expect, test } from '@oclif/test';
+
 import { packageManager, resolvePackage } from './index.js';
 
 describe('package', () => {
     describe('resolvePackage', () => {
 
         test
-        .it('requires package name to be in the format owner/repository', async ctx => {
+        .it('requires package name to be in the format owner/repository', async () => {
             const output = await resolvePackage({ package: 'invalid' })
             expect(output).to.have.property('found', false);
         });
@@ -18,7 +19,7 @@ describe('package', () => {
                 reason: 'not found'
             })
         )
-        .it('requires package to have hereyarc file', async ctx => {
+        .it('requires package to have hereyarc file', async _ => {
             const output = await resolvePackage({ package: 'owner/repo' })
             expect(output).to.have.property('found', false);
         });
@@ -29,26 +30,27 @@ describe('package', () => {
             stub => stub.callsFake(async ({ path }) => {
                 if (path === 'hereyarc.yaml') {
                     return {
-                        found: true,
                         content: `
                         iac: terraform
                         infra: local
-                        `
+                        `,
+                        found: true
                     }
                 }
+
                 return {
                     found: false,
                     reason: 'not found'
                 }
             })
         )
-        .it(`works for yaml extensions`, async ctx => {
+        .it(`works for yaml extensions`, async _ => {
             const output = await resolvePackage({ package: 'org/myPkg' })
             expect(output).to.have.property('found', true);
             expect(output).to.deep.contain({
-                packageUri: 'https://github.com/org/myPkg',
                 canonicalName: 'org-myPkg',
-                metadata: { iac: 'terraform', infra: 'local' }
+                metadata: { iac: 'terraform', infra: 'local' },
+                packageUri: 'https://github.com/org/myPkg'
             });
         })
 
@@ -58,26 +60,27 @@ describe('package', () => {
             stub => stub.callsFake(async ({ path }) => {
                 if (path === 'hereyarc.yml') {
                     return {
-                        found: true,
                         content: `
                         iac: cdk
                         infra: aws
-                        `
+                        `,
+                        found: true
                     }
                 }
+
                 return {
                     found: false,
                     reason: 'not found'
                 }
             })
         )
-        .it(`works for yml extensions`, async ctx => {
+        .it(`works for yml extensions`, async _ => {
             const output = await resolvePackage({ package: 'org/myPkg' })
             expect(output).to.have.property('found', true);
             expect(output).to.deep.contain({
-                packageUri: 'https://github.com/org/myPkg',
                 canonicalName: 'org-myPkg',
-                metadata: { iac: 'cdk', infra: 'aws' }
+                metadata: { iac: 'cdk', infra: 'aws' },
+                packageUri: 'https://github.com/org/myPkg'
             });
         })
     });

@@ -29,8 +29,6 @@
     "eslint-config-oclif": "^5",
     "eslint-config-oclif-typescript": "^3",
     "eslint-config-prettier": "^9",
-    "husky": "^9.0.11",
-    "lint-staged": "^15.2.2",
     "mocha": "^10",
     "mock-fs": "^5.2.0",
     "nock": "^13.5.4",
@@ -70,16 +68,12 @@
     "generate": "oclif generate command $COMMAND && shx mkdir src/commands/$COMMAND && shx mv src/commands/$COMMAND.ts src/commands/$COMMAND/index.ts && shx mv test/commands/$COMMAND.test.ts src/commands/$COMMAND/index.test.ts && shx rm -rf test",
     "dev": "./bin/dev.js",
     "build": "shx rm -rf dist && tsc -b",
-    "lint": "eslint",
+    "lint": "eslint .",
     "postpack": "shx rm -f oclif.manifest.json",
     "posttest": "npm run lint",
     "prepack": "oclif manifest && oclif readme",
     "test": "mocha --forbid-only \"src/**/*.test.ts\"",
-    "version": "oclif readme && git add README.md",
-    "prepare": "husky install"
+    "version": "oclif readme && git add README.md"
   },
-  "types": "dist/index.d.ts",
-  "lint-staged": {
-    "**/*": "npm run lint -- --fix"
-  }
+  "types": "dist/index.d.ts"
 }

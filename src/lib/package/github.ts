@@ -1,19 +1,21 @@
 import { Octokit } from '@octokit/rest';
-import { GetRepoContentInput, GetRepoContentOutput, PackageManager } from './common.js';
+
+import type { GetRepoContentInput, GetRepoContentOutput, PackageManager } from './common.js';
 
 
 export class GitHubPackageManager implements PackageManager {
-    async getRepoContent({ owner, repo, path }: GetRepoContentInput): Promise<GetRepoContentOutput> {
+    async getRepoContent({ owner, path, repo }: GetRepoContentInput): Promise<GetRepoContentOutput> {
         const octokit = new Octokit();
         try {
             const response = await octokit.rest.repos.getContent({
-                owner,
-                repo,
-                path,
                 headers: {
                     'Accept': 'application/vnd.github.raw+json'
-                }
+                },
+                owner,
+                path,
+                repo
             });
+
             if (response.status !== 200) {
                 return {
                     found: false,
@@ -22,8 +24,8 @@ export class GitHubPackageManager implements PackageManager {
             }
 
             return {
-                found: true,
-                content: response.data as unknown as string
+                content: response.data as unknown as string,
+                found: true
             }
         } catch (error: any) {
             return {

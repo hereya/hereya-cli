@@ -1,8 +1,9 @@
-import { load, save } from './yaml-utils.js';
 import * as path from 'node:path';
-import { getAnyPath } from './filesystem.js';
+
 import { InfrastructureType } from '../infrastructure/common.js';
 import { getInfrastructure } from '../infrastructure/index.js';
+import { getAnyPath } from './filesystem.js';
+import { load, save } from './yaml-utils.js';
 
 export async function addEnv(input: AddEnvInput): Promise<void> {
     const envPath = await getEnvPath(input)
@@ -18,8 +19,8 @@ export async function addEnv(input: AddEnvInput): Promise<void> {
 export type AddEnvInput = {
     env: { [key: string]: string };
     infra: InfrastructureType;
-    workspace: string;
     projectRootDir?: string
+    workspace: string;
 }
 
 
@@ -30,7 +31,7 @@ export async function removeEnv(input: RemoveEnvInput): Promise<void> {
 
     const finalEnv = Object.fromEntries(
         Object
-        .entries(input.env)
+        .entries(existingEnv)
         .filter(([key]) => !envKeysToRemove.includes(key))
     )
     await save(finalEnv, envPath)
@@ -51,6 +52,7 @@ export async function getProjectEnv(input: GetProjectEnvInput): Promise<GetProje
                 if (!infra$.supported) {
                     throw new Error(infra$.reason)
                 }
+
                 const { infrastructure } = infra$
                 const valueWithoutInfra = value.split(':').slice(1).join(':')
                 const { value: resolvedValue } = await infrastructure.resolveEnv({ value: valueWithoutInfra })
@@ -62,32 +64,32 @@ export async function getProjectEnv(input: GetProjectEnvInput): Promise<GetProje
 }
 
 export type GetProjectEnvInput = {
-    workspace: string;
     projectRootDir?: string
+    workspace: string;
 }
 
 export type GetProjectEnvOutput = {
     env: { [key: string]: string }
 }
 
-export async function getWorkspaceEnv(input: GetWorkspaceEnvInput): Promise<GetWorkspaceEnvOutput> {
+export async function getWorkspaceEnv(_: GetWorkspaceEnvInput): Promise<GetWorkspaceEnvOutput> {
     return {
-        success: true,
-        env: {}
+        env: {},
+        success: true
     }
 }
 
 export type GetWorkspaceEnvInput = {
-    workspace: string;
     project: string;
+    workspace: string;
 }
 
 export type GetWorkspaceEnvOutput = {
-    success: true;
     env: { [key: string]: string }
+    success: true;
 } | {
-    success: false;
     reason: string;
+    success: false;
 }
 
 export function logEnv(env: { [key: string]: string }, logFn: (_: string) => void = console.log): void {
@@ -97,7 +99,7 @@ export function logEnv(env: { [key: string]: string }, logFn: (_: string) => voi
 }
 
 async function getEnvPath(input: GetProjectEnvInput): Promise<string> {
-    return await getAnyPath(
+    return getAnyPath(
         path.join(input.projectRootDir ?? process.cwd(), '.hereya', `env.${input.workspace}.yaml`),
         path.join(input.projectRootDir ?? process.cwd(), '.hereya', `env.${input.workspace}.yml`),
     )

@@ -1,12 +1,15 @@
 import { access, constants } from 'node:fs/promises';
 
 export async function getAnyPath(...candidates: string[]) {
-    for (const p of candidates) {
+    const checkAccess = async (index: number): Promise<string> => {
+        if (index >= candidates.length) return candidates[0];
         try {
-            await access(p, constants.R_OK | constants.W_OK)
-            return p
-        } catch (error) {
+            await access(candidates[index], constants.W_OK);
+            return candidates[index];
+        } catch {
+            return checkAccess(index + 1);
         }
-    }
-    return candidates[0]
+    };
+
+    return checkAccess(0);
 }

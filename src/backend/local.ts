@@ -1,9 +1,10 @@
-import { Backend, InitProjectInput, InitProjectOutput } from './common.js';
+import * as os from 'node:os';
+import * as path from 'node:path';
+
 import { Config } from '../lib/config/common.js';
 import { getAnyPath } from '../lib/filesystem.js';
-import * as path from 'node:path';
-import * as os from 'node:os';
 import { save } from '../lib/yaml-utils.js';
+import { Backend, InitProjectInput, InitProjectOutput } from './common.js';
 
 export class LocalBackend implements Backend {
 

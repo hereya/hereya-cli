@@ -5,8 +5,8 @@ export interface Iac {
 }
 
 export enum IacType {
-    terraform = 'terraform',
     cdk = 'cdk',
+    terraform = 'terraform',
 }
 
 export type ApplyInput = {
@@ -15,11 +15,11 @@ export type ApplyInput = {
 }
 
 export type ApplyOutput = {
-    success: true;
     env: { [key: string]: string };
+    success: true;
 } | {
-    success: false;
     reason: string;
+    success: false;
 }
 
 export type DestroyInput = ApplyInput;

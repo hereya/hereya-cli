@@ -1,14 +1,13 @@
-import { Args, Command, Flags } from '@oclif/core'
 import { execa } from '@esm2cjs/execa'
-import { getProjectEnv } from '../../lib/env.js';
+import { Args, Command, Flags } from '@oclif/core'
+
 import { getConfigManager } from '../../lib/config/index.js';
+import { getProjectEnv } from '../../lib/env.js';
 
 export default class Run extends Command {
     static args = {
         cmd: Args.string({ description: 'command to run', required: true }),
     }
-
-    static strict = false
 
     static override description = 'run a command with hereya env vars'
 
@@ -18,16 +17,18 @@ export default class Run extends Command {
     ]
 
     static flags = {
+        chdir: Flags.string({
+            description: 'directory to run command in',
+            required: false,
+        }),
         workspace: Flags.string({
             char: 'w',
             description: 'name of the workspace to run the command in',
             required: false,
         }),
-        chdir: Flags.string({
-            description: 'directory to run command in',
-            required: false,
-        }),
     }
+
+    static strict = false
 
     public async run(): Promise<void> {
         const { args, argv, flags } = await this.parse(Run)
@@ -38,8 +39,9 @@ export default class Run extends Command {
             this.warn(`Project not initialized. Run 'hereya init' first.`)
             return
         }
+
         const { config } = loadConfigOutput
-        let workspace = flags.workspace
+        let { chdir, workspace } = flags
 
         if (!workspace) {
             workspace = config.workspace
@@ -50,8 +52,8 @@ export default class Run extends Command {
         }
 
         const { env } = await getProjectEnv({
+            projectRootDir: chdir,
             workspace,
-            projectRootDir: flags.chdir,
         })
 
         const { cmd } = args
@@ -59,9 +61,9 @@ export default class Run extends Command {
 
         this.log(`Running command "${cmd} ${cmdArgs.join(' ')}" ...`)
         const res = await execa(cmd, cmdArgs, {
+            cwd: chdir,
             env: { ...process.env, ...env },
             stdio: 'inherit',
-            cwd: flags.chdir,
         })
         if (res.exitCode !== 0) {
             this.error(res.stderr)

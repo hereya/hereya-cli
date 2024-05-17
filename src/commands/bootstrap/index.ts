@@ -1,6 +1,7 @@
 import { Args, Command, Flags } from '@oclif/core'
-import { getInfrastructure } from '../../infrastructure/index.js';
+
 import { InfrastructureType } from '../../infrastructure/common.js';
+import { getInfrastructure } from '../../infrastructure/index.js';
 
 export default class Bootstrap extends Command {
     static override args = {
@@ -32,6 +33,6 @@ export default class Bootstrap extends Command {
             return
         }
 
-        await infrastructure$.infrastructure.bootstrap()
+        await infrastructure$.infrastructure.bootstrap({ force: flags.force })
     }
 }

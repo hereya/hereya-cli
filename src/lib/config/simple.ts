@@ -1,3 +1,7 @@
+import path from 'node:path';
+
+import { getAnyPath } from '../filesystem.js';
+import * as yaml from '../yaml-utils.js';
 import {
     AddPackageInput,
     Config,
@@ -7,9 +11,6 @@ import {
     RemovePackageInput,
     SaveConfigInput
 } from './common.js';
-import * as yaml from '../yaml-utils.js';
-import { getAnyPath } from '../filesystem.js';
-import path from 'node:path';
 
 export class SimpleConfigManager implements ConfigManager {
     async addPackage(input: AddPackageInput): Promise<void> {
@@ -51,7 +52,7 @@ export class SimpleConfigManager implements ConfigManager {
     }
 
     private async getConfigPath(rootDir?: string): Promise<string> {
-        return await getAnyPath(
+        return getAnyPath(
             path.join(rootDir ?? process.cwd(), 'hereya.yaml'),
             path.join(rootDir ?? process.cwd(), 'hereya.yml'),
         )

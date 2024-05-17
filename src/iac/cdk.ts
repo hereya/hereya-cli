@@ -1,11 +1,11 @@
 import { ApplyInput, ApplyOutput, DestroyInput, DestroyOutput, Iac } from './common.js';
 
 export class Cdk implements Iac {
-    apply(input: ApplyInput): Promise<ApplyOutput> {
+    apply(_: ApplyInput): Promise<ApplyOutput> {
         throw new Error('Method not implemented.');
     }
 
-    destroy(input: DestroyInput): Promise<DestroyOutput> {
+    destroy(_: DestroyInput): Promise<DestroyOutput> {
         throw new Error('Method not implemented.');
     }
 

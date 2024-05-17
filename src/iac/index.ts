@@ -1,15 +1,20 @@
+import { Cdk } from './cdk.js';
 import { Iac, IacType } from './common.js';
 import { Terraform } from './terraform.js';
-import { Cdk } from './cdk.js';
 
 export function getIac({ type }: GetIacInput): GetIacOutput {
     switch (type) {
-        case IacType.terraform:
-            return { supported: true, iac: new Terraform() }
-        case IacType.cdk:
-            return { supported: true, iac: new Cdk() }
-        default:
-            return { supported: false, reason: `Iac type ${type} is not supported yet!` }
+        case IacType.terraform: {
+            return { iac: new Terraform(), supported: true }
+        }
+
+        case IacType.cdk: {
+            return { iac: new Cdk(), supported: true }
+        }
+
+        default: {
+            return { reason: `Iac type ${type} is not supported yet!`, supported: false }
+        }
     }
 }
 
@@ -18,9 +23,9 @@ export type GetIacInput = {
 }
 
 export type GetIacOutput = {
-    supported: true;
     iac: Iac;
+    supported: true;
 } | {
-    supported: false;
     reason: string;
+    supported: false;
 }

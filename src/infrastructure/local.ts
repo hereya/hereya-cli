@@ -1,9 +1,10 @@
-import { Infrastructure, ProvisionInput, ProvisionOutput } from './common.js';
-import * as path from 'node:path';
-import * as os from 'node:os';
 import * as fs from 'node:fs/promises';
+import * as os from 'node:os';
+import * as path from 'node:path';
 import { simpleGit } from 'simple-git';
+
 import { getIac } from '../iac/index.js';
+import { Infrastructure, ProvisionInput, ProvisionOutput } from './common.js';
 
 export class LocalInfrastructure implements Infrastructure {
 
@@ -11,39 +12,41 @@ export class LocalInfrastructure implements Infrastructure {
         console.log('Bootstrapping local infrastructure');
     }
 
-    async provision(input: ProvisionInput): Promise<ProvisionOutput> {
-        const destPath = path.join(os.homedir(), '.hereya', input.project, input.workspace, input.canonicalName);
-        const downloadPath = await this.download(input.pkgUrl, destPath);
-        const iac$ = getIac({ type: input.iacType });
-        if (!iac$.supported) {
-            return { success: false, reason: iac$.reason };
-        }
-        const { iac } = iac$;
-        const output = await iac.apply({ pkgPath: downloadPath, env: input.workspaceEnv });
-        if (!output.success) {
-            return { success: false, reason: output.reason };
-        }
-
-        return { success: true, env: output.env };
-    }
-
     async destroy(input: ProvisionInput): Promise<ProvisionOutput> {
         const destPath = path.join(os.homedir(), '.hereya', input.project, input.workspace, input.canonicalName);
         const downloadPath = await this.download(input.pkgUrl, destPath);
         const iac$ = getIac({ type: input.iacType });
         if (!iac$.supported) {
-            return { success: false, reason: iac$.reason };
+            return { reason: iac$.reason, success: false };
         }
+
         const { iac } = iac$;
-        const output = await iac.destroy({ pkgPath: downloadPath, env: input.workspaceEnv });
+        const output = await iac.destroy({ env: input.workspaceEnv, pkgPath: downloadPath });
         if (!output.success) {
-            return { success: false, reason: output.reason };
+            return { reason: output.reason, success: false };
         }
 
         // Remove downloaded package
         await fs.rm(downloadPath, { recursive: true });
 
-        return { success: true, env: output.env };
+        return { env: output.env, success: true };
+    }
+
+    async provision(input: ProvisionInput): Promise<ProvisionOutput> {
+        const destPath = path.join(os.homedir(), '.hereya', input.project, input.workspace, input.canonicalName);
+        const downloadPath = await this.download(input.pkgUrl, destPath);
+        const iac$ = getIac({ type: input.iacType });
+        if (!iac$.supported) {
+            return { reason: iac$.reason, success: false };
+        }
+
+        const { iac } = iac$;
+        const output = await iac.apply({ env: input.workspaceEnv, pkgPath: downloadPath });
+        if (!output.success) {
+            return { reason: output.reason, success: false };
+        }
+
+        return { env: output.env, success: true };
     }
 
     async resolveEnv(input: { value: string }) {
@@ -71,7 +74,7 @@ export class LocalInfrastructure implements Infrastructure {
         try {
             const files = await fs.readdir(directoryPath);
             return files.length > 0;
-        } catch (error) {
+        } catch {
             return false; // or you can handle the error as needed
         }
     }

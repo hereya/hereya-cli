@@ -1,5 +1,5 @@
-import { ApplyInput, ApplyOutput, DestroyInput, DestroyOutput, Iac } from './common.js';
 import { runShell } from '../lib/shell.js';
+import { ApplyInput, ApplyOutput, DestroyInput, DestroyOutput, Iac } from './common.js';
 
 export class Terraform implements Iac {
     async apply(input: ApplyInput): Promise<ApplyOutput> {
@@ -22,14 +22,14 @@ export class Terraform implements Iac {
             )
             const env = await this.getEnv(input.pkgPath)
             return {
-                success: true,
-                env
+                env,
+                success: true
             }
 
         } catch (error: any) {
             return {
-                success: false,
-                reason: error.message
+                reason: error.message,
+                success: false
             }
         }
     }
@@ -39,6 +39,7 @@ export class Terraform implements Iac {
         if (!applyOutput.success) {
             return applyOutput
         }
+
         const { env } = applyOutput
         try {
             runShell(
@@ -50,13 +51,13 @@ export class Terraform implements Iac {
                 }
             )
             return {
-                success: true,
-                env
+                env,
+                success: true
             }
         } catch (error: any) {
             return {
-                success: false,
-                reason: error.message
+                reason: error.message,
+                success: false
             }
         }
     }

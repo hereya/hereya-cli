@@ -4,13 +4,13 @@ export interface PackageManager {
 
 export type GetRepoContentInput = {
     owner: string
-    repo: string
     path: string
+    repo: string
 }
 
 export type GetRepoContentOutput = {
-    found: true
     content: string
+    found: true
 } | {
     found: false
     reason: string

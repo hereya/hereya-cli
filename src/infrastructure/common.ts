@@ -1,37 +1,42 @@
 import { IacType } from '../iac/common.js';
 
 export enum InfrastructureType {
-    local = 'local',
     aws = 'aws',
     azure = 'azure',
-    gcp = 'gcp'
+    gcp = 'gcp',
+    local = 'local'
 }
 
 export interface Infrastructure {
-    bootstrap(): Promise<void>;
-    provision(input: ProvisionInput): Promise<ProvisionOutput>;
+    bootstrap(input: BootstrapInput): Promise<void>;
+
     destroy(input: DestroyInput): Promise<DestroyOutput>;
+    provision(input: ProvisionInput): Promise<ProvisionOutput>;
 
     resolveEnv(input: ResolveEnvInput): Promise<ResolveEnvOutput>;
 }
 
+export type BootstrapInput = {
+    force?: boolean;
+}
+
 export type ProvisionInput = {
+    canonicalName: string;
+    iacType: IacType;
+    pkgName: string;
+    pkgUrl: string;
     project: string;
     workspace: string;
     workspaceEnv: { [key: string]: string };
-    pkgName: string;
-    canonicalName: string;
-    pkgUrl: string;
-    iacType: IacType;
 }
 
 
 export type ProvisionOutput = {
-    success: true;
     env: { [key: string]: string };
+    success: true;
 } | {
-    success: false;
     reason: string;
+    success: false;
 }
 
 export type DestroyInput = ProvisionInput;
