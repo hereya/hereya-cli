@@ -9,16 +9,28 @@ import { localInfrastructure } from '../../infrastructure/index.js';
 import { packageManager } from '../../lib/package/index.js';
 
 describe('remove', () => {
+    const homeDir = path.join(os.tmpdir(), 'hereya-test-add', randomUUID())
+
     const setupTest = test
     .add('rootDir', path.join(os.tmpdir(), 'hereya-test-remove', randomUUID()))
+    .stub(os, 'homedir', stub => stub.returns(homeDir))
+    .do(async () => {
+        await fs.mkdir(path.join(homeDir, '.hereya', 'state', 'workspaces'), { recursive: true })
+    })
     .do(async (ctx) => {
         await fs.mkdir(ctx.rootDir, { recursive: true })
         process.env.HEREYA_PROJECT_ROOT_DIR = ctx.rootDir
+
+        await fs.writeFile(
+            path.join(homeDir, '.hereya', 'state', 'workspaces', 'test-workspace.yaml'),
+            'name: test-workspace\nid: test-workspace\n'
+        )
     })
     .stderr()
     .stdout()
     .finally(async (ctx) => {
         await fs.rm(ctx.rootDir, { force: true, recursive: true })
+        await fs.rm(homeDir, { force: true, recursive: true })
     })
 
     setupTest
@@ -68,6 +80,20 @@ describe('remove', () => {
     .it('fails for infra different from local')
 
     setupTest
+    .do(async () => {
+        await fs.writeFile(
+            path.join(homeDir, '.hereya', 'state', 'workspaces', 'dev.yaml'),
+            `
+            name: dev
+            id: dev
+            env:
+                NETWORK_ID: local:network
+            packages:
+               awesome/pkg:
+                    version: ''
+            `
+        )
+    })
     .do(async (ctx) => {
         await fs.writeFile(path.join(ctx.rootDir, 'hereya.yaml'),
             `
