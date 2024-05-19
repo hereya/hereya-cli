@@ -4,9 +4,12 @@ import { Config } from '../lib/config/common.js';
 export interface Backend {
     addPackageToWorkspace(input: AddPackageToWorkspaceInput): Promise<AddPackageToWorkspaceOutput>;
     createWorkspace(input: CreateWorkspaceInput): Promise<CreateWorkspaceOutput>;
-
     getWorkspaceEnv(input: GetWorkspaceEnvInput): Promise<GetWorkspaceEnvOutput>;
     init(options: InitProjectInput): Promise<InitProjectOutput>;
+
+    loadWorkspace(workspace: string): Promise<LoadWorkspaceOutput>;
+
+    removePackageFromWorkspace(input: RemovePackageFromWorkspaceInput): Promise<RemovePackageFromWorkspaceOutput>;
     saveState(config: Omit<Config, 'workspace'>): Promise<void>;
 }
 
@@ -32,6 +35,9 @@ export type AddPackageToWorkspaceOutput = {
         };
     }
 }
+
+export type RemovePackageFromWorkspaceInput = AddPackageToWorkspaceInput;
+export type RemovePackageFromWorkspaceOutput = AddPackageToWorkspaceOutput;
 
 export interface InitProjectInput {
     project: string;
@@ -78,3 +84,18 @@ export type GetWorkspaceEnvOutput = {
     reason: string;
     success: false;
 }
+
+export type LoadWorkspaceOutput = ({
+    found: true,
+    hasError: false
+    workspace: {
+        env?: { [key: string]: string };
+        id: string;
+        name: string;
+        packages?: {
+            [key: string]: {
+                version: string;
+            }
+        };
+    },
+} | { error: string, found: true, hasError: true }) | { found: false }

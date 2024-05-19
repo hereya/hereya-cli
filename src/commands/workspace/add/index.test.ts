@@ -13,7 +13,6 @@ describe('workspace:add', () => {
     const setupTest = test
     .stdout()
     .stderr()
-
     .stub(os, 'homedir', stub => stub.returns(homeDir))
     .do(async () => {
         await fs.mkdir(homeDir, { recursive: true })

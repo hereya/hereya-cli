@@ -1,6 +1,6 @@
 import os from 'node:os';
 import path from 'node:path';
-import { util, z } from 'zod';
+import { z } from 'zod';
 
 import { Config } from '../lib/config/common.js';
 import { resolveEnvValues } from '../lib/env-utils.js';
@@ -15,10 +15,12 @@ import {
     GetWorkspaceEnvInput,
     GetWorkspaceEnvOutput,
     InitProjectInput,
-    InitProjectOutput
+    InitProjectOutput,
+    LoadWorkspaceOutput,
+    RemovePackageFromWorkspaceInput,
+    RemovePackageFromWorkspaceOutput
 } from './common.js';
 
-import Omit = util.Omit;
 
 const WorkspaceSchema = z.object({
     env: z.record(z.string()).optional(),
@@ -47,7 +49,7 @@ export class LocalBackend implements Backend {
             }
         }
 
-        const workspace = workspace$.data
+        const { workspace } = workspace$
         workspace.packages = {
             ...workspace.packages,
             [input.package]: {
@@ -86,7 +88,7 @@ export class LocalBackend implements Backend {
             } : {
                 isNew: false,
                 success: true,
-                workspace: workspace$.data,
+                workspace: workspace$.workspace,
             }
         }
 
@@ -126,7 +128,7 @@ export class LocalBackend implements Backend {
         }
 
         return {
-            env: await resolveEnvValues(workspace$.data.env ?? {}),
+            env: await resolveEnvValues(workspace$.workspace.env ?? {}),
             success: true,
         }
     }
@@ -144,19 +146,7 @@ export class LocalBackend implements Backend {
         }
     }
 
-    async saveState(config: Omit<Config, 'workspace'>): Promise<void> {
-        const projectStatePath = await getAnyPath(
-            path.join(os.homedir(), '.hereya', 'state', 'projects', `${config.project}.yaml`),
-            path.join(os.homedir(), '.hereya', 'state', 'projects', `${config.project}.yml`),
-        )
-        await save(config, projectStatePath)
-    }
-
-    private async loadWorkspace(workspace: string): Promise<({
-        data: z.infer<typeof WorkspaceSchema>,
-        found: true,
-        hasError: false
-    } | { error: string, found: true, hasError: true }) | { found: false }> {
+    async loadWorkspace(workspace: string): Promise<LoadWorkspaceOutput> {
         const workspacePath = await getAnyPath(
             path.join(os.homedir(), '.hereya', 'state', 'workspaces', `${workspace}.yaml`),
             path.join(os.homedir(), '.hereya', 'state', 'workspaces', `${workspace}.yml`),
@@ -174,15 +164,64 @@ export class LocalBackend implements Backend {
             }
 
             return {
-                data: workspace$.data,
                 found: true,
                 hasError: false,
+                workspace: workspace$.data,
             }
         }
 
         return {
             found: false,
         }
+    }
+
+    async removePackageFromWorkspace(input: RemovePackageFromWorkspaceInput): Promise<RemovePackageFromWorkspaceOutput> {
+        const workspace$ = await this.loadWorkspace(input.workspace)
+        if (!workspace$.found) {
+            return {
+                reason: `Workspace ${input.workspace} not found`,
+                success: false,
+            }
+        }
+
+        if (workspace$.hasError) {
+            return {
+                reason: workspace$.error,
+                success: false,
+            }
+        }
+
+        const { workspace } = workspace$
+        workspace.packages = Object.fromEntries(
+            Object.entries(workspace.packages ?? {})
+            .filter(([key]) => key !== input.package)
+        )
+
+        workspace.env = Object.fromEntries(
+            Object.entries(workspace.env ?? {})
+            .filter(([key]) => !(key in input.env))
+        )
+
+        try {
+            await this.saveWorkspace(workspace, input.workspace)
+            return {
+                success: true,
+                workspace,
+            }
+        } catch (error: any) {
+            return {
+                reason: error.message,
+                success: false,
+            }
+        }
+    }
+
+    async saveState(config: Omit<Config, 'workspace'>): Promise<void> {
+        const projectStatePath = await getAnyPath(
+            path.join(os.homedir(), '.hereya', 'state', 'projects', `${config.project}.yaml`),
+            path.join(os.homedir(), '.hereya', 'state', 'projects', `${config.project}.yml`),
+        )
+        await save(config, projectStatePath)
     }
 
     private async saveWorkspace(data: z.infer<typeof WorkspaceSchema>, name: string) {
