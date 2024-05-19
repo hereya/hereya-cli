@@ -30,7 +30,7 @@ export default class WorkspaceRemove extends Command {
         const { args, flags } = await this.parse(WorkspaceRemove)
 
         const backend = await getBackend()
-        const loadWorkspaceOutput = await backend.loadWorkspace(flags.workspace)
+        const loadWorkspaceOutput = await backend.getWorkspace(flags.workspace)
         if (!loadWorkspaceOutput.found || loadWorkspaceOutput.hasError) {
             this.error(`Workspace ${flags.workspace} not found`)
         }

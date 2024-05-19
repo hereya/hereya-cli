@@ -14,9 +14,9 @@ import {
     CreateWorkspaceOutput,
     GetWorkspaceEnvInput,
     GetWorkspaceEnvOutput,
+    GetWorkspaceOutput,
     InitProjectInput,
     InitProjectOutput,
-    LoadWorkspaceOutput,
     RemovePackageFromWorkspaceInput,
     RemovePackageFromWorkspaceOutput
 } from './common.js';
@@ -34,7 +34,7 @@ const WorkspaceSchema = z.object({
 export class LocalBackend implements Backend {
 
     async addPackageToWorkspace(input: AddPackageToWorkspaceInput): Promise<AddPackageToWorkspaceOutput> {
-        const workspace$ = await this.loadWorkspace(input.workspace)
+        const workspace$ = await this.getWorkspace(input.workspace)
         if (!workspace$.found) {
             return {
                 reason: `Workspace ${input.workspace} not found`,
@@ -80,7 +80,7 @@ export class LocalBackend implements Backend {
     }
 
     async createWorkspace(input: CreateWorkspaceInput): Promise<CreateWorkspaceOutput> {
-        const workspace$ = await this.loadWorkspace(input.name)
+        const workspace$ = await this.getWorkspace(input.name)
         if (workspace$.found) {
             return workspace$.hasError ? {
                 reason: workspace$.error,
@@ -111,8 +111,37 @@ export class LocalBackend implements Backend {
         }
     }
 
+    async getWorkspace(workspace: string): Promise<GetWorkspaceOutput> {
+        const workspacePath = await getAnyPath(
+            path.join(os.homedir(), '.hereya', 'state', 'workspaces', `${workspace}.yaml`),
+            path.join(os.homedir(), '.hereya', 'state', 'workspaces', `${workspace}.yml`),
+        )
+        const { data, found } = await load<{ id: string; name: string }>(workspacePath)
+
+        if (found) {
+            const workspace$ = WorkspaceSchema.safeParse(data)
+            if (!workspace$.success) {
+                return {
+                    error: workspace$.error.message,
+                    found: true,
+                    hasError: true,
+                }
+            }
+
+            return {
+                found: true,
+                hasError: false,
+                workspace: workspace$.data,
+            }
+        }
+
+        return {
+            found: false,
+        }
+    }
+
     async getWorkspaceEnv(input: GetWorkspaceEnvInput): Promise<GetWorkspaceEnvOutput> {
-        const workspace$ = await this.loadWorkspace(input.workspace)
+        const workspace$ = await this.getWorkspace(input.workspace)
         if (!workspace$.found) {
             return {
                 reason: `Workspace ${input.workspace} not found`,
@@ -146,37 +175,8 @@ export class LocalBackend implements Backend {
         }
     }
 
-    async loadWorkspace(workspace: string): Promise<LoadWorkspaceOutput> {
-        const workspacePath = await getAnyPath(
-            path.join(os.homedir(), '.hereya', 'state', 'workspaces', `${workspace}.yaml`),
-            path.join(os.homedir(), '.hereya', 'state', 'workspaces', `${workspace}.yml`),
-        )
-        const { data, found } = await load<{ id: string; name: string }>(workspacePath)
-
-        if (found) {
-            const workspace$ = WorkspaceSchema.safeParse(data)
-            if (!workspace$.success) {
-                return {
-                    error: workspace$.error.message,
-                    found: true,
-                    hasError: true,
-                }
-            }
-
-            return {
-                found: true,
-                hasError: false,
-                workspace: workspace$.data,
-            }
-        }
-
-        return {
-            found: false,
-        }
-    }
-
     async removePackageFromWorkspace(input: RemovePackageFromWorkspaceInput): Promise<RemovePackageFromWorkspaceOutput> {
-        const workspace$ = await this.loadWorkspace(input.workspace)
+        const workspace$ = await this.getWorkspace(input.workspace)
         if (!workspace$.found) {
             return {
                 reason: `Workspace ${input.workspace} not found`,
