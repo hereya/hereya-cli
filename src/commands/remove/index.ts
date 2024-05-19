@@ -4,6 +4,7 @@ import { getBackend } from '../../backend/index.js';
 import { destroyPackage } from '../../infrastructure/index.js';
 import { getConfigManager } from '../../lib/config/index.js';
 import { getEnvManager } from '../../lib/env/index.js';
+import { getParameterManager } from '../../lib/parameter/index.js';
 
 export default class Remove extends Command {
     static override args = {
@@ -39,6 +40,11 @@ export default class Remove extends Command {
         }
 
         const { config } = loadConfigOutput
+        if (!(args.package in (config.packages ?? {}))) {
+            this.warn(`Package ${args.package} not found in project.`)
+            return
+        }
+
         const backend = await getBackend()
         const getWorkspaceEnvOutput = await backend.getWorkspaceEnv({
             project: config.project,
@@ -49,8 +55,15 @@ export default class Remove extends Command {
         }
 
         const { env: workspaceEnv } = getWorkspaceEnvOutput
+        const parameterManager = getParameterManager()
+        const { parameters } = await parameterManager.getPackageParameters({
+            package: args.package,
+            projectRootDir,
+            workspace: config.workspace,
+        })
         const destroyOutput = await destroyPackage({
             package: args.package,
+            parameters,
             project: config.project,
             workspace: config.workspace,
             workspaceEnv,

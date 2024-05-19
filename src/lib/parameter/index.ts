@@ -19,7 +19,7 @@ export class ParameterManager {
             return parameters
         }))
         const fromUser = input.userSpecifiedParameters
-        const parameters = Object.assign({}, ...fromFiles, fromUser)
+        const parameters = Object.assign({}, ...fromFiles, fromUser ?? {})
         return { parameters }
     }
 
@@ -64,7 +64,7 @@ export function getParameterManager() {
 export type GetPackageParametersInput = {
     package: string;
     projectRootDir?: string
-    userSpecifiedParameters: { [key: string]: string }
+    userSpecifiedParameters?: { [key: string]: string }
     workspace: string;
 }
 

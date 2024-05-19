@@ -41,6 +41,7 @@ export async function destroyPackage(input: DestroyPackageInput): Promise<Destro
     const destroyOutput = await infrastructure.destroy({
         canonicalName,
         iacType: metadata.iac,
+        parameters: input.parameters,
         pkgName: input.package,
         pkgUrl: packageUri,
         project: input.project,

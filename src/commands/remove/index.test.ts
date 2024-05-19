@@ -8,6 +8,7 @@ import { localBackend } from '../../backend/index.js';
 import { localInfrastructure } from '../../infrastructure/index.js';
 import { packageManager } from '../../lib/package/index.js';
 
+
 describe('remove', () => {
     const homeDir = path.join(os.tmpdir(), 'hereya-test-add', randomUUID())
 
@@ -39,10 +40,28 @@ describe('remove', () => {
         expect(ctx.stderr).to.contain(`Project not initialized. Run 'hereya init' first.`)
     })
 
-
     setupTest
     .do(async (ctx) => {
         await fs.writeFile(path.join(ctx.rootDir, 'hereya.yaml'), 'project: test-project\nworkspace: test-workspace\n')
+    })
+    .command(['remove', 'notin/project'])
+    .it('does nothing if the package is not in the project', async ctx => {
+        expect(ctx.stderr).to.contain('Package notin/project not found in project')
+    })
+
+
+    setupTest
+    .do(async (ctx) => {
+        await fs.writeFile(
+            path.join(ctx.rootDir, 'hereya.yaml'),
+            `
+              project: test-project
+              workspace: test-workspace
+              packages:
+                not/exist:
+                    version: ''
+            `
+        )
     })
     .stub(packageManager, 'getRepoContent', stub => stub.resolves({ found: false, reason: 'not found' }))
     .command(['remove', 'not/exist'])
@@ -51,7 +70,16 @@ describe('remove', () => {
 
     setupTest
     .do(async (ctx) => {
-        await fs.writeFile(path.join(ctx.rootDir, 'hereya.yaml'), 'project: test-project\nworkspace: test-workspace\n')
+        await fs.writeFile(
+            path.join(ctx.rootDir, 'hereya.yaml'),
+            `
+              project: test-project
+              workspace: test-workspace
+              packages:
+                wrong/infra:
+                    version: ''
+            `
+        )
     })
     .stub(packageManager, 'getRepoContent', stub => stub.resolves({
         content: `
@@ -66,7 +94,16 @@ describe('remove', () => {
 
     setupTest
     .do(async (ctx) => {
-        await fs.writeFile(path.join(ctx.rootDir, 'hereya.yaml'), 'project: test-project\nworkspace: test-workspace\n')
+        await fs.writeFile(
+            path.join(ctx.rootDir, 'hereya.yaml'),
+            `
+              project: test-project
+              workspace: test-workspace
+              packages:
+                unsupported/infra:
+                    version: ''
+            `
+        )
     })
     .stub(packageManager, 'getRepoContent', stub => stub.resolves({
         content: `

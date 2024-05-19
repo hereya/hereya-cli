@@ -84,7 +84,7 @@ describe('add', () => {
     .it('fails for infra different from local')
 
 
-    setupTest
+    const setupSuccessTest = setupTest
     .do(async (ctx) => {
         await fs.writeFile(path.join(ctx.rootDir, 'hereya.yaml'),
             `
@@ -118,6 +118,8 @@ describe('add', () => {
         success: true
     }))
     .stub(localBackend, 'saveState', stub => stub.resolves())
+
+    setupSuccessTest
     .command(['add', 'cloudy/docker_postgres'])
     .it('adds a package to the project and save exported variables', async ctx => {
         const envFile = await fs.readFile(path.join(ctx.rootDir, '.hereya', 'env.dev.yaml'), { encoding: 'utf8' })
@@ -125,6 +127,27 @@ describe('add', () => {
         expect(envFile).to.contain('GIB: local:legendary')
         const hereyaYaml = await fs.readFile(path.join(ctx.rootDir, 'hereya.yaml'), { encoding: 'utf8' })
         expect(hereyaYaml).to.contain('cloudy/docker_postgres')
+    })
+
+    setupSuccessTest
+    .command(['add', 'cloudy/docker_postgres', '--parameter', 'param1=value1', '-p', 'param2=value2'])
+    .it('save user provided parameters', async ctx => {
+        const paramFile = await fs.readFile(path.join(ctx.rootDir, 'hereyavars', 'cloudy-docker_postgres.yaml'), { encoding: 'utf8' })
+        expect(paramFile).to.contain('param1: value1')
+        expect(paramFile).to.contain('param2: value2')
+    })
+
+    setupSuccessTest
+    .do(async (ctx) => {
+        await fs.mkdir(path.join(ctx.rootDir, 'hereyavars'), { recursive: true })
+        await fs.writeFile(path.join(ctx.rootDir, 'hereyavars', 'cloudy-docker_postgres.yaml'), 'myParam: myValue\n')
+    })
+    .command(['add', 'cloudy/docker_postgres', '-p', 'param1=value1', '-p', 'param2=value2'])
+    .it('does not save user specified parameters if the parameter file exists', async ctx => {
+        const paramFile = await fs.readFile(path.join(ctx.rootDir, 'hereyavars', 'cloudy-docker_postgres.yaml'), { encoding: 'utf8' })
+        expect(paramFile).to.contain('myParam: myValue')
+        expect(paramFile).to.not.contain('param1: value1')
+        expect(paramFile).to.not.contain('param2: value2')
     })
 
 })

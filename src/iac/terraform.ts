@@ -54,7 +54,10 @@ export class Terraform implements Iac {
                 ['destroy', '-auto-approve'],
                 {
                     directory: input.pkgPath,
-                    env
+                    env: Object.assign(
+                        input.env,
+                        mapObject(input.parameters ?? {}, (key, value) => [`TF_VAR_${key}`, value])
+                    )
                 }
             )
             return {
