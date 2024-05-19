@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import sinon, { SinonStub } from 'sinon';
 
 import { localBackend } from '../../backend/index.js';
 import { localInfrastructure } from '../../infrastructure/index.js';
@@ -127,6 +128,34 @@ describe('add', () => {
         expect(envFile).to.contain('GIB: local:legendary')
         const hereyaYaml = await fs.readFile(path.join(ctx.rootDir, 'hereya.yaml'), { encoding: 'utf8' })
         expect(hereyaYaml).to.contain('cloudy/docker_postgres')
+    })
+
+    setupSuccessTest
+    .do(async (ctx) => {
+        await fs.mkdir(path.join(ctx.rootDir, 'hereyavars'), { recursive: true })
+        await fs.writeFile(
+            path.join(ctx.rootDir, 'hereyavars', 'cloudy-docker_postgres.yaml'),
+            `
+            myParam: myValue
+            override: me
+            `
+        )
+        await fs.writeFile(
+            path.join(ctx.rootDir, 'hereyavars', 'cloudy-docker_postgres.dev.yaml'),
+            `
+            override: you
+            param1: value0
+            `
+        )
+    })
+    .command(['add', 'cloudy/docker_postgres', '-p', 'param1=value1', '-p', 'param2=value2'])
+    .it('uses parameters from file and user provided parameters', async () => {
+        expect((localInfrastructure.provision as SinonStub).calledWithMatch(sinon.match.has('parameters', {
+            myParam: 'myValue',
+            override: 'you',
+            param1: 'value1',
+            param2: 'value2',
+        }))).to.be.true
     })
 
     setupSuccessTest

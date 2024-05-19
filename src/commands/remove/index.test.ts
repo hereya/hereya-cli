@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import sinon, { SinonStub } from 'sinon';
 
 import { localBackend } from '../../backend/index.js';
 import { localInfrastructure } from '../../infrastructure/index.js';
@@ -40,6 +41,7 @@ describe('remove', () => {
         expect(ctx.stderr).to.contain(`Project not initialized. Run 'hereya init' first.`)
     })
 
+
     setupTest
     .do(async (ctx) => {
         await fs.writeFile(path.join(ctx.rootDir, 'hereya.yaml'), 'project: test-project\nworkspace: test-workspace\n')
@@ -68,6 +70,7 @@ describe('remove', () => {
     .exit(2)
     .it('fails if the package cannot be resolved')
 
+
     setupTest
     .do(async (ctx) => {
         await fs.writeFile(
@@ -91,6 +94,7 @@ describe('remove', () => {
     .command(['remove', 'wrong/infra'])
     .exit(2)
     .it('fails for invalid infra')
+
 
     setupTest
     .do(async (ctx) => {
@@ -160,6 +164,15 @@ describe('remove', () => {
             `,
         found: true,
     }))
+    .do(async (ctx) => {
+        await fs.mkdir(path.join(ctx.rootDir, 'hereyavars'), { recursive: true })
+        await fs.writeFile(
+            path.join(ctx.rootDir, 'hereyavars', 'cloudy-docker_postgres.yaml'),
+            `
+            myParam: myValue
+            `
+        )
+    })
     .stub(localInfrastructure, 'destroy', stub => stub.resolves({
         env: { FOO: "BAR", GIB: "legendary" },
         success: true
@@ -173,6 +186,9 @@ describe('remove', () => {
         expect(envFile).to.contain('AND: local:another')
         const hereyaYaml = await fs.readFile(path.join(ctx.rootDir, 'hereya.yaml'), 'utf8')
         expect(hereyaYaml).to.not.contain('cloudy/docker_postgres')
+
+        expect((localInfrastructure.destroy as SinonStub).calledWithMatch(sinon.match.has('parameters', { myParam: 'myValue' }))).to.be.true
+
     })
 
 })
