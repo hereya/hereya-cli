@@ -72,7 +72,7 @@ export type CreateWorkspaceOutput = {
 }
 
 export type GetWorkspaceEnvInput = {
-    project: string;
+    project?: string;
     workspace: string;
 }
 
