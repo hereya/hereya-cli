@@ -1,3 +1,4 @@
+import { mapObject } from '../lib/object-utils.js';
 import { runShell } from '../lib/shell.js';
 import { ApplyInput, ApplyOutput, DestroyInput, DestroyOutput, Iac } from './common.js';
 
@@ -9,7 +10,10 @@ export class Terraform implements Iac {
                 ['init'],
                 {
                     directory: input.pkgPath,
-                    env: input.env
+                    env: Object.assign(
+                        input.env,
+                        mapObject(input.parameters ?? {}, (key, value) => [`TF_VAR_${key}`, value])
+                    )
                 }
             )
             runShell(
@@ -17,7 +21,10 @@ export class Terraform implements Iac {
                 ['apply', '-auto-approve'],
                 {
                     directory: input.pkgPath,
-                    env: input.env
+                    env: Object.assign(
+                        input.env,
+                        mapObject(input.parameters ?? {}, (key, value) => [`TF_VAR_${key}`, value])
+                    )
                 }
             )
             const env = await this.getEnv(input.pkgPath)

@@ -70,6 +70,7 @@ export async function provisionPackage(input: ProvisionPackageInput): Promise<Pr
     const provisionOutput = await infrastructure.provision({
         canonicalName,
         iacType: metadata.iac,
+        parameters: input.parameters,
         pkgName: input.package,
         pkgUrl: packageUri,
         project: input.project,
@@ -89,6 +90,7 @@ export type DestroyPackageOutput = ProvisionPackageOutput
 
 export type ProvisionPackageInput = {
     package: string
+    parameters?: { [key: string]: string }
     project?: string
     workspace: string
     workspaceEnv?: { [key: string]: string }

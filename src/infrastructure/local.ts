@@ -43,7 +43,11 @@ export class LocalInfrastructure implements Infrastructure {
         }
 
         const { iac } = iac$;
-        const output = await iac.apply({ env: input.workspaceEnv ?? {}, pkgPath: downloadPath });
+        const output = await iac.apply({
+            env: input.workspaceEnv ?? {},
+            parameters: input.parameters,
+            pkgPath: downloadPath
+        });
         if (!output.success) {
             return { reason: output.reason, success: false };
         }

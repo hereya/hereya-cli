@@ -34,7 +34,7 @@ export async function resolvePackage(input: ResolvePackageInput): Promise<Resolv
     try {
         const metadata = PackageMetadata.parse(yaml.parse(metadataContent$.content))
         return {
-            canonicalName: input.package.replace('/', '-'),
+            canonicalName: getPackageCanonicalName(input.package),
             found: true,
             metadata,
             packageUri: pkgUrl
@@ -42,6 +42,10 @@ export async function resolvePackage(input: ResolvePackageInput): Promise<Resolv
     } catch (error: any) {
         return { found: false, reason: error.message }
     }
+}
+
+export function getPackageCanonicalName(packageName: string): string {
+    return packageName.replace('/', '-')
 }
 
 export type ResolvePackageInput = {

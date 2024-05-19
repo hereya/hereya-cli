@@ -5,6 +5,7 @@ import { provisionPackage } from '../../infrastructure/index.js';
 import { getConfigManager } from '../../lib/config/index.js';
 import { getEnvManager } from '../../lib/env/index.js';
 import { logEnv } from '../../lib/env-utils.js';
+import { getParameterManager } from '../../lib/parameter/index.js';
 
 
 export default class Add extends Command {
@@ -25,6 +26,12 @@ export default class Add extends Command {
         chdir: Flags.string({
             description: 'directory to run command in',
             required: false,
+        }),
+        parameter: Flags.string({
+            char: 'p',
+            default: [],
+            description: 'parameter for the package, in the form of \'key=value\'. Can be specified multiple times.',
+            multiple: true,
         }),
     }
 
@@ -54,8 +61,21 @@ export default class Add extends Command {
 
         const { env: workspaceEnv } = getWorkspaceEnvOutput
 
+        const userSpecifiedParameters = Object.fromEntries(flags.parameter.map((param) => {
+            const [key, value] = param.split('=')
+            return [key, value]
+        }));
+        const parameterManager = getParameterManager()
+        const { parameters } = await parameterManager.getPackageParameters({
+            package: args.package,
+            projectRootDir,
+            userSpecifiedParameters,
+            workspace: config.workspace,
+        })
+
         const provisionOutput = await provisionPackage({
             package: args.package,
+            parameters,
             project: config.project,
             workspace: config.workspace,
             workspaceEnv,
@@ -68,8 +88,6 @@ export default class Add extends Command {
         const { env, metadata } = provisionOutput
         this.log(`Package ${args.package} added successfully`)
         this.log(`Saving exported environment variables`)
-        // log env vars
-        logEnv(env, this.log.bind(this))
 
         const envManager = getEnvManager()
         await envManager.addProjectEnv({
@@ -86,5 +104,16 @@ export default class Add extends Command {
 
         const { config: newConfig } = await configManager.loadConfig({ projectRootDir })
         await backend.saveState(newConfig)
+        const { filePath, saved } = await parameterManager.savePackageParameters({
+            package: args.package,
+            parameters,
+            projectRootDir,
+            workspace: config.workspace,
+        })
+
+        if (saved) {
+            this.log(`Saved the following parameters for the package in ${filePath}:`)
+            logEnv(parameters, this.log.bind(this))
+        }
     }
 }

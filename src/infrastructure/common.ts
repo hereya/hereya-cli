@@ -23,6 +23,7 @@ export type BootstrapInput = {
 export type ProvisionInput = {
     canonicalName: string;
     iacType: IacType;
+    parameters?: { [key: string]: string };
     pkgName: string;
     pkgUrl: string;
     project?: string;

@@ -4,7 +4,6 @@ import { getBackend } from '../../backend/index.js';
 import { destroyPackage } from '../../infrastructure/index.js';
 import { getConfigManager } from '../../lib/config/index.js';
 import { getEnvManager } from '../../lib/env/index.js';
-import { logEnv } from '../../lib/env-utils.js';
 
 export default class Remove extends Command {
     static override args = {
@@ -65,8 +64,7 @@ export default class Remove extends Command {
 
         this.log(`Infrastructure resources for ${args.package} have been destroyed`)
 
-        this.log('removing the following env vars from project')
-        logEnv(env, this.log.bind(this))
+        this.log('removing package env vars from project')
 
         const envManager = getEnvManager()
         await envManager.removeProjectEnv({
