@@ -31,6 +31,7 @@ USAGE
 <!-- commands -->
 * [`hereya add PACKAGE`](#hereya-add-package)
 * [`hereya bootstrap INFRASTRUCTURETYPE`](#hereya-bootstrap-infrastructuretype)
+* [`hereya env`](#hereya-env)
 * [`hereya help [COMMAND]`](#hereya-help-command)
 * [`hereya init PROJECT`](#hereya-init-project)
 * [`hereya plugins`](#hereya-plugins)
@@ -45,6 +46,10 @@ USAGE
 * [`hereya plugins update`](#hereya-plugins-update)
 * [`hereya remove PACKAGE`](#hereya-remove-package)
 * [`hereya run CMD`](#hereya-run-cmd)
+* [`hereya workspace add PACKAGE`](#hereya-workspace-add-package)
+* [`hereya workspace create NAME`](#hereya-workspace-create-name)
+* [`hereya workspace env`](#hereya-workspace-env)
+* [`hereya workspace remove PACKAGE`](#hereya-workspace-remove-package)
 
 ## `hereya add PACKAGE`
 
@@ -98,6 +103,29 @@ EXAMPLES
 
 _See
 code: [src/commands/bootstrap/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/bootstrap/index.ts)_
+
+## `hereya env`
+
+print project environment variables
+
+```
+USAGE
+  $ hereya env [--chdir <value>] [-w <value>]
+
+FLAGS
+  -w, --workspace=<value>  name of the workspace to print the env vars for
+      --chdir=<value>      project root directory
+
+DESCRIPTION
+  print project environment variables
+
+EXAMPLES
+  $ hereya env
+
+  $ hereya env -w dev
+```
+
+_See code: [src/commands/env/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/env/index.ts)_
 
 ## `hereya help [COMMAND]`
 
@@ -464,7 +492,7 @@ run a command with hereya env vars
 
 ```
 USAGE
-  $ hereya run CMD... [-w <value>] [--chdir <value>]
+  $ hereya run CMD... [--chdir <value>] [-w <value>]
 
 ARGUMENTS
   CMD...  command to run
@@ -483,4 +511,94 @@ EXAMPLES
 ```
 
 _See code: [src/commands/run/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/run/index.ts)_
+
+## `hereya workspace add PACKAGE`
+
+add a package to the workspace
+
+```
+USAGE
+  $ hereya workspace add PACKAGE -w <value>
+
+ARGUMENTS
+  PACKAGE  The package to add. Packages are gitHub repositories. Use the format owner/repository
+
+FLAGS
+  -w, --workspace=<value>  (required) name of the workspace to add the package to
+
+DESCRIPTION
+  add a package to the workspace
+
+EXAMPLES
+  $ hereya workspace add hereya/aws-cognito
+```
+
+_See
+code: [src/commands/workspace/add/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/workspace/add/index.ts)_
+
+## `hereya workspace create NAME`
+
+create a new workspace if it does not exist
+
+```
+USAGE
+  $ hereya workspace create NAME
+
+ARGUMENTS
+  NAME  name of the workspace to create
+
+DESCRIPTION
+  create a new workspace if it does not exist
+
+EXAMPLES
+  $ hereya workspace create
+```
+
+_See
+code: [src/commands/workspace/create/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/workspace/create/index.ts)_
+
+## `hereya workspace env`
+
+print workspace env vars
+
+```
+USAGE
+  $ hereya workspace env -w <value>
+
+FLAGS
+  -w, --workspace=<value>  (required) name of the workspace to print env vars for
+
+DESCRIPTION
+  print workspace env vars
+
+EXAMPLES
+  $ hereya workspace env -w dev
+```
+
+_See
+code: [src/commands/workspace/env/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/workspace/env/index.ts)_
+
+## `hereya workspace remove PACKAGE`
+
+remove a package from a workspace
+
+```
+USAGE
+  $ hereya workspace remove PACKAGE -w <value>
+
+ARGUMENTS
+  PACKAGE  The package to remove. Packages are gitHub repositories. Use the format owner/repository
+
+FLAGS
+  -w, --workspace=<value>  (required) name of the workspace to remove the package from
+
+DESCRIPTION
+  remove a package from a workspace
+
+EXAMPLES
+  $ hereya workspace remove hereya/aws-cognito
+```
+
+_See
+code: [src/commands/workspace/remove/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/workspace/remove/index.ts)_
 <!-- commandsstop -->
