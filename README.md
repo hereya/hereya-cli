@@ -31,6 +31,7 @@ USAGE
 <!-- commands -->
 * [`hereya add PACKAGE`](#hereya-add-package)
 * [`hereya bootstrap INFRASTRUCTURETYPE`](#hereya-bootstrap-infrastructuretype)
+* [`hereya down`](#hereya-down)
 * [`hereya env`](#hereya-env)
 * [`hereya help [COMMAND]`](#hereya-help-command)
 * [`hereya init PROJECT`](#hereya-init-project)
@@ -96,6 +97,27 @@ EXAMPLES
 
 _See
 code: [src/commands/bootstrap/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/bootstrap/index.ts)_
+
+## `hereya down`
+
+destroy all packages in the project
+
+```
+USAGE
+  $ hereya down [--chdir <value>] [-w <value>]
+
+FLAGS
+  -w, --workspace=<value>  name of the workspace to install the packages for
+      --chdir=<value>      directory to run command in
+
+DESCRIPTION
+  destroy all packages in the project
+
+EXAMPLES
+  $ hereya down
+```
+
+_See code: [src/commands/down/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/down/index.ts)_
 
 ## `hereya env`
 

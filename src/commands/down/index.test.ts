@@ -7,8 +7,9 @@ import sinon, { SinonStub } from 'sinon';
 
 import { localInfrastructure } from '../../infrastructure/index.js';
 import { packageManager } from '../../lib/package/index.js';
+import { load } from '../../lib/yaml-utils.js';
 
-describe('up', () => {
+describe('down', () => {
     const homeDir = path.join(os.tmpdir(), 'hereya-test-install', randomUUID())
 
     const setupTest = test
@@ -53,7 +54,10 @@ describe('up', () => {
         success: true
     }))
     .stub(localInfrastructure, 'destroy', stub => stub.resolves({
-        env: {},
+        env: {
+            BAZ: 'qux',
+            FOO: 'bar',
+        },
         success: true
     }))
     .stderr()
@@ -67,27 +71,27 @@ describe('up', () => {
     .do(async (ctx) => {
         await fs.rm(path.join(ctx.rootDir, 'hereya.yaml'))
     })
-    .command(['up'])
+    .command(['down'])
     .it('fails if the project is not initialized', async ctx => {
         expect(ctx.stderr).to.contain(`Project not initialized. Run 'hereya init' first.`)
     })
 
     setupTest
-    .command(['up'])
-    .it('provisions all packages in the project', async () => {
-        sinon.assert.calledTwice(localInfrastructure.provision as SinonStub)
+    .command(['down'])
+    .it('destroys all packages in the project', async () => {
+        sinon.assert.calledTwice(localInfrastructure.destroy as SinonStub);
         sinon.assert.calledWithMatch(
-            localInfrastructure.provision as SinonStub,
+            localInfrastructure.destroy as SinonStub,
             sinon.match.has('pkgName', 'cloudy/docker_postgres')
-        )
+        );
         sinon.assert.calledWithMatch(
-            localInfrastructure.provision as SinonStub,
+            localInfrastructure.destroy as SinonStub,
             sinon.match.has('pkgName', 'another/package')
-        )
+        );
         sinon.assert.calledWithMatch(
-            localInfrastructure.provision as SinonStub,
+            localInfrastructure.destroy as SinonStub,
             sinon.match.has('workspace', 'my-workspace')
-        )
+        );
     })
 
     setupTest
@@ -97,40 +101,32 @@ describe('up', () => {
             'name: another-workspace\nid: another-workspace\n'
         )
     })
-    .command(['up', '--workspace', 'another-workspace'])
-    .it('provisions all packages in the project for the specified workspace', async () => {
-        sinon.assert.calledTwice(localInfrastructure.provision as SinonStub)
+    .command(['down', '--workspace', 'another-workspace'])
+    .it('destroys all packages in the project for the specified workspace', async () => {
+        sinon.assert.calledTwice(localInfrastructure.destroy as SinonStub)
         sinon.assert.calledWithMatch(
-            localInfrastructure.provision as SinonStub,
+            localInfrastructure.destroy as SinonStub,
             sinon.match.has('workspace', 'another-workspace')
         )
     })
 
     setupTest
-    .do(async () => {
-        await fs.mkdir(path.join(homeDir, '.hereya', 'state', 'projects'), { recursive: true })
+    .do(async (ctx) => {
+        await fs.mkdir(path.join(ctx.rootDir, '.hereya'), { recursive: true })
         await fs.writeFile(
-            path.join(homeDir, '.hereya', 'state', 'projects', 'test-project.yaml'),
+            path.join(ctx.rootDir, '.hereya', 'env.my-workspace.yaml'),
             `
-            project: test-project
-            packages:
-              cloudy/docker_postgres:
-                version: ''
-              removed/package:
-                version: ''
-              another/package:
-                version: ''
+            FOO: bar
+            BAZ: qux
             `
         )
     })
-    .command(['up'])
-    .it('destroys removed packages', async () => {
-        sinon.assert.calledTwice(localInfrastructure.provision as SinonStub)
-        sinon.assert.calledOnce(localInfrastructure.destroy as SinonStub)
-        sinon.assert.calledWithMatch(
-            localInfrastructure.destroy as SinonStub,
-            sinon.match.has('pkgName', 'removed/package')
-        )
+    .command(['down'])
+    .it('clears up the workspace environment file', async (ctx) => {
+        const file$ = await load(path.join(ctx.rootDir, '.hereya', 'env.my-workspace.yaml'))
+        if (file$.found) {
+            expect(file$.data).to.deep.equal({})
+        }
     })
 
     setupTest
@@ -150,12 +146,11 @@ describe('up', () => {
             `
         )
     })
-    .command(['up'])
-    .it('updates the project state file', async () => {
+    .command(['down'])
+    .it('updates the state file', async () => {
         const projectState = await fs.readFile(path.join(homeDir, '.hereya', 'state', 'projects', 'test-project.yaml'), { encoding: 'utf8' })
         expect(projectState).to.contain('cloudy/docker_postgres')
         expect(projectState).to.contain('another/package')
         expect(projectState).not.to.contain('removed/package')
     })
-
 })
