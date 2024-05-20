@@ -1,6 +1,6 @@
 {
   "name": "hereya-cli",
-  "description": "A package manager for infrastructure libraries.",
+  "description": "Developer's Package Manager for Seamless Infrastructure Integration.",
   "version": "0.0.0",
   "author": "The Hereya team",
   "bin": {
