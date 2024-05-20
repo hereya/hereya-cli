@@ -1,4 +1,4 @@
-hereya
+hereya-cli
 =================
 
 A package manager for infrastructure libraries.
