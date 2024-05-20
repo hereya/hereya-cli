@@ -14,7 +14,7 @@ export default class Remove extends Command {
         }),
     }
 
-    static override description = 'removes a package from the project'
+    static override description = 'Remove a package from the project.'
 
     static override examples = [
         '<%= config.bin %> <%= command.id %> cloudy/docker_postgres',

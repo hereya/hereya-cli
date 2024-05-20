@@ -8,7 +8,7 @@ import { getParameterManager } from '../../lib/parameter/index.js';
 
 export default class Up extends Command {
 
-    static override description = 'provisions all packages in the project'
+    static override description = 'Provision all packages in the project.'
 
     static override examples = [
         '<%= config.bin %> <%= command.id %>',

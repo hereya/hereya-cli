@@ -9,7 +9,7 @@ export default class Run extends Command {
         cmd: Args.string({ description: 'command to run', required: true }),
     }
 
-    static override description = 'runs a command with hereya env vars'
+    static override description = 'Run a command with hereya env vars.'
 
     static override examples = [
         '<%= config.bin %> <%= command.id %> -- npm run dev',

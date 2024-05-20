@@ -46,7 +46,7 @@ USAGE
 
 ## `hereya add PACKAGE`
 
-adds a package to the project
+Add a package to the project.
 
 ```
 USAGE
@@ -61,7 +61,7 @@ FLAGS
       --chdir=<value>         directory to run command in
 
 DESCRIPTION
-  adds a package to the project
+  Add a package to the project.
 
 EXAMPLES
   $ hereya add cloudy/docker_postgres
@@ -71,7 +71,7 @@ _See code: [src/commands/add/index.ts](https://github.com/hereya/hereya-cli/blob
 
 ## `hereya bootstrap INFRASTRUCTURETYPE`
 
-installs necessary resources for hereya operations in an infrastructure
+Install necessary resources for hereya operations in an infrastructure.
 
 ```
 USAGE
@@ -84,7 +84,7 @@ FLAGS
   -f, --force  redeploy hereya resources if already deployed
 
 DESCRIPTION
-  installs necessary resources for hereya operations in an infrastructure
+  Install necessary resources for hereya operations in an infrastructure.
 
 EXAMPLES
   $ hereya bootstrap aws
@@ -101,7 +101,7 @@ code: [src/commands/bootstrap/index.ts](https://github.com/hereya/hereya-cli/blo
 
 ## `hereya down`
 
-destroy all packages in the project
+Destroy all packages in the project.
 
 ```
 USAGE
@@ -112,7 +112,7 @@ FLAGS
       --chdir=<value>      directory to run command in
 
 DESCRIPTION
-  destroy all packages in the project
+  Destroy all packages in the project.
 
 EXAMPLES
   $ hereya down
@@ -122,7 +122,7 @@ _See code: [src/commands/down/index.ts](https://github.com/hereya/hereya-cli/blo
 
 ## `hereya env`
 
-prints project environment variables
+Print project environment variables.
 
 ```
 USAGE
@@ -133,7 +133,7 @@ FLAGS
       --chdir=<value>      project root directory
 
 DESCRIPTION
-  prints project environment variables
+  Print project environment variables.
 
 EXAMPLES
   $ hereya env
@@ -165,7 +165,7 @@ _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.0.2
 
 ## `hereya init PROJECT`
 
-initializes hereya in a project directory
+Initialize hereya in a project directory.
 
 ```
 USAGE
@@ -179,7 +179,7 @@ FLAGS
       --chdir=<value>      directory to run command in
 
 DESCRIPTION
-  initializes hereya in a project directory
+  Initialize hereya in a project directory.
 
 EXAMPLES
   $ hereya init myProject -w=defaultWorkspace
@@ -191,7 +191,7 @@ _See code: [src/commands/init/index.ts](https://github.com/hereya/hereya-cli/blo
 
 ## `hereya remove PACKAGE`
 
-removes a package from the project
+Remove a package from the project.
 
 ```
 USAGE
@@ -204,7 +204,7 @@ FLAGS
   --chdir=<value>  directory to run command in
 
 DESCRIPTION
-  removes a package from the project
+  Remove a package from the project.
 
 EXAMPLES
   $ hereya remove cloudy/docker_postgres
@@ -215,7 +215,7 @@ code: [src/commands/remove/index.ts](https://github.com/hereya/hereya-cli/blob/v
 
 ## `hereya run CMD`
 
-runs a command with hereya env vars
+Run a command with hereya env vars.
 
 ```
 USAGE
@@ -229,7 +229,7 @@ FLAGS
       --chdir=<value>      directory to run command in
 
 DESCRIPTION
-  runs a command with hereya env vars
+  Run a command with hereya env vars.
 
 EXAMPLES
   $ hereya run -- npm run dev
@@ -241,7 +241,7 @@ _See code: [src/commands/run/index.ts](https://github.com/hereya/hereya-cli/blob
 
 ## `hereya up`
 
-provisions all packages in the project
+Provision all packages in the project.
 
 ```
 USAGE
@@ -252,7 +252,7 @@ FLAGS
       --chdir=<value>      directory to run command in
 
 DESCRIPTION
-  provisions all packages in the project
+  Provision all packages in the project.
 
 EXAMPLES
   $ hereya up
@@ -262,7 +262,7 @@ _See code: [src/commands/up/index.ts](https://github.com/hereya/hereya-cli/blob/
 
 ## `hereya workspace create NAME`
 
-creates a new workspace if it does not exist
+Create a new workspace if it does not exist.
 
 ```
 USAGE
@@ -272,7 +272,7 @@ ARGUMENTS
   NAME  name of the workspace to create
 
 DESCRIPTION
-  creates a new workspace if it does not exist
+  Create a new workspace if it does not exist.
 
 EXAMPLES
   $ hereya workspace create dev
@@ -283,7 +283,7 @@ code: [src/commands/workspace/create/index.ts](https://github.com/hereya/hereya-
 
 ## `hereya workspace delete NAME`
 
-deletes a workspace if it exists
+Delete a workspace if it exists.
 
 ```
 USAGE
@@ -293,7 +293,7 @@ ARGUMENTS
   NAME  name of the workspace to delete
 
 DESCRIPTION
-  deletes a workspace if it exists
+  Delete a workspace if it exists.
 
 EXAMPLES
   $ hereya workspace delete dev
@@ -304,7 +304,7 @@ code: [src/commands/workspace/delete/index.ts](https://github.com/hereya/hereya-
 
 ## `hereya workspace env`
 
-prints workspace env vars
+Print workspace env vars.
 
 ```
 USAGE
@@ -314,7 +314,7 @@ FLAGS
   -w, --workspace=<value>  (required) name of the workspace to print env vars for
 
 DESCRIPTION
-  prints workspace env vars
+  Print workspace env vars.
 
 EXAMPLES
   $ hereya workspace env -w dev
@@ -325,7 +325,7 @@ code: [src/commands/workspace/env/index.ts](https://github.com/hereya/hereya-cli
 
 ## `hereya workspace install PACKAGE`
 
-adds a package to the workspace
+Add a package to the workspace.
 
 ```
 USAGE
@@ -341,7 +341,7 @@ FLAGS
   -w, --workspace=<value>       (required) name of the workspace to add the package to
 
 DESCRIPTION
-  adds a package to the workspace
+  Add a package to the workspace.
 
 EXAMPLES
   $ hereya workspace install hereya/aws-cognito
@@ -352,7 +352,7 @@ code: [src/commands/workspace/install/index.ts](https://github.com/hereya/hereya
 
 ## `hereya workspace uninstall PACKAGE`
 
-removes a package from a workspace
+Remove a package from a workspace.
 
 ```
 USAGE
@@ -368,7 +368,7 @@ FLAGS
   -w, --workspace=<value>       (required) name of the workspace to remove the package from
 
 DESCRIPTION
-  removes a package from a workspace
+  Remove a package from a workspace.
 
 EXAMPLES
   $ hereya workspace uninstall hereya/aws-cognito

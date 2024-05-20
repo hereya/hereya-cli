@@ -5,7 +5,7 @@ import { getEnvManager } from '../../lib/env/index.js';
 import { logEnv } from '../../lib/env-utils.js';
 
 export default class Env extends Command {
-    static override description = 'prints project environment variables'
+    static override description = 'Print project environment variables.'
 
     static override examples = [
         '<%= config.bin %> <%= command.id %>',

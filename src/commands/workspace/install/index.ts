@@ -13,7 +13,7 @@ export default class WorkspaceInstall extends Command {
         }),
     }
 
-    static override description = 'adds a package to the workspace'
+    static override description = 'Add a package to the workspace.'
 
     static override examples = [
         '<%= config.bin %> <%= command.id %> hereya/aws-cognito',

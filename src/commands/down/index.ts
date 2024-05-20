@@ -7,7 +7,7 @@ import { getEnvManager } from '../../lib/env/index.js';
 import { getParameterManager } from '../../lib/parameter/index.js';
 
 export default class Down extends Command {
-    static override description = 'destroy all packages in the project'
+    static override description = 'Destroy all packages in the project.'
 
     static override examples = [
         '<%= config.bin %> <%= command.id %>',
