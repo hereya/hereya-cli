@@ -38,10 +38,10 @@ USAGE
 * [`hereya remove PACKAGE`](#hereya-remove-package)
 * [`hereya run CMD`](#hereya-run-cmd)
 * [`hereya up`](#hereya-up)
-* [`hereya workspace add PACKAGE`](#hereya-workspace-add-package)
 * [`hereya workspace create NAME`](#hereya-workspace-create-name)
 * [`hereya workspace env`](#hereya-workspace-env)
-* [`hereya workspace remove PACKAGE`](#hereya-workspace-remove-package)
+* [`hereya workspace install PACKAGE`](#hereya-workspace-install-package)
+* [`hereya workspace uninstall PACKAGE`](#hereya-workspace-uninstall-package)
 
 ## `hereya add PACKAGE`
 
@@ -259,33 +259,6 @@ EXAMPLES
 
 _See code: [src/commands/up/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/up/index.ts)_
 
-## `hereya workspace add PACKAGE`
-
-adds a package to the workspace
-
-```
-USAGE
-  $ hereya workspace add PACKAGE -w <value> [-p <value>] [-f <value>]
-
-ARGUMENTS
-  PACKAGE  The package to add. Packages are gitHub repositories. Use the format owner/repository
-
-FLAGS
-  -f, --parameter-file=<value>  path to a file containing parameters for the package
-  -p, --parameter=<value>...    [default: ] parameter for the package, in the form of 'key=value'. Can be specified
-                                multiple times.
-  -w, --workspace=<value>       (required) name of the workspace to add the package to
-
-DESCRIPTION
-  adds a package to the workspace
-
-EXAMPLES
-  $ hereya workspace add hereya/aws-cognito
-```
-
-_See
-code: [src/commands/workspace/add/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/workspace/add/index.ts)_
-
 ## `hereya workspace create NAME`
 
 creates a new workspace if it does not exist
@@ -328,13 +301,40 @@ EXAMPLES
 _See
 code: [src/commands/workspace/env/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/workspace/env/index.ts)_
 
-## `hereya workspace remove PACKAGE`
+## `hereya workspace install PACKAGE`
+
+adds a package to the workspace
+
+```
+USAGE
+  $ hereya workspace install PACKAGE -w <value> [-p <value>] [-f <value>]
+
+ARGUMENTS
+  PACKAGE  The package to add. Packages are gitHub repositories. Use the format owner/repository
+
+FLAGS
+  -f, --parameter-file=<value>  path to a file containing parameters for the package
+  -p, --parameter=<value>...    [default: ] parameter for the package, in the form of 'key=value'. Can be specified
+                                multiple times.
+  -w, --workspace=<value>       (required) name of the workspace to add the package to
+
+DESCRIPTION
+  adds a package to the workspace
+
+EXAMPLES
+  $ hereya workspace install hereya/aws-cognito
+```
+
+_See
+code: [src/commands/workspace/install/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/workspace/install/index.ts)_
+
+## `hereya workspace uninstall PACKAGE`
 
 removes a package from a workspace
 
 ```
 USAGE
-  $ hereya workspace remove PACKAGE -w <value> [-p <value>] [-f <value>]
+  $ hereya workspace uninstall PACKAGE -w <value> [-p <value>] [-f <value>]
 
 ARGUMENTS
   PACKAGE  The package to remove. Packages are gitHub repositories. Use the format owner/repository
@@ -349,9 +349,9 @@ DESCRIPTION
   removes a package from a workspace
 
 EXAMPLES
-  $ hereya workspace remove hereya/aws-cognito
+  $ hereya workspace uninstall hereya/aws-cognito
 ```
 
 _See
-code: [src/commands/workspace/remove/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/workspace/remove/index.ts)_
+code: [src/commands/workspace/uninstall/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/workspace/uninstall/index.ts)_
 <!-- commandsstop -->

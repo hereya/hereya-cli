@@ -9,7 +9,7 @@ import { localInfrastructure } from '../../../infrastructure/index.js';
 import { packageManager } from '../../../lib/package/index.js';
 import { load } from '../../../lib/yaml-utils.js';
 
-describe('workspace:add', () => {
+describe('workspace:install', () => {
     const homeDir = path.join(os.tmpdir(), 'hereya-test-workspace-add', randomUUID())
 
     const setupTest = test
@@ -36,7 +36,7 @@ describe('workspace:add', () => {
 
     setupTestWithProvisioningStub
     .stub(packageManager, 'getRepoContent', stub => stub.resolves({ found: false, reason: 'not found' }))
-    .command(['workspace:add', 'cloudy/docker_postgres', '-w', 'test-workspace'])
+    .command(['workspace:install', 'cloudy/docker_postgres', '-w', 'test-workspace'])
     .exit(2)
     .it('fails if the package cannot be resolved')
 
@@ -48,7 +48,7 @@ describe('workspace:add', () => {
         `,
         found: true,
     }))
-    .command(['workspace:add', 'wrong/infra', '-w', 'test-workspace'])
+    .command(['workspace:install', 'wrong/infra', '-w', 'test-workspace'])
     .exit(2)
     .it('fails for invalid infra')
 
@@ -63,7 +63,7 @@ describe('workspace:add', () => {
     .do(async () => {
         await fs.rm(path.join(homeDir, '.hereya', 'state', 'workspaces'), { force: true, recursive: true })
     })
-    .command(['workspace:add', 'workspace/notfound', '-w', 'notfound'])
+    .command(['workspace:install', 'workspace/notfound', '-w', 'notfound'])
     .exit(2)
     .it('fails if the workspace cannot be found')
 
@@ -96,7 +96,7 @@ describe('workspace:add', () => {
     }))
 
     setupSuccessTest
-    .command(['workspace:add', 'mynew/package', '-w', 'my-dev'])
+    .command(['workspace:install', 'mynew/package', '-w', 'my-dev'])
     .it('adds a package to the workspace and saves exported env to workspace', async ctx => {
         expect(ctx.stdout).to.contain('Package mynew/package added to workspace my-dev')
         const workspaceContent = await fs.readFile(path.join(homeDir, '.hereya', 'state', 'workspaces', 'my-dev.yaml'), 'utf8')
@@ -107,7 +107,7 @@ describe('workspace:add', () => {
     })
 
     setupSuccessTest
-    .command(['workspace:add', 'mynew/package', '-w', 'my-dev', '-p', 'PARAM=VALUE', '-p', 'ANOTHER=VALUE'])
+    .command(['workspace:install', 'mynew/package', '-w', 'my-dev', '-p', 'PARAM=VALUE', '-p', 'ANOTHER=VALUE'])
     .it('uses and saves user specified parameters', async () => {
         expect((localInfrastructure.provision as SinonStub).calledWithMatch(
             sinon.match.has('parameters', { ANOTHER: 'VALUE', PARAM: 'VALUE' })
@@ -132,7 +132,7 @@ describe('workspace:add', () => {
           `
         )
     })
-    .command(['workspace:add', 'mynew/package', '-w', 'my-dev', '-p', 'ipVersion=6', '-f', `${homeDir}/my-params.yaml`])
+    .command(['workspace:install', 'mynew/package', '-w', 'my-dev', '-p', 'ipVersion=6', '-f', `${homeDir}/my-params.yaml`])
     .it('uses parameters from file', async () => {
 
         sinon.assert.calledWithMatch(localInfrastructure.provision as SinonStub,

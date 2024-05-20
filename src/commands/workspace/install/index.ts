@@ -6,7 +6,7 @@ import { logEnv } from '../../../lib/env-utils.js';
 import { arrayOfStringToObject } from '../../../lib/object-utils.js';
 import { load } from '../../../lib/yaml-utils.js';
 
-export default class WorkspaceAdd extends Command {
+export default class WorkspaceInstall extends Command {
     static override args = {
         package: Args.string({
             description: 'The package to add. Packages are gitHub repositories. Use the format owner/repository',
@@ -40,7 +40,7 @@ export default class WorkspaceAdd extends Command {
 
 
     public async run(): Promise<void> {
-        const { args, flags } = await this.parse(WorkspaceAdd)
+        const { args, flags } = await this.parse(WorkspaceInstall)
 
         const backend = await getBackend()
         const loadWorkspaceOutput = await backend.getWorkspace(flags.workspace)
