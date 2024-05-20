@@ -4,6 +4,8 @@ import { Config } from '../lib/config/common.js';
 export interface Backend {
     addPackageToWorkspace(input: AddPackageToWorkspaceInput): Promise<AddPackageToWorkspaceOutput>;
     createWorkspace(input: CreateWorkspaceInput): Promise<CreateWorkspaceOutput>;
+
+    getState(input: GetStateInput): Promise<GetStateOutput>;
     getWorkspace(workspace: string): Promise<GetWorkspaceOutput>;
     getWorkspaceEnv(input: GetWorkspaceEnvInput): Promise<GetWorkspaceEnvOutput>;
     init(options: InitProjectInput): Promise<InitProjectOutput>;
@@ -99,3 +101,14 @@ export type GetWorkspaceOutput = ({
         };
     },
 } | { error: string, found: true, hasError: true }) | { found: false }
+
+export type GetStateInput = {
+    project: string;
+}
+
+export type GetStateOutput = {
+    config: Omit<Config, 'workspace'>;
+    found: true
+} | {
+    found: false;
+}

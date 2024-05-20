@@ -36,6 +36,7 @@ USAGE
 * [`hereya init PROJECT`](#hereya-init-project)
 * [`hereya remove PACKAGE`](#hereya-remove-package)
 * [`hereya run CMD`](#hereya-run-cmd)
+* [`hereya up`](#hereya-up)
 * [`hereya workspace add PACKAGE`](#hereya-workspace-add-package)
 * [`hereya workspace create NAME`](#hereya-workspace-create-name)
 * [`hereya workspace env`](#hereya-workspace-env)
@@ -214,6 +215,27 @@ EXAMPLES
 ```
 
 _See code: [src/commands/run/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/run/index.ts)_
+
+## `hereya up`
+
+provisions all packages in the project
+
+```
+USAGE
+  $ hereya up [--chdir <value>] [-w <value>]
+
+FLAGS
+  -w, --workspace=<value>  name of the workspace to install the packages for
+      --chdir=<value>      directory to run command in
+
+DESCRIPTION
+  provisions all packages in the project
+
+EXAMPLES
+  $ hereya up
+```
+
+_See code: [src/commands/up/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/up/index.ts)_
 
 ## `hereya workspace add PACKAGE`
 

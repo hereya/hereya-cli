@@ -20,14 +20,22 @@ export class EnvManager {
 
     async getProjectEnv(input: GetProjectEnvInput): Promise<GetProjectEnvOutput> {
         const envPath = await this.getEnvPath(input)
-        const { data: env } = await load<{ [k: string]: string }>(envPath)
+        const { data: env, found } = await load<{ [k: string]: string }>(envPath)
+        if (!found) {
+            return { env: {} }
+        }
+
         const resolvedEnv = await resolveEnvValues(env);
         return { env: resolvedEnv }
     }
 
     async removeProjectEnv(input: RemoveEnvInput): Promise<void> {
         const envPath = await this.getEnvPath(input)
-        const { data: existingEnv } = await load(envPath)
+        const { data: existingEnv, found } = await load(envPath)
+        if (!found) {
+            return
+        }
+
         const envKeysToRemove = Object.keys(input.env)
 
         const finalEnv = Object.fromEntries(

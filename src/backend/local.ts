@@ -12,6 +12,8 @@ import {
     Backend,
     CreateWorkspaceInput,
     CreateWorkspaceOutput,
+    GetStateInput,
+    GetStateOutput,
     GetWorkspaceEnvInput,
     GetWorkspaceEnvOutput,
     GetWorkspaceOutput,
@@ -110,6 +112,22 @@ export class LocalBackend implements Backend {
                 reason: error.message,
                 success: false,
             }
+        }
+    }
+
+    async getState(input: GetStateInput): Promise<GetStateOutput> {
+        const projectStatePath = await this.getProjectStatePath(input.project)
+        const { data, found } = await load<Config>(projectStatePath)
+
+        if (found) {
+            return {
+                config: data,
+                found: true,
+            }
+        }
+
+        return {
+            found: false,
         }
     }
 
@@ -219,11 +237,15 @@ export class LocalBackend implements Backend {
     }
 
     async saveState(config: Omit<Config, 'workspace'>): Promise<void> {
-        const projectStatePath = await getAnyPath(
-            path.join(os.homedir(), '.hereya', 'state', 'projects', `${config.project}.yaml`),
-            path.join(os.homedir(), '.hereya', 'state', 'projects', `${config.project}.yml`),
-        )
+        const projectStatePath = await this.getProjectStatePath(config.project)
         await save(config, projectStatePath)
+    }
+
+    private async getProjectStatePath(project: string): Promise<string> {
+        return getAnyPath(
+            path.join(os.homedir(), '.hereya', 'state', 'projects', `${project}.yaml`),
+            path.join(os.homedir(), '.hereya', 'state', 'projects', `${project}.yml`),
+        )
     }
 
     private async saveWorkspace(data: z.infer<typeof WorkspaceSchema>, name: string) {
