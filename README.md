@@ -1,7 +1,7 @@
-hereya-cli
+hereya
 =================
 
-A package manager for infrastructure libraries
+A package manager for infrastructure libraries.
 
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
