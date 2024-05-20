@@ -10,7 +10,7 @@ export default class Init extends Command {
         project: Args.string({ description: 'project name', required: true }),
     }
 
-    static override description = 'initialize hereya in a project directory'
+    static override description = 'initializes hereya in a project directory'
 
     static override examples = [
         '<%= config.bin %> <%= command.id %> myProject -w=defaultWorkspace',

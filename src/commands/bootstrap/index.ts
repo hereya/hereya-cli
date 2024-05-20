@@ -11,7 +11,7 @@ export default class Bootstrap extends Command {
         })
     }
 
-    static override description = 'install necessary resources for hereya operations in an infrastructure'
+    static override description = 'installs necessary resources for hereya operations in an infrastructure'
 
     static override examples = [
         '<%= config.bin %> <%= command.id %> aws',

@@ -14,7 +14,7 @@ export default class WorkspaceRemove extends Command {
         }),
     }
 
-    static override description = 'remove a package from a workspace'
+    static override description = 'removes a package from a workspace'
 
     static override examples = [
         '<%= config.bin %> <%= command.id %> hereya/aws-cognito',

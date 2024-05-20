@@ -4,7 +4,7 @@ import { getBackend } from '../../../backend/index.js';
 import { logEnv } from '../../../lib/env-utils.js';
 
 export default class WorkspaceEnv extends Command {
-    static override description = 'print workspace env vars'
+    static override description = 'prints workspace env vars'
 
     static override examples = [
         '<%= config.bin %> <%= command.id %> -w dev',

@@ -17,7 +17,7 @@ export default class Add extends Command {
         }),
     }
 
-    static override description = 'add a package to the project'
+    static override description = 'adds a package to the project'
 
     static override examples = [
         '<%= config.bin %> <%= command.id %> cloudy/docker_postgres',
