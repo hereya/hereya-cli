@@ -4,7 +4,6 @@ import { Config } from '../lib/config/common.js';
 export interface Backend {
     addPackageToWorkspace(input: AddPackageToWorkspaceInput): Promise<AddPackageToWorkspaceOutput>;
     createWorkspace(input: CreateWorkspaceInput): Promise<CreateWorkspaceOutput>;
-
     getWorkspace(workspace: string): Promise<GetWorkspaceOutput>;
     getWorkspaceEnv(input: GetWorkspaceEnvInput): Promise<GetWorkspaceEnvOutput>;
     init(options: InitProjectInput): Promise<InitProjectOutput>;
@@ -16,6 +15,7 @@ export type AddPackageToWorkspaceInput = {
     env: { [key: string]: string };
     infra: InfrastructureType;
     package: string;
+    parameters?: { [key: string]: string };
     workspace: string;
 }
 
@@ -93,6 +93,7 @@ export type GetWorkspaceOutput = ({
         name: string;
         packages?: {
             [key: string]: {
+                parameters?: { [key: string]: string };
                 version: string;
             }
         };

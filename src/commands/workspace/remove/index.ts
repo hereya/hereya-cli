@@ -3,6 +3,8 @@ import { Args, Command, Flags } from '@oclif/core'
 import { getBackend } from '../../../backend/index.js';
 import { destroyPackage } from '../../../infrastructure/index.js';
 import { logEnv } from '../../../lib/env-utils.js';
+import { arrayOfStringToObject } from '../../../lib/object-utils.js';
+import { load } from '../../../lib/yaml-utils.js';
 
 export default class WorkspaceRemove extends Command {
     static override args = {
@@ -19,6 +21,16 @@ export default class WorkspaceRemove extends Command {
     ]
 
     static flags = {
+        parameter: Flags.string({
+            char: 'p',
+            default: [],
+            description: 'parameter for the package, in the form of \'key=value\'. Can be specified multiple times.',
+            multiple: true,
+        }),
+        'parameter-file': Flags.string({
+            char: 'f',
+            description: 'path to a file containing parameters for the package',
+        }),
         workspace: Flags.string({
             char: 'w',
             description: 'name of the workspace to remove the package from',
@@ -31,8 +43,12 @@ export default class WorkspaceRemove extends Command {
 
         const backend = await getBackend()
         const loadWorkspaceOutput = await backend.getWorkspace(flags.workspace)
-        if (!loadWorkspaceOutput.found || loadWorkspaceOutput.hasError) {
+        if (!loadWorkspaceOutput.found) {
             this.error(`Workspace ${flags.workspace} not found`)
+        }
+
+        if (loadWorkspaceOutput.hasError) {
+            this.error(`Error loading workspace ${flags.workspace}: ${loadWorkspaceOutput.error}`)
         }
 
         const { workspace } = loadWorkspaceOutput
@@ -41,8 +57,26 @@ export default class WorkspaceRemove extends Command {
             return
         }
 
+        const parametersInCmdline = arrayOfStringToObject(flags.parameter)
+        let parametersFromFile = {}
+        if (flags['parameter-file']) {
+            const { data, found } = await load(flags['parameter-file'])
+            if (!found) {
+                this.error(`Parameter file ${flags['parameter-file']} not found`)
+            }
+
+            parametersFromFile = data
+        }
+
+        const parameters = {
+            ...workspace.packages?.[args.package].parameters,
+            ...parametersFromFile,
+            ...parametersInCmdline
+        }
+
         const destroyOutput = await destroyPackage({
             package: args.package,
+            parameters,
             workspace: flags.workspace,
         })
         if (!destroyOutput.success) {

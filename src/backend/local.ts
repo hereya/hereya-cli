@@ -18,7 +18,7 @@ import {
     InitProjectInput,
     InitProjectOutput,
     RemovePackageFromWorkspaceInput,
-    RemovePackageFromWorkspaceOutput
+    RemovePackageFromWorkspaceOutput,
 } from './common.js';
 
 
@@ -27,6 +27,7 @@ const WorkspaceSchema = z.object({
     id: z.string().min(2),
     name: z.string().min(2),
     packages: z.record(z.object({
+        parameters: z.record(z.any()).optional(),
         version: z.string(),
     })).optional(),
 })
@@ -53,6 +54,7 @@ export class LocalBackend implements Backend {
         workspace.packages = {
             ...workspace.packages,
             [input.package]: {
+                parameters: input.parameters,
                 version: '',
             },
         }

@@ -5,6 +5,7 @@ import { provisionPackage } from '../../infrastructure/index.js';
 import { getConfigManager } from '../../lib/config/index.js';
 import { getEnvManager } from '../../lib/env/index.js';
 import { logEnv } from '../../lib/env-utils.js';
+import { arrayOfStringToObject } from '../../lib/object-utils.js';
 import { getParameterManager } from '../../lib/parameter/index.js';
 
 
@@ -61,10 +62,7 @@ export default class Add extends Command {
 
         const { env: workspaceEnv } = getWorkspaceEnvOutput
 
-        const userSpecifiedParameters = Object.fromEntries(flags.parameter.map((param) => {
-            const [key, value] = param.split('=')
-            return [key, value]
-        }));
+        const userSpecifiedParameters = arrayOfStringToObject(flags.parameter)
         const parameterManager = getParameterManager()
         const { parameters } = await parameterManager.getPackageParameters({
             package: args.package,

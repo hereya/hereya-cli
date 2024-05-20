@@ -3,6 +3,8 @@ import { Args, Command, Flags } from '@oclif/core'
 import { getBackend } from '../../../backend/index.js';
 import { provisionPackage } from '../../../infrastructure/index.js';
 import { logEnv } from '../../../lib/env-utils.js';
+import { arrayOfStringToObject } from '../../../lib/object-utils.js';
+import { load } from '../../../lib/yaml-utils.js';
 
 export default class WorkspaceAdd extends Command {
     static override args = {
@@ -19,6 +21,16 @@ export default class WorkspaceAdd extends Command {
     ]
 
     static flags = {
+        parameter: Flags.string({
+            char: 'p',
+            default: [],
+            description: 'parameter for the package, in the form of \'key=value\'. Can be specified multiple times.',
+            multiple: true,
+        }),
+        'parameter-file': Flags.string({
+            char: 'f',
+            description: 'path to a file containing parameters for the package',
+        }),
         workspace: Flags.string({
             char: 'w',
             description: 'name of the workspace to add the package to',
@@ -36,13 +48,28 @@ export default class WorkspaceAdd extends Command {
             this.error(`Workspace ${flags.workspace} not found`)
         }
 
+        const parametersInCmdline = arrayOfStringToObject(flags.parameter)
+        let parametersFromFile = {}
+        if (flags['parameter-file']) {
+            const { data, found } = await load(flags['parameter-file'])
+            if (!found) {
+                this.error(`Parameter file ${flags['parameter-file']} not found`)
+            }
+
+            parametersFromFile = data
+        }
+
+        const parameters = { ...parametersFromFile, ...parametersInCmdline }
+
         const provisionOutput = await provisionPackage({
             package: args.package,
+            parameters,
             workspace: flags.workspace,
         })
         if (!provisionOutput.success) {
             this.error(provisionOutput.reason)
         }
+
 
         const { env, metadata } = provisionOutput
         this.log(`Package ${args.package} provisioned successfully`)
@@ -54,6 +81,7 @@ export default class WorkspaceAdd extends Command {
             env,
             infra: metadata.infra,
             package: args.package,
+            parameters,
             workspace: flags.workspace,
         })
         if (!output.success) {

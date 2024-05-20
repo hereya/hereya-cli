@@ -57,13 +57,15 @@ add a package to the project
 
 ```
 USAGE
-  $ hereya add PACKAGE [--chdir <value>]
+  $ hereya add PACKAGE [--chdir <value>] [-p <value>]
 
 ARGUMENTS
   PACKAGE  The package to add. Packages are gitHub repositories. Use the format owner/repository
 
 FLAGS
-  --chdir=<value>  directory to run command in
+  -p, --parameter=<value>...  [default: ] parameter for the package, in the form of 'key=value'. Can be specified
+                              multiple times.
+      --chdir=<value>         directory to run command in
 
 DESCRIPTION
   add a package to the project
@@ -518,13 +520,16 @@ add a package to the workspace
 
 ```
 USAGE
-  $ hereya workspace add PACKAGE -w <value>
+  $ hereya workspace add PACKAGE -w <value> [-p <value>] [-f <value>]
 
 ARGUMENTS
   PACKAGE  The package to add. Packages are gitHub repositories. Use the format owner/repository
 
 FLAGS
-  -w, --workspace=<value>  (required) name of the workspace to add the package to
+  -f, --parameter-file=<value>  path to a file containing parameters for the package
+  -p, --parameter=<value>...    [default: ] parameter for the package, in the form of 'key=value'. Can be specified
+                                multiple times.
+  -w, --workspace=<value>       (required) name of the workspace to add the package to
 
 DESCRIPTION
   add a package to the workspace
@@ -584,13 +589,16 @@ remove a package from a workspace
 
 ```
 USAGE
-  $ hereya workspace remove PACKAGE -w <value>
+  $ hereya workspace remove PACKAGE -w <value> [-p <value>] [-f <value>]
 
 ARGUMENTS
   PACKAGE  The package to remove. Packages are gitHub repositories. Use the format owner/repository
 
 FLAGS
-  -w, --workspace=<value>  (required) name of the workspace to remove the package from
+  -f, --parameter-file=<value>  path to a file containing parameters for the package
+  -p, --parameter=<value>...    [default: ] parameter for the package, in the form of 'key=value'. Can be specified
+                                multiple times.
+  -w, --workspace=<value>       (required) name of the workspace to remove the package from
 
 DESCRIPTION
   remove a package from a workspace
