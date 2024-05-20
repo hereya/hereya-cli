@@ -2,7 +2,6 @@ import { Args, Command, Flags } from '@oclif/core'
 
 import { getBackend } from '../../../backend/index.js';
 import { provisionPackage } from '../../../infrastructure/index.js';
-import { logEnv } from '../../../lib/env-utils.js';
 import { arrayOfStringToObject } from '../../../lib/object-utils.js';
 import { load } from '../../../lib/yaml-utils.js';
 
@@ -74,8 +73,6 @@ export default class WorkspaceInstall extends Command {
         const { env, metadata } = provisionOutput
         this.log(`Package ${args.package} provisioned successfully`)
         this.log(`Saving exported environment variables to workspace ${flags.workspace}...`)
-        // log env vars
-        logEnv(env, this.log.bind(this))
 
         const output = await backend.addPackageToWorkspace({
             env,

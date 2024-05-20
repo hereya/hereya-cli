@@ -39,6 +39,7 @@ USAGE
 * [`hereya run CMD`](#hereya-run-cmd)
 * [`hereya up`](#hereya-up)
 * [`hereya workspace create NAME`](#hereya-workspace-create-name)
+* [`hereya workspace delete NAME`](#hereya-workspace-delete-name)
 * [`hereya workspace env`](#hereya-workspace-env)
 * [`hereya workspace install PACKAGE`](#hereya-workspace-install-package)
 * [`hereya workspace uninstall PACKAGE`](#hereya-workspace-uninstall-package)
@@ -274,11 +275,32 @@ DESCRIPTION
   creates a new workspace if it does not exist
 
 EXAMPLES
-  $ hereya workspace create
+  $ hereya workspace create dev
 ```
 
 _See
 code: [src/commands/workspace/create/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/workspace/create/index.ts)_
+
+## `hereya workspace delete NAME`
+
+deletes a workspace if it exists
+
+```
+USAGE
+  $ hereya workspace delete NAME
+
+ARGUMENTS
+  NAME  name of the workspace to delete
+
+DESCRIPTION
+  deletes a workspace if it exists
+
+EXAMPLES
+  $ hereya workspace delete dev
+```
+
+_See
+code: [src/commands/workspace/delete/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/workspace/delete/index.ts)_
 
 ## `hereya workspace env`
 

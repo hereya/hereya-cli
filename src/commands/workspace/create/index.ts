@@ -10,7 +10,7 @@ export default class WorkspaceCreate extends Command {
     static override description = 'creates a new workspace if it does not exist'
 
     static override examples = [
-        '<%= config.bin %> <%= command.id %>',
+        '<%= config.bin %> <%= command.id %> dev',
     ]
 
 

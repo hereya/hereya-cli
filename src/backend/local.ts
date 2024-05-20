@@ -1,3 +1,4 @@
+import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { z } from 'zod';
@@ -12,6 +13,8 @@ import {
     Backend,
     CreateWorkspaceInput,
     CreateWorkspaceOutput,
+    DeleteWorkspaceInput,
+    DeleteWorkspaceOutput,
     GetStateInput,
     GetStateOutput,
     GetWorkspaceEnvInput,
@@ -112,6 +115,38 @@ export class LocalBackend implements Backend {
                 reason: error.message,
                 success: false,
             }
+        }
+    }
+
+    async deleteWorkspace(input: DeleteWorkspaceInput): Promise<DeleteWorkspaceOutput> {
+        const workspace$ = await this.getWorkspace(input.name)
+        if (!workspace$.found) {
+            return {
+                message: `Workspace ${input.name} does not exist`,
+                success: true,
+            }
+        }
+
+        if (workspace$.hasError) {
+            return {
+                reason: workspace$.error,
+                success: false,
+            }
+        }
+
+        const { workspace } = workspace$
+        if (Object.keys(workspace.packages ?? {}).length > 0) {
+            return {
+                reason: `Cannot delete workspace ${input.name} because it has packages`,
+                success: false,
+            }
+        }
+
+        const workspacePath = await this.getWorkspacePath(input.name)
+        await fs.rm(workspacePath)
+
+        return {
+            success: true,
         }
     }
 
@@ -248,11 +283,15 @@ export class LocalBackend implements Backend {
         )
     }
 
-    private async saveWorkspace(data: z.infer<typeof WorkspaceSchema>, name: string) {
-        const workspacePath = await getAnyPath(
+    private async getWorkspacePath(name: string): Promise<string> {
+        return getAnyPath(
             path.join(os.homedir(), '.hereya', 'state', 'workspaces', `${name}.yaml`),
             path.join(os.homedir(), '.hereya', 'state', 'workspaces', `${name}.yml`),
         )
+    }
+
+    private async saveWorkspace(data: z.infer<typeof WorkspaceSchema>, name: string) {
+        const workspacePath = await this.getWorkspacePath(name)
         await save(data, workspacePath)
     }
 }

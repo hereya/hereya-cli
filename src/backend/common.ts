@@ -5,6 +5,7 @@ export interface Backend {
     addPackageToWorkspace(input: AddPackageToWorkspaceInput): Promise<AddPackageToWorkspaceOutput>;
     createWorkspace(input: CreateWorkspaceInput): Promise<CreateWorkspaceOutput>;
 
+    deleteWorkspace(input: DeleteWorkspaceInput): Promise<DeleteWorkspaceOutput>;
     getState(input: GetStateInput): Promise<GetStateOutput>;
     getWorkspace(workspace: string): Promise<GetWorkspaceOutput>;
     getWorkspaceEnv(input: GetWorkspaceEnvInput): Promise<GetWorkspaceEnvOutput>;
@@ -111,4 +112,16 @@ export type GetStateOutput = {
     found: true
 } | {
     found: false;
+}
+
+export type DeleteWorkspaceInput = {
+    name: string;
+}
+
+export type DeleteWorkspaceOutput = {
+    message?: string;
+    success: true;
+} | {
+    reason: string;
+    success: false;
 }
