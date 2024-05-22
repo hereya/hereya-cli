@@ -11,6 +11,7 @@ export enum IacType {
 
 export type ApplyInput = {
     env: { [key: string]: string };
+    id: string;
     parameters?: { [key: string]: string };
     pkgPath: string;
 }

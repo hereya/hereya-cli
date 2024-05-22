@@ -1,12 +1,106 @@
+import { CloudFormationClient, DescribeStacksCommand } from '@aws-sdk/client-cloudformation';
+import { writeFileSync } from 'node:fs';
+import path from 'node:path';
+
+import { runShell } from '../lib/shell.js';
+import { load } from '../lib/yaml-utils.js';
 import { ApplyInput, ApplyOutput, DestroyInput, DestroyOutput, Iac } from './common.js';
 
 export class Cdk implements Iac {
-    apply(_: ApplyInput): Promise<ApplyOutput> {
-        throw new Error('Method not implemented.');
+    async apply(input: ApplyInput): Promise<ApplyOutput> {
+        try {
+            const parameterNames = await this.getParameterNames(input.pkgPath)
+            const serializedWorkspaceEnv = Object.entries(input.env)
+            .filter(([key]) => parameterNames.includes(key))
+            .flatMap(([key, value]) => ['--parameters', `${key}=${value}`])
+            const serializedParameters = Object.entries(input.parameters ?? {})
+            .filter(([key]) => parameterNames.includes(key))
+            .flatMap(([key, value]) => ['--parameters', `${key}=${value}`])
+
+            runShell(
+                'npx',
+                [
+                    'cdk', 'deploy', '--require-approval', 'never', ...serializedWorkspaceEnv, ...serializedParameters,
+                ],
+                {
+                    directory: input.pkgPath,
+                    env: { STACK_NAME: input.id },
+                },
+            )
+            const env = await this.getEnv(input.id)
+
+            return { env, success: true }
+        } catch (error: any) {
+            return { reason: error.message, success: false }
+        }
     }
 
-    destroy(_: DestroyInput): Promise<DestroyOutput> {
-        throw new Error('Method not implemented.');
+    async destroy(input: DestroyInput): Promise<DestroyOutput> {
+        try {
+            const env = await this.getEnv(input.id)
+            const parameterNames = await this.getParameterNames(input.pkgPath)
+            const serializedWorkspaceEnv = Object.entries(input.env)
+            .filter(([key]) => parameterNames.includes(key))
+            .flatMap(([key, value]) => ['--parameters', `${key}=${value}`])
+            const serializedParameters = Object.entries(input.parameters ?? {})
+            .filter(([key]) => parameterNames.includes(key))
+            .flatMap(([key, value]) => ['--parameters', `${key}=${value}`])
+            runShell(
+                'npx',
+                [
+                    'cdk', 'destroy', '--force', ...serializedWorkspaceEnv, ...serializedParameters,
+                ],
+                {
+                    directory: input.pkgPath,
+                    env: { STACK_NAME: input.id }
+                },
+            )
+            return { env, success: true }
+        } catch (error: any) {
+            return { reason: error.message, success: false }
+        }
     }
+
+    private async getEnv(stackName: string) {
+        const stack = await this.getStack(stackName)
+        const env: { [key: string]: string } = {}
+        for (const output of stack?.Outputs?.filter(output => output.OutputKey) ?? []) {
+            env[output.OutputKey!] = output.OutputValue!
+        }
+
+        return env
+    }
+
+    private async getParameterNames(workDir: string) {
+        runShell('npm', ['install'], { directory: workDir })
+        const result = runShell(
+            'npx',
+            [
+                'cdk', 'synth',
+            ],
+            {
+                directory: workDir,
+                stdio: 'pipe'
+            },
+        )
+        const stackYamlPath = path.join(workDir, '.stack.yaml')
+        writeFileSync(stackYamlPath, result.stdout)
+        const { data: synthedStack } = await load<{ Parameters: { [k: string]: any } }>(stackYamlPath)
+        return Object.keys(synthedStack.Parameters)
+    }
+
+    private async getStack(stackName: string) {
+        const cfnClient = new CloudFormationClient({})
+        const response = await cfnClient.send(new DescribeStacksCommand({
+            StackName: stackName,
+        }))
+        const stack = response.Stacks?.[0]
+        if (!stack) {
+            throw new Error(`Stack ${stackName} not found`)
+        }
+
+        return stack
+    }
+
 
 }

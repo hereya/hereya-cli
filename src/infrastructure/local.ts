@@ -24,6 +24,7 @@ export class LocalInfrastructure implements Infrastructure {
         const { iac } = iac$;
         const output = await iac.destroy({
             env: input.workspaceEnv ?? {},
+            id: input.id,
             parameters: input.parameters,
             pkgPath: downloadPath
         });
@@ -49,6 +50,7 @@ export class LocalInfrastructure implements Infrastructure {
         const { iac } = iac$;
         const output = await iac.apply({
             env: input.workspaceEnv ?? {},
+            id: input.id,
             parameters: input.parameters,
             pkgPath: downloadPath
         });

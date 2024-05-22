@@ -41,6 +41,7 @@ export async function destroyPackage(input: DestroyPackageInput): Promise<Destro
     const destroyOutput = await infrastructure.destroy({
         canonicalName,
         iacType: metadata.iac,
+        id: [input.project, input.workspace, canonicalName].filter(Boolean).join('').replaceAll(/[^\dA-Za-z]/g, ''),
         parameters: input.parameters,
         pkgName: input.package,
         pkgUrl: packageUri,
@@ -71,6 +72,7 @@ export async function provisionPackage(input: ProvisionPackageInput): Promise<Pr
     const provisionOutput = await infrastructure.provision({
         canonicalName,
         iacType: metadata.iac,
+        id: [input.project, input.workspace, canonicalName].filter(Boolean).join('').replaceAll(/[^\dA-Za-z]/g, ''),
         parameters: input.parameters,
         pkgName: input.package,
         pkgUrl: packageUri,
