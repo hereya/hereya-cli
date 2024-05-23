@@ -9,6 +9,7 @@
   "bugs": "https://github.com/hereya/hereya-cli/issues",
   "dependencies": {
     "@aws-sdk/client-cloudformation": "^3.577.0",
+    "@aws-sdk/client-ssm": "^3.583.0",
     "@aws-sdk/client-sts": "^3.582.0",
     "@esm2cjs/execa": "^6.1.1-cjs.1",
     "@oclif/core": "^3",

@@ -1,3 +1,4 @@
+import { PutParameterCommand, SSMClient } from '@aws-sdk/client-ssm';
 import { GetCallerIdentityCommand, STSClient } from '@aws-sdk/client-sts';
 
 import { runShell } from '../lib/shell.js';
@@ -43,8 +44,22 @@ export class AwsInfrastructure implements Infrastructure {
         throw new Error('Method not implemented.');
     }
 
-    async saveEnv(_: SaveEnvInput): Promise<SaveEnvOutput> {
-        throw new Error('Method not implemented.');
+    async saveEnv(input: SaveEnvInput): Promise<SaveEnvOutput> {
+        const key = `/hereya/${input.id}`;
+        const ssmClient = new SSMClient({});
+        const value = JSON.stringify(input.env);
+
+        try {
+            await ssmClient.send(new PutParameterCommand({
+                Name: key,
+                Overwrite: true,
+                Type: 'String',
+                Value: value
+            }));
+            return { success: true };
+        } catch (error: any) {
+            return { reason: error.message, success: false };
+        }
     }
 
 }
