@@ -20,7 +20,7 @@ $ npm install -g hereya-cli
 $ hereya COMMAND
 running command...
 $ hereya (--version)
-hereya-cli/0.0.0 darwin-arm64 node-v20.12.2
+hereya-cli/0.1.0 darwin-arm64 node-v20.12.2
 $ hereya --help [COMMAND]
 USAGE
   $ hereya COMMAND
@@ -68,7 +68,7 @@ EXAMPLES
   $ hereya add cloudy/docker_postgres
 ```
 
-_See code: [src/commands/add/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/add/index.ts)_
+_See code: [src/commands/add/index.ts](https://github.com/hereya/hereya-cli/blob/v0.1.0/src/commands/add/index.ts)_
 
 ## `hereya bootstrap INFRASTRUCTURETYPE`
 
@@ -94,7 +94,7 @@ EXAMPLES
 ```
 
 _See
-code: [src/commands/bootstrap/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/bootstrap/index.ts)_
+code: [src/commands/bootstrap/index.ts](https://github.com/hereya/hereya-cli/blob/v0.1.0/src/commands/bootstrap/index.ts)_
 
 ## `hereya down`
 
@@ -115,7 +115,7 @@ EXAMPLES
   $ hereya down
 ```
 
-_See code: [src/commands/down/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/down/index.ts)_
+_See code: [src/commands/down/index.ts](https://github.com/hereya/hereya-cli/blob/v0.1.0/src/commands/down/index.ts)_
 
 ## `hereya env`
 
@@ -138,7 +138,7 @@ EXAMPLES
   $ hereya env -w dev
 ```
 
-_See code: [src/commands/env/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/env/index.ts)_
+_See code: [src/commands/env/index.ts](https://github.com/hereya/hereya-cli/blob/v0.1.0/src/commands/env/index.ts)_
 
 ## `hereya help [COMMAND]`
 
@@ -184,7 +184,7 @@ EXAMPLES
   $ hereya init myProject -w=defaultWorkspace --chdir=./myProject
 ```
 
-_See code: [src/commands/init/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/init/index.ts)_
+_See code: [src/commands/init/index.ts](https://github.com/hereya/hereya-cli/blob/v0.1.0/src/commands/init/index.ts)_
 
 ## `hereya remote exec [PKGPATH]`
 
@@ -208,7 +208,7 @@ EXAMPLES
 ```
 
 _See
-code: [src/commands/remote/exec/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/remote/exec/index.ts)_
+code: [src/commands/remote/exec/index.ts](https://github.com/hereya/hereya-cli/blob/v0.1.0/src/commands/remote/exec/index.ts)_
 
 ## `hereya remove PACKAGE`
 
@@ -232,7 +232,7 @@ EXAMPLES
 ```
 
 _See
-code: [src/commands/remove/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/remove/index.ts)_
+code: [src/commands/remove/index.ts](https://github.com/hereya/hereya-cli/blob/v0.1.0/src/commands/remove/index.ts)_
 
 ## `hereya run CMD`
 
@@ -258,7 +258,7 @@ EXAMPLES
   $ hereya run -w uat -- node index.js
 ```
 
-_See code: [src/commands/run/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/run/index.ts)_
+_See code: [src/commands/run/index.ts](https://github.com/hereya/hereya-cli/blob/v0.1.0/src/commands/run/index.ts)_
 
 ## `hereya up`
 
@@ -279,7 +279,7 @@ EXAMPLES
   $ hereya up
 ```
 
-_See code: [src/commands/up/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/up/index.ts)_
+_See code: [src/commands/up/index.ts](https://github.com/hereya/hereya-cli/blob/v0.1.0/src/commands/up/index.ts)_
 
 ## `hereya workspace create NAME`
 
@@ -300,7 +300,7 @@ EXAMPLES
 ```
 
 _See
-code: [src/commands/workspace/create/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/workspace/create/index.ts)_
+code: [src/commands/workspace/create/index.ts](https://github.com/hereya/hereya-cli/blob/v0.1.0/src/commands/workspace/create/index.ts)_
 
 ## `hereya workspace delete NAME`
 
@@ -321,7 +321,7 @@ EXAMPLES
 ```
 
 _See
-code: [src/commands/workspace/delete/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/workspace/delete/index.ts)_
+code: [src/commands/workspace/delete/index.ts](https://github.com/hereya/hereya-cli/blob/v0.1.0/src/commands/workspace/delete/index.ts)_
 
 ## `hereya workspace env`
 
@@ -342,7 +342,7 @@ EXAMPLES
 ```
 
 _See
-code: [src/commands/workspace/env/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/workspace/env/index.ts)_
+code: [src/commands/workspace/env/index.ts](https://github.com/hereya/hereya-cli/blob/v0.1.0/src/commands/workspace/env/index.ts)_
 
 ## `hereya workspace install PACKAGE`
 
@@ -369,7 +369,7 @@ EXAMPLES
 ```
 
 _See
-code: [src/commands/workspace/install/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/workspace/install/index.ts)_
+code: [src/commands/workspace/install/index.ts](https://github.com/hereya/hereya-cli/blob/v0.1.0/src/commands/workspace/install/index.ts)_
 
 ## `hereya workspace uninstall PACKAGE`
 
@@ -396,5 +396,5 @@ EXAMPLES
 ```
 
 _See
-code: [src/commands/workspace/uninstall/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/workspace/uninstall/index.ts)_
+code: [src/commands/workspace/uninstall/index.ts](https://github.com/hereya/hereya-cli/blob/v0.1.0/src/commands/workspace/uninstall/index.ts)_
 <!-- commandsstop -->
