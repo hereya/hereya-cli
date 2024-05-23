@@ -112,13 +112,13 @@ describe('remove', () => {
     .stub(packageManager, 'getRepoContent', stub => stub.resolves({
         content: `
         iac: cdk
-        infra: aws
+        infra: not-supported
         `,
         found: true,
     }))
     .command(['remove', 'unsupported/infra'])
     .exit(2)
-    .it('fails for infra different from local')
+    .it('fails for infra is not supported yet')
 
     setupTest
     .do(async () => {

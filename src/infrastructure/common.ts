@@ -12,8 +12,9 @@ export interface Infrastructure {
 
     destroy(input: DestroyInput): Promise<DestroyOutput>;
     provision(input: ProvisionInput): Promise<ProvisionOutput>;
-
     resolveEnv(input: ResolveEnvInput): Promise<ResolveEnvOutput>;
+
+    saveEnv(input: SaveEnvInput): Promise<SaveEnvOutput>;
 }
 
 export type BootstrapInput = {
@@ -51,4 +52,16 @@ export type ResolveEnvInput = {
 
 export type ResolveEnvOutput = {
     value: string;
+}
+
+export type SaveEnvInput = {
+    env: { [key: string]: string };
+    id: string;
+}
+
+export type SaveEnvOutput = {
+    reason: string;
+    success: false;
+} | {
+    success: true;
 }

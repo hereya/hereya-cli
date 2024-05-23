@@ -2,6 +2,8 @@ import { Args, Command, Flags } from '@oclif/core'
 
 import { ApplyInput, DestroyInput, IacType } from '../../../iac/common.js';
 import { getIac } from '../../../iac/index.js';
+import { InfrastructureType } from '../../../infrastructure/common.js';
+import { getInfrastructure } from '../../../infrastructure/index.js';
 import { save } from '../../../lib/yaml-utils.js';
 
 export default class RemoteExec extends Command {
@@ -22,7 +24,7 @@ export default class RemoteExec extends Command {
         output: Flags.string({
             char: 'o',
             description: 'The path to store the output env in',
-            required: true,
+            required: false,
         }),
     }
 
@@ -38,9 +40,16 @@ export default class RemoteExec extends Command {
         const id = process.env.HEREYA_ID
         const iacType = process.env.HEREYA_IAC_TYPE
         const destroy = process.env.HEREYA_DESTROY === 'true'
+        const infraType = process.env.HEREYA_INFRA_TYPE
 
-        if (!id || !iacType) {
-            return this.error('missing required environment variables')
+
+        if (!id || !iacType || !infraType) {
+            return this.error(`
+                Missing required environment variables:
+                HEREYA_ID: ${id}
+                HEREYA_IAC_TYPE: ${iacType}
+                HEREYA_INFRA_TYPE: ${infraType}
+            `)
         }
 
         const input = {
@@ -59,8 +68,21 @@ export default class RemoteExec extends Command {
             return this.error(output.reason)
         }
 
-        await save(output.env, flags.output)
-        this.log(`Output env saved to ${flags.output}`)
+        if (flags.output) {
+            await save(output.env, flags.output)
+            this.log(`Output env saved to ${flags.output}`)
+        }
+
+        const infra$ = getInfrastructure({ type: infraType as InfrastructureType });
+        if (!infra$.supported) {
+            return this.error(infra$.reason)
+        }
+
+        const { infrastructure } = infra$;
+        const saveOutput = await infrastructure.saveEnv({ env: output.env, id });
+        if (!saveOutput.success) {
+            return this.error(saveOutput.reason)
+        }
 
     }
 }

@@ -1,17 +1,26 @@
 import { z } from 'zod';
 
 import { PackageMetadata, resolvePackage } from '../lib/package/index.js';
+import { AwsInfrastructure } from './aws.js';
 import { Infrastructure, InfrastructureType } from './common.js';
 import { LocalInfrastructure } from './local.js';
 
 
 export const localInfrastructure = new LocalInfrastructure()
+export const awsInfrastructure = new AwsInfrastructure()
 
-export async function getInfrastructure(input: GetInfrastructureInput): Promise<GetInfrastructureOutput> {
+export function getInfrastructure(input: GetInfrastructureInput): GetInfrastructureOutput {
     switch (input.type) {
         case InfrastructureType.local: {
             return {
                 infrastructure: localInfrastructure,
+                supported: true
+            }
+        }
+
+        case InfrastructureType.aws: {
+            return {
+                infrastructure: awsInfrastructure,
                 supported: true
             }
         }

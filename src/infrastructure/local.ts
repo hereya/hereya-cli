@@ -4,7 +4,7 @@ import * as path from 'node:path';
 import { simpleGit } from 'simple-git';
 
 import { getIac } from '../iac/index.js';
-import { Infrastructure, ProvisionInput, ProvisionOutput } from './common.js';
+import { Infrastructure, ProvisionInput, ProvisionOutput, SaveEnvInput, SaveEnvOutput } from './common.js';
 
 export class LocalInfrastructure implements Infrastructure {
 
@@ -63,6 +63,11 @@ export class LocalInfrastructure implements Infrastructure {
 
     async resolveEnv(input: { value: string }) {
         return { value: input.value };
+    }
+
+    async saveEnv(input: SaveEnvInput): Promise<SaveEnvOutput> {
+        console.log(`Saving env to ${input.id}`);
+        return { success: true };
     }
 
     private async download(pkgUrl: string, destPath: string) {

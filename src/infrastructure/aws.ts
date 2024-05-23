@@ -6,7 +6,9 @@ import {
     ProvisionInput,
     ProvisionOutput,
     ResolveEnvInput,
-    ResolveEnvOutput
+    ResolveEnvOutput,
+    SaveEnvInput,
+    SaveEnvOutput
 } from './common.js';
 
 export class AwsInfrastructure implements Infrastructure {
@@ -23,6 +25,10 @@ export class AwsInfrastructure implements Infrastructure {
     }
 
     async resolveEnv(_: ResolveEnvInput): Promise<ResolveEnvOutput> {
+        throw new Error('Method not implemented.');
+    }
+
+    async saveEnv(_: SaveEnvInput): Promise<SaveEnvOutput> {
         throw new Error('Method not implemented.');
     }
 

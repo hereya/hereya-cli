@@ -76,13 +76,13 @@ describe('add', () => {
     .stub(packageManager, 'getRepoContent', stub => stub.resolves({
         content: `
         iac: cdk
-        infra: aws
+        infra: not-supported
         `,
         found: true,
     }))
     .command(['add', 'unsupported/infra'])
     .exit(2)
-    .it('fails for infra different from local')
+    .it('fails of unsupported infra type')
 
 
     const setupSuccessTest = setupTest
