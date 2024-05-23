@@ -9,7 +9,7 @@ oclif.manifest.json
 
 
 
-yarn.lock
 pnpm-lock.yaml
+package-lock.json
 
 hereya.yaml
