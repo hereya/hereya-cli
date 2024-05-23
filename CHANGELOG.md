@@ -1,4 +1,13 @@
-# 0.2.0 (2024-05-23)
+## [0.2.1](https://github.com/hereya/hereya-cli/compare/0.2.0...0.2.1) (2024-05-23)
+
+
+### Bug Fixes
+
+* Added yarn.lock with specified package versions ([8f8f9c2](https://github.com/hereya/hereya-cli/commit/8f8f9c252c9eac40dd3fdd16b6df01983987077f))
+
+
+
+# [0.2.0](https://github.com/hereya/hereya-cli/compare/15abb1b1dd83346427277523defdedc5f5ab367d...0.2.0) (2024-05-23)
 
 
 ### Features
