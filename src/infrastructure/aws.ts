@@ -10,19 +10,19 @@ import {
 } from './common.js';
 
 export class AwsInfrastructure implements Infrastructure {
-    async bootstrap(input: BootstrapInput): Promise<void> {
+    async bootstrap(_: BootstrapInput): Promise<void> {
 
     }
 
-    async destroy(input: DestroyInput): Promise<DestroyOutput> {
+    async destroy(_: DestroyInput): Promise<DestroyOutput> {
         throw new Error('Method not implemented.');
     }
 
-    async provision(input: ProvisionInput): Promise<ProvisionOutput> {
+    async provision(_: ProvisionInput): Promise<ProvisionOutput> {
         throw new Error('Method not implemented.');
     }
 
-    async resolveEnv(input: ResolveEnvInput): Promise<ResolveEnvOutput> {
+    async resolveEnv(_: ResolveEnvInput): Promise<ResolveEnvOutput> {
         throw new Error('Method not implemented.');
     }
 
