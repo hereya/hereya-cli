@@ -76,11 +76,11 @@
     "build": "shx rm -rf dist && tsc -b",
     "lint": "eslint .",
     "postpack": "shx rm -f oclif.manifest.json",
-    "posttest": "npm run lint",
+    "posttest": "yarn lint",
     "prepack": "oclif manifest && oclif readme",
     "test": "mocha --forbid-only \"src/**/*.test.ts\"",
     "version": "oclif readme && git add README.md",
-    "doc": "npm run build && npm run version && shx rm -rf dist"
+    "doc": "yarn build && yarn run version && shx rm -rf dist"
   },
   "types": "dist/index.d.ts"
 }
