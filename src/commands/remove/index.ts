@@ -62,11 +62,11 @@ export default class Remove extends Command {
             workspace: config.workspace,
         })
         const destroyOutput = await destroyPackage({
+            env: workspaceEnv,
             package: args.package,
             parameters,
             project: config.project,
             workspace: config.workspace,
-            workspaceEnv,
         })
 
         if (!destroyOutput.success) {

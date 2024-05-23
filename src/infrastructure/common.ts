@@ -23,14 +23,12 @@ export type BootstrapInput = {
 
 export type ProvisionInput = {
     canonicalName: string;
+    env?: { [key: string]: string };
     iacType: IacType;
     id: string;
     parameters?: { [key: string]: string };
     pkgName: string;
     pkgUrl: string;
-    project?: string;
-    workspace: string;
-    workspaceEnv?: { [key: string]: string };
 }
 
 

@@ -14,7 +14,7 @@ export class LocalInfrastructure implements Infrastructure {
 
     async destroy(input: ProvisionInput): Promise<ProvisionOutput> {
         // noinspection DuplicatedCode
-        const destPath = path.join(os.homedir(), '.hereya', input.project ?? 'workspaces', input.workspace, input.canonicalName);
+        const destPath = path.join(os.homedir(), '.hereya', input.id, input.canonicalName);
         const downloadPath = await this.download(input.pkgUrl, destPath);
         const iac$ = getIac({ type: input.iacType });
         if (!iac$.supported) {
@@ -23,7 +23,7 @@ export class LocalInfrastructure implements Infrastructure {
 
         const { iac } = iac$;
         const output = await iac.destroy({
-            env: input.workspaceEnv ?? {},
+            env: input.env ?? {},
             id: input.id,
             parameters: input.parameters,
             pkgPath: downloadPath
@@ -40,7 +40,7 @@ export class LocalInfrastructure implements Infrastructure {
 
     async provision(input: ProvisionInput): Promise<ProvisionOutput> {
         // noinspection DuplicatedCode
-        const destPath = path.join(os.homedir(), '.hereya', input.project ?? 'workspaces', input.workspace, input.canonicalName);
+        const destPath = path.join(os.homedir(), '.hereya', input.id, input.canonicalName);
         const downloadPath = await this.download(input.pkgUrl, destPath);
         const iac$ = getIac({ type: input.iacType });
         if (!iac$.supported) {
@@ -49,7 +49,7 @@ export class LocalInfrastructure implements Infrastructure {
 
         const { iac } = iac$;
         const output = await iac.apply({
-            env: input.workspaceEnv ?? {},
+            env: input.env ?? {},
             id: input.id,
             parameters: input.parameters,
             pkgPath: downloadPath

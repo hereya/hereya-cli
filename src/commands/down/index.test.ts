@@ -6,6 +6,7 @@ import path from 'node:path';
 import sinon, { SinonStub } from 'sinon';
 
 import { localInfrastructure } from '../../infrastructure/index.js';
+import { envManager } from '../../lib/env/index.js';
 import { packageManager } from '../../lib/package/index.js';
 import { load } from '../../lib/yaml-utils.js';
 
@@ -77,6 +78,7 @@ describe('down', () => {
     })
 
     setupTest
+    .stub(envManager, 'removeProjectEnv', stub => stub.resolves({ success: true }))
     .command(['down'])
     .it('destroys all packages in the project', async () => {
         sinon.assert.calledTwice(localInfrastructure.destroy as SinonStub);
@@ -89,7 +91,7 @@ describe('down', () => {
             sinon.match.has('pkgName', 'another/package')
         );
         sinon.assert.calledWithMatch(
-            localInfrastructure.destroy as SinonStub,
+            envManager.removeProjectEnv as SinonStub,
             sinon.match.has('workspace', 'my-workspace')
         );
     })
@@ -101,11 +103,12 @@ describe('down', () => {
             'name: another-workspace\nid: another-workspace\n'
         )
     })
+    .stub(envManager, 'removeProjectEnv', stub => stub.resolves({ success: true }))
     .command(['down', '--workspace', 'another-workspace'])
     .it('destroys all packages in the project for the specified workspace', async () => {
         sinon.assert.calledTwice(localInfrastructure.destroy as SinonStub)
         sinon.assert.calledWithMatch(
-            localInfrastructure.destroy as SinonStub,
+            envManager.removeProjectEnv as SinonStub,
             sinon.match.has('workspace', 'another-workspace')
         )
     })

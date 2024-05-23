@@ -41,7 +41,7 @@ export async function destroyPackage(input: DestroyPackageInput): Promise<Destro
     }
 
     const { canonicalName, metadata, packageUri } = resolvePackageOutput
-    const infrastructure$ = await getInfrastructure({ type: metadata.infra })
+    const infrastructure$ = getInfrastructure({ type: metadata.infra })
     if (!infrastructure$.supported) {
         return { reason: infrastructure$.reason, success: false }
     }
@@ -49,14 +49,14 @@ export async function destroyPackage(input: DestroyPackageInput): Promise<Destro
     const { infrastructure } = infrastructure$
     const destroyOutput = await infrastructure.destroy({
         canonicalName,
+        env: input.env,
         iacType: metadata.iac,
-        id: [input.project, input.workspace, canonicalName].filter(Boolean).join('').replaceAll(/[^\dA-Za-z]/g, ''),
+        id: ((input.project || input.workspace) ? [input.project, input.workspace, canonicalName] : [canonicalName])
+        .filter(Boolean).join('')
+        .replaceAll(/[^\dA-Za-z]/g, ''),
         parameters: input.parameters,
         pkgName: input.package,
         pkgUrl: packageUri,
-        project: input.project,
-        workspace: input.workspace,
-        workspaceEnv: input.workspaceEnv,
     })
     if (!destroyOutput.success) {
         return { reason: destroyOutput.reason, success: false }
@@ -72,7 +72,7 @@ export async function provisionPackage(input: ProvisionPackageInput): Promise<Pr
     }
 
     const { canonicalName, metadata, packageUri } = resolvePackageOutput
-    const infrastructure$ = await getInfrastructure({ type: metadata.infra })
+    const infrastructure$ = getInfrastructure({ type: metadata.infra })
     if (!infrastructure$.supported) {
         return { reason: infrastructure$.reason, success: false }
     }
@@ -80,14 +80,14 @@ export async function provisionPackage(input: ProvisionPackageInput): Promise<Pr
     const { infrastructure } = infrastructure$
     const provisionOutput = await infrastructure.provision({
         canonicalName,
+        env: input.env,
         iacType: metadata.iac,
-        id: [input.project, input.workspace, canonicalName].filter(Boolean).join('').replaceAll(/[^\dA-Za-z]/g, ''),
+        id: ((input.project || input.workspace) ? [input.project, input.workspace, canonicalName] : [canonicalName])
+        .filter(Boolean).join('')
+        .replaceAll(/[^\dA-Za-z]/g, ''),
         parameters: input.parameters,
         pkgName: input.package,
         pkgUrl: packageUri,
-        project: input.project,
-        workspace: input.workspace,
-        workspaceEnv: input.workspaceEnv,
     })
     if (!provisionOutput.success) {
         return { reason: provisionOutput.reason, success: false }
@@ -101,11 +101,11 @@ export type DestroyPackageInput = ProvisionPackageInput
 export type DestroyPackageOutput = ProvisionPackageOutput
 
 export type ProvisionPackageInput = {
+    env?: { [key: string]: string }
     package: string
     parameters?: { [key: string]: string }
     project?: string
-    workspace: string
-    workspaceEnv?: { [key: string]: string }
+    workspace?: string
 }
 
 export type ProvisionPackageOutput = {

@@ -35,6 +35,7 @@ USAGE
 * [`hereya env`](#hereya-env)
 * [`hereya help [COMMAND]`](#hereya-help-command)
 * [`hereya init PROJECT`](#hereya-init-project)
+* [`hereya remote exec [PKGPATH]`](#hereya-remote-exec-pkgpath)
 * [`hereya remove PACKAGE`](#hereya-remove-package)
 * [`hereya run CMD`](#hereya-run-cmd)
 * [`hereya up`](#hereya-up)
@@ -90,10 +91,6 @@ EXAMPLES
   $ hereya bootstrap aws
 
   $ hereya bootstrap local
-
-  $ hereya bootstrap gcp
-
-  $ hereya bootstrap azure
 ```
 
 _See
@@ -188,6 +185,30 @@ EXAMPLES
 ```
 
 _See code: [src/commands/init/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/init/index.ts)_
+
+## `hereya remote exec [PKGPATH]`
+
+remotely provision or destroy a package
+
+```
+USAGE
+  $ hereya remote exec [PKGPATH] [-o <value>]
+
+ARGUMENTS
+  PKGPATH  The path to the package to provision or destroy
+
+FLAGS
+  -o, --output=<value>  The path to store the output env in
+
+DESCRIPTION
+  remotely provision or destroy a package
+
+EXAMPLES
+  $ hereya remote exec
+```
+
+_See
+code: [src/commands/remote/exec/index.ts](https://github.com/hereya/hereya-cli/blob/v0.0.0/src/commands/remote/exec/index.ts)_
 
 ## `hereya remove PACKAGE`
 

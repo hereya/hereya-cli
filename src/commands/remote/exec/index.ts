@@ -10,7 +10,7 @@ export default class RemoteExec extends Command {
     static override args = {
         pkgPath: Args.string({
             description: 'The path to the package to provision or destroy',
-            required: true,
+            required: false,
         }),
     }
 
@@ -53,7 +53,7 @@ export default class RemoteExec extends Command {
         }
 
         const input = {
-            env: workspaceEnv, id, parameters, pkgPath: args.pkgPath
+            env: workspaceEnv, id, parameters, pkgPath: args.pkgPath || process.cwd(),
         } satisfies ApplyInput
 
         const iac$ = getIac({ type: iacType as IacType });

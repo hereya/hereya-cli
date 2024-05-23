@@ -15,9 +15,7 @@ export default class Bootstrap extends Command {
 
     static override examples = [
         '<%= config.bin %> <%= command.id %> aws',
-        '<%= config.bin %> <%= command.id %> local',
-        '<%= config.bin %> <%= command.id %> gcp',
-        '<%= config.bin %> <%= command.id %> azure',
+        '<%= config.bin %> <%= command.id %> local'
     ]
 
     static override flags = {
@@ -27,12 +25,14 @@ export default class Bootstrap extends Command {
     public async run(): Promise<void> {
         const { args, flags } = await this.parse(Bootstrap)
 
-        const infrastructure$ = await getInfrastructure({ type: args.infrastructureType as InfrastructureType })
+        const infrastructure$ = getInfrastructure({ type: args.infrastructureType as InfrastructureType })
         if (!infrastructure$.supported) {
             this.warn(infrastructure$.reason)
             return
         }
 
-        await infrastructure$.infrastructure.bootstrap({ force: flags.force })
+        const { infrastructure } = infrastructure$
+
+        await infrastructure.bootstrap({ force: flags.force })
     }
 }

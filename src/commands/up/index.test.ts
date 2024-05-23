@@ -6,6 +6,7 @@ import path from 'node:path';
 import sinon, { SinonStub } from 'sinon';
 
 import { localInfrastructure } from '../../infrastructure/index.js';
+import { envManager } from '../../lib/env/index.js';
 import { packageManager } from '../../lib/package/index.js';
 
 describe('up', () => {
@@ -73,6 +74,7 @@ describe('up', () => {
     })
 
     setupTest
+    .stub(envManager, 'addProjectEnv', stub => stub.resolves({ success: true }))
     .command(['up'])
     .it('provisions all packages in the project', async () => {
         sinon.assert.calledTwice(localInfrastructure.provision as SinonStub)
@@ -85,7 +87,7 @@ describe('up', () => {
             sinon.match.has('pkgName', 'another/package')
         )
         sinon.assert.calledWithMatch(
-            localInfrastructure.provision as SinonStub,
+            envManager.addProjectEnv as SinonStub,
             sinon.match.has('workspace', 'my-workspace')
         )
     })
@@ -97,11 +99,12 @@ describe('up', () => {
             'name: another-workspace\nid: another-workspace\n'
         )
     })
+    .stub(envManager, 'addProjectEnv', stub => stub.resolves({ success: true }))
     .command(['up', '--workspace', 'another-workspace'])
     .it('provisions all packages in the project for the specified workspace', async () => {
         sinon.assert.calledTwice(localInfrastructure.provision as SinonStub)
         sinon.assert.calledWithMatch(
-            localInfrastructure.provision as SinonStub,
+            envManager.addProjectEnv as SinonStub,
             sinon.match.has('workspace', 'another-workspace')
         )
     })

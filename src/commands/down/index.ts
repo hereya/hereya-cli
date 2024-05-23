@@ -61,11 +61,11 @@ export default class Down extends Command {
                 workspace,
             })
             const destroyOutput = await destroyPackage({
+                env: workspaceEnv,
                 package: packageName,
                 parameters,
                 project: config.project,
                 workspace,
-                workspaceEnv,
             })
             if (!destroyOutput.success) {
                 this.error(destroyOutput.reason)

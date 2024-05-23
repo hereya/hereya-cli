@@ -72,11 +72,11 @@ export default class Add extends Command {
         })
 
         const provisionOutput = await provisionPackage({
+            env: workspaceEnv,
             package: args.package,
             parameters,
             project: config.project,
             workspace: config.workspace,
-            workspaceEnv,
         })
 
         if (!provisionOutput.success) {
