@@ -1,3 +1,12 @@
+## [0.3.2](https://github.com/hereya/hereya-cli/compare/0.3.1...0.3.2) (2024-05-24)
+
+
+### Bug Fixes
+
+* Add check for empty package parameters ([d595b76](https://github.com/hereya/hereya-cli/commit/d595b76014369dedf35025cb83573bde37faa111))
+
+
+
 ## [0.3.1](https://github.com/hereya/hereya-cli/compare/0.3.0...0.3.1) (2024-05-24)
 
 
