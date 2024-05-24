@@ -1,3 +1,12 @@
+# [0.3.0](https://github.com/hereya/hereya-cli/compare/0.2.1...0.3.0) (2024-05-24)
+
+
+### Features
+
+* Implement aws infrastructure ([41dd1f7](https://github.com/hereya/hereya-cli/commit/41dd1f7829b2984972d5e6c49891a59a11c81e39))
+
+
+
 ## [0.2.1](https://github.com/hereya/hereya-cli/compare/0.2.0...0.2.1) (2024-05-23)
 
 
