@@ -1,5 +1,5 @@
 import { BatchGetBuildsCommand, Build, CodeBuildClient, StartBuildCommand } from '@aws-sdk/client-codebuild';
-import { GetParameterCommand, PutParameterCommand, SSMClient } from '@aws-sdk/client-ssm';
+import { DeleteParameterCommand, GetParameterCommand, PutParameterCommand, SSMClient } from '@aws-sdk/client-ssm';
 import { GetCallerIdentityCommand, STSClient } from '@aws-sdk/client-sts';
 
 import { IacType } from '../iac/common.js';
@@ -41,6 +41,8 @@ export class AwsInfrastructure implements Infrastructure {
         if (!output.success) {
             return output;
         }
+
+        await this.removeEnv(input.id);
 
         return { env, success: true };
     }
@@ -95,6 +97,14 @@ export class AwsInfrastructure implements Infrastructure {
             Name: ssmParameterName,
         }));
         return JSON.parse(ssmParameter.Parameter?.Value ?? '{}');
+    }
+
+    private async removeEnv(id: string): Promise<void> {
+        const ssmClient = new SSMClient({});
+        const ssmParameterName = `/hereya/${id}`;
+        await ssmClient.send(new DeleteParameterCommand({
+            Name: ssmParameterName,
+        }));
     }
 
     private async runCdkBuild(input: { destroy?: boolean } & ProvisionInput): Promise<{
