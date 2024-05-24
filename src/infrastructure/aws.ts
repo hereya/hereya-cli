@@ -56,8 +56,18 @@ export class AwsInfrastructure implements Infrastructure {
         return { env, success: true };
     }
 
-    async resolveEnv(_: ResolveEnvInput): Promise<ResolveEnvOutput> {
-        throw new Error('Method not implemented.');
+    async resolveEnv(input: ResolveEnvInput): Promise<ResolveEnvOutput> {
+        const parameterStoreArnPattern = /^arn:aws:ssm:[\da-z-]+:\d{12}:parameter\/[\w./-]+$/;
+        const ssmClient = new SSMClient({});
+        if (parameterStoreArnPattern.test(input.value)) {
+            const response = await ssmClient.send(new GetParameterCommand({
+                Name: input.value,
+                WithDecryption: true,
+            }));
+            return { value: response.Parameter?.Value ?? input.value };
+        }
+
+        return { value: input.value };
     }
 
     async saveEnv(input: SaveEnvInput): Promise<SaveEnvOutput> {
