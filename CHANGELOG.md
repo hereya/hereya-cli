@@ -1,3 +1,13 @@
+## [0.3.4](https://github.com/hereya/hereya-cli/compare/0.3.3...0.3.4) (2024-05-24)
+
+
+### Bug Fixes
+
+* Bypass main branch protection for release ([694fdf9](https://github.com/hereya/hereya-cli/commit/694fdf9b7385a9f521c194181f52dd1f683c98de))
+* Bypass main branch protection for release ([cf6a6b9](https://github.com/hereya/hereya-cli/commit/cf6a6b910e39b2bf620d9677495356fa71043749))
+
+
+
 ## [0.3.3](https://github.com/hereya/hereya-cli/compare/0.3.2...0.3.3) (2024-05-24)
 
 
