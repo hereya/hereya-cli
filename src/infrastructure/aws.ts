@@ -1,11 +1,15 @@
+import { BatchGetBuildsCommand, Build, CodeBuildClient, StartBuildCommand } from '@aws-sdk/client-codebuild';
+import { GetParameterCommand, PutParameterCommand, SSMClient } from '@aws-sdk/client-ssm';
 import { GetCallerIdentityCommand, STSClient } from '@aws-sdk/client-sts';
 
+import { IacType } from '../iac/common.js';
 import { runShell } from '../lib/shell.js';
 import {
     BootstrapInput,
     DestroyInput,
     DestroyOutput,
     Infrastructure,
+    InfrastructureType,
     ProvisionInput,
     ProvisionOutput,
     ResolveEnvInput,
@@ -31,20 +35,140 @@ export class AwsInfrastructure implements Infrastructure {
         }
     }
 
-    async destroy(_: DestroyInput): Promise<DestroyOutput> {
-        throw new Error('Method not implemented.');
+    async destroy(input: DestroyInput): Promise<DestroyOutput> {
+        const env = await this.getEnv(input.id);
+        const output = await this.runCdkBuild({ ...input, destroy: true });
+        if (!output.success) {
+            return output;
+        }
+
+        return { env, success: true };
     }
 
-    async provision(_: ProvisionInput): Promise<ProvisionOutput> {
-        throw new Error('Method not implemented.');
+    async provision(input: ProvisionInput): Promise<ProvisionOutput> {
+        const output = await this.runCdkBuild(input);
+        if (!output.success) {
+            return output;
+        }
+
+        const env = await this.getEnv(input.id);
+
+        return { env, success: true };
     }
 
     async resolveEnv(_: ResolveEnvInput): Promise<ResolveEnvOutput> {
         throw new Error('Method not implemented.');
     }
 
-    async saveEnv(_: SaveEnvInput): Promise<SaveEnvOutput> {
-        throw new Error('Method not implemented.');
+    async saveEnv(input: SaveEnvInput): Promise<SaveEnvOutput> {
+        const key = `/hereya/${input.id}`;
+        const ssmClient = new SSMClient({});
+        const value = JSON.stringify(input.env);
+
+        try {
+            await ssmClient.send(new PutParameterCommand({
+                Name: key,
+                Overwrite: true,
+                Type: 'String',
+                Value: value
+            }));
+            return { success: true };
+        } catch (error: any) {
+            return { reason: error.message, success: false };
+        }
+    }
+
+    private async getEnv(id: string): Promise<{ [key: string]: string }> {
+        const ssmClient = new SSMClient({});
+        const ssmParameterName = `/hereya/${id}`;
+        const ssmParameter = await ssmClient.send(new GetParameterCommand({
+            Name: ssmParameterName,
+        }));
+        return JSON.parse(ssmParameter.Parameter?.Value ?? '{}');
+    }
+
+    private async runCdkBuild(input: { destroy?: boolean } & ProvisionInput): Promise<{
+        reason: string;
+        success: false
+    } | { success: true }> {
+        const codebuildClient = new CodeBuildClient({})
+        let codebuildProjectName = '';
+        switch (input.iacType) {
+            case IacType.cdk: {
+                codebuildProjectName = 'hereyaCdk';
+                break;
+            }
+
+            default: {
+                return { reason: `IAC type ${input.iacType} is not supported yet!`, success: false };
+            }
+        }
+
+        const response = await codebuildClient.send(new StartBuildCommand({
+            environmentVariablesOverride: [
+                {
+                    name: 'HEREYA_ID',
+                    type: 'PLAINTEXT',
+                    value: input.id,
+                },
+                {
+                    name: 'HEREYA_IAC_TYPE',
+                    type: 'PLAINTEXT',
+                    value: input.iacType,
+                },
+                {
+                    name: 'HEREYA_INFRA_TYPE',
+                    type: 'PLAINTEXT',
+                    value: InfrastructureType.aws,
+                },
+                {
+                    name: 'HEREYA_PARAMETERS',
+                    type: 'PLAINTEXT',
+                    value: Object.entries(input.parameters ?? {}).map(([key, value]) => `${key}=${value}`).join(','),
+                },
+                {
+                    name: 'HEREYA_WORKSPACE_ENV',
+                    type: 'PLAINTEXT',
+                    value: Object.entries(input.env ?? {}).map(([key, value]) => `${key}=${value}`).join(','),
+                },
+                {
+                    name: 'PKG_REPO_URL',
+                    type: 'PLAINTEXT',
+                    value: input.pkgUrl,
+                },
+                {
+                    name: 'HEREYA_DESTROY',
+                    type: 'PLAINTEXT',
+                    value: input.destroy ? 'true' : '',
+                },
+            ],
+            projectName: codebuildProjectName,
+        }));
+        console.log(`Deployment ${response.build?.id} started successfully.`)
+        const command = new BatchGetBuildsCommand({
+            ids: [response.build?.id ?? ''],
+        });
+
+        const deploymentResult = await new Promise<Build | undefined>((resolve) => {
+            const handle = setInterval(async () => {
+                const buildResponse = await codebuildClient.send(command)
+                const build = buildResponse.builds?.[0]
+
+                if (build?.buildStatus === 'IN_PROGRESS') {
+                    console.log(`Deployment ${response.build?.id} still in progress...`)
+                    return
+                }
+
+                clearInterval(handle)
+                console.log(`Deployment ${response.build?.id} finished with status ${build?.buildStatus}.`)
+                resolve(build)
+            }, 10_000) // 10 seconds
+        });
+        if (deploymentResult?.buildStatus !== 'SUCCEEDED') {
+            return { reason: `Deployment failed with status ${deploymentResult?.buildStatus}`, success: false };
+        }
+
+        return { success: true };
     }
 
 }
