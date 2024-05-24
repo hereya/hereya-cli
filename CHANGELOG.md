@@ -1,3 +1,12 @@
+## [0.3.3](https://github.com/hereya/hereya-cli/compare/0.3.2...0.3.3) (2024-05-24)
+
+
+### Bug Fixes
+
+* Remove env in parameter store after destroy in AWS ([82885e6](https://github.com/hereya/hereya-cli/commit/82885e6855229a1ac672753b2dc9da31975cfe1e))
+
+
+
 ## [0.3.2](https://github.com/hereya/hereya-cli/compare/0.3.1...0.3.2) (2024-05-24)
 
 
