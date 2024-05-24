@@ -1,3 +1,12 @@
+## [0.3.1](https://github.com/hereya/hereya-cli/compare/0.3.0...0.3.1) (2024-05-24)
+
+
+### Bug Fixes
+
+* Implement resolveEnv method in AWS infrastructure ([f8a23a2](https://github.com/hereya/hereya-cli/commit/f8a23a28254a87cddd201c3d729e8f49645d64b2))
+
+
+
 # [0.3.0](https://github.com/hereya/hereya-cli/compare/0.2.1...0.3.0) (2024-05-24)
 
 
