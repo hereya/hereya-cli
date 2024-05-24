@@ -25,6 +25,13 @@ export class ParameterManager {
 
 
     async savePackageParameters(input: SavePackageParametersInput): Promise<SavePackageParametersOutput> {
+        if (Object.keys(input.parameters ?? {}).length === 0) {
+            return {
+                filePath: null,
+                saved: false,
+            }
+        }
+
         const pkgName = getPackageCanonicalName(input.package)
         const paramFilesExist = await Promise.all([
             [`${pkgName}.yaml`, `${pkgName}.yml`],
