@@ -17,12 +17,21 @@ export class SimpleConfigManager implements ConfigManager {
         const { config } = await this.loadConfig({ projectRootDir: input.projectRootDir })
         await yaml.save({
             ...config,
-            packages: {
-                ...config.packages,
-                [input.package]: {
-                    version: ''
+            ...(input.deploy ? {
+                deploy: {
+                    ...config.deploy,
+                    [input.package]: {
+                        version: '',
+                    }
                 }
-            },
+            } : {
+                packages: {
+                    ...config.packages,
+                    [input.package]: {
+                        version: '',
+                    }
+                }
+            }),
         }, await this.getConfigPath(input.projectRootDir))
 
     }
@@ -39,9 +48,16 @@ export class SimpleConfigManager implements ConfigManager {
     async removePackage(input: RemovePackageInput): Promise<void> {
         const { config } = await this.loadConfig({ projectRootDir: input.projectRootDir })
         const newPackages = { ...config.packages }
-        delete newPackages[input.package]
+        const newDeploy = { ...config.deploy }
+        if (input.deploy) {
+            delete newDeploy[input.package]
+        } else {
+            delete newPackages[input.package]
+        }
+
         await yaml.save({
             ...config,
+            deploy: newDeploy,
             packages: newPackages,
         }, await this.getConfigPath(input.projectRootDir))
     }

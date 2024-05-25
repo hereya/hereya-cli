@@ -40,7 +40,7 @@ export default class Remove extends Command {
         }
 
         const { config } = loadConfigOutput
-        if (!(args.package in (config.packages ?? {}))) {
+        if (!(args.package in (config.packages ?? {})) && !(args.package in (config.deploy ?? {}))) {
             this.warn(`Package ${args.package} not found in project.`)
             return
         }
@@ -66,6 +66,7 @@ export default class Remove extends Command {
             package: args.package,
             parameters,
             project: config.project,
+            skipDeploy: true,
             workspace: config.workspace,
         })
 
@@ -75,7 +76,9 @@ export default class Remove extends Command {
 
         const { env, metadata } = destroyOutput
 
-        this.log(`Infrastructure resources for ${args.package} have been destroyed`)
+        if (!metadata.deploy) {
+            this.log(`Infrastructure resources for ${args.package} have been destroyed`)
+        }
 
         this.log('removing package env vars from project')
 
@@ -87,8 +90,9 @@ export default class Remove extends Command {
             workspace: config.workspace
         })
         await configManager.removePackage({
+            deploy: metadata.deploy,
             package: args.package,
-            projectRootDir
+            projectRootDir,
         })
 
         const { config: newConfig } = await configManager.loadConfig({ projectRootDir })

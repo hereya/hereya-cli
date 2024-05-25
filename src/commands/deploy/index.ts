@@ -1,14 +1,15 @@
 import { Command, Flags } from '@oclif/core'
+import path from 'node:path';
 
 import { getBackend } from '../../backend/index.js';
 import { destroyPackage, provisionPackage } from '../../infrastructure/index.js';
 import { getConfigManager } from '../../lib/config/index.js';
 import { getEnvManager } from '../../lib/env/index.js';
 import { getParameterManager } from '../../lib/parameter/index.js';
+import Up from '../up/index.js';
 
-export default class Up extends Command {
-
-    static override description = 'Provision all packages in the project.'
+export default class Deploy extends Command {
+    static override description = 'Deploy a hereya project using the project deployment package'
 
     static override examples = [
         '<%= config.bin %> <%= command.id %>',
@@ -21,18 +22,16 @@ export default class Up extends Command {
         }),
         workspace: Flags.string({
             char: 'w',
-            description: 'name of the workspace to install the packages for',
+            description: 'name of the workspace to deploy the packages for',
             required: false,
         }),
     }
 
     public async run(): Promise<void> {
-        const { flags } = await this.parse(Up)
+        const { flags } = await this.parse(Deploy)
 
-        const projectRootDir = flags.chdir || process.env.HEREYA_PROJECT_ROOT_DIR
-
+        const projectRootDir = path.resolve(flags.chdir || process.env.HEREYA_PROJECT_ROOT_DIR || process.cwd())
         const configManager = getConfigManager()
-
         const loadConfigOutput = await configManager.loadConfig({ projectRootDir })
         if (!loadConfigOutput.found) {
             this.warn(`Project not initialized. Run 'hereya init' first.`)
@@ -40,18 +39,17 @@ export default class Up extends Command {
         }
 
         const { config } = loadConfigOutput
-        const packages = Object.keys(config.packages ?? {})
+        const deployPackages = Object.keys(config.deploy ?? {})
         const backend = await getBackend()
         const savedStateOutput = await backend.getState({
             project: config.project,
         })
         let savedPackages: string[] = []
         if (savedStateOutput.found) {
-            savedPackages = Object.keys(savedStateOutput.config.packages ?? {})
+            savedPackages = Object.keys(savedStateOutput.config.deploy ?? {})
         }
 
-        const removedPackages = savedPackages.filter((packageName) => !packages.includes(packageName))
-
+        const removedPackages = savedPackages.filter((packageName) => !deployPackages.includes(packageName))
         const workspace = flags.workspace || config.workspace
         const getWorkspaceEnvOutput = await backend.getWorkspaceEnv({
             project: config.project,
@@ -62,10 +60,14 @@ export default class Up extends Command {
         }
 
         const { env: workspaceEnv } = getWorkspaceEnvOutput
-
         const parameterManager = getParameterManager()
-
-        const removed = await Promise.all(removedPackages.map(async (packageName) => {
+        const envManager = getEnvManager()
+        const { env: projectEnv } = await envManager.getProjectEnv({
+            markSecret: true,
+            projectRootDir,
+            workspace,
+        })
+        await Promise.all(removedPackages.map(async (packageName) => {
             const { parameters } = await parameterManager.getPackageParameters({
                 package: packageName,
                 projectRootDir,
@@ -76,18 +78,26 @@ export default class Up extends Command {
                 package: packageName,
                 parameters,
                 project: config.project,
+                projectEnv,
+                projectRootDir,
                 workspace,
             })
             if (!destroyOutput.success) {
                 this.error(destroyOutput.reason)
             }
 
-            this.log(`Package ${packageName} destroyed successfully`)
-            const { env, metadata } = destroyOutput
-            return { env, metadata, packageName }
+            this.log(`Package ${packageName} un-deployed successfully`)
         }))
 
-        const added = await Promise.all(packages.map(async (packageName) => {
+        await Up.run(['--chdir', projectRootDir, '--workspace', workspace])
+
+        const { env: newProjectEnv } = await envManager.getProjectEnv({
+            markSecret: true,
+            projectRootDir,
+            workspace,
+        })
+
+        await Promise.all(deployPackages.map(async (packageName) => {
             const { parameters } = await parameterManager.getPackageParameters({
                 package: packageName,
                 projectRootDir,
@@ -98,41 +108,15 @@ export default class Up extends Command {
                 package: packageName,
                 parameters,
                 project: config.project,
+                projectEnv: newProjectEnv,
+                projectRootDir,
                 workspace,
             })
             if (!provisionOutput.success) {
                 this.error(provisionOutput.reason)
             }
 
-            const { env, metadata } = provisionOutput
-            this.log(`Package ${packageName} provisioned successfully`)
-            return { env, metadata, packageName }
+            this.log(`Package ${packageName} deployed successfully`)
         }))
-
-        const envManager = getEnvManager()
-        for (const { env, metadata } of removed) {
-            // eslint-disable-next-line no-await-in-loop
-            await Promise.all([
-                envManager.removeProjectEnv({
-                    env,
-                    infra: metadata.infra,
-                    projectRootDir,
-                    workspace,
-                }),
-            ])
-        }
-
-        for (const { env, metadata } of added) {
-            // eslint-disable-next-line no-await-in-loop
-            await envManager.addProjectEnv({
-                env,
-                infra: metadata.infra,
-                projectRootDir,
-                workspace,
-            })
-        }
-
-        const { config: newConfig } = await configManager.loadConfig({ projectRootDir })
-        await backend.saveState(newConfig)
     }
 }

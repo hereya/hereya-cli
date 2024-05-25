@@ -19,6 +19,11 @@ export type LoadConfigOutput = {
 }
 
 export interface Config {
+    deploy?: {
+        [key: string]: {
+            version: string
+        }
+    }
     packages?: {
         [key: string]: {
             version: string
@@ -34,6 +39,7 @@ export interface SaveConfigInput {
 }
 
 export type AddPackageInput = {
+    deploy?: boolean
     package: string
     projectRootDir?: string
 }

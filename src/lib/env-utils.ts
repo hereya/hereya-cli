@@ -8,21 +8,26 @@ export function logEnv(env: { [key: string]: string }, logFn: (_: string) => voi
 }
 
 
-export async function resolveEnvValues(env: { [key: string]: string }): Promise<{ [key: string]: string }> {
+export async function resolveEnvValues(env: { [key: string]: string }, options: {
+    markSecret?: boolean
+} = {}): Promise<{ [key: string]: string }> {
     return Object.fromEntries(
         await Promise.all(
             Object.entries(env)
             .map(async ([key, value]) => {
                 const infraType = value.split(':')[0] as InfrastructureType
-                const infra$ = await getInfrastructure({ type: infraType })
+                const infra$ = getInfrastructure({ type: infraType })
                 if (!infra$.supported) {
                     throw new Error(infra$.reason)
                 }
 
                 const { infrastructure } = infra$
                 const valueWithoutInfra = value.split(':').slice(1).join(':')
-                const { value: resolvedValue } = await infrastructure.resolveEnv({ value: valueWithoutInfra })
-                return [key, resolvedValue]
+                const { isSecret, value: resolvedValue } = await infrastructure.resolveEnv({
+                    value: valueWithoutInfra
+                })
+                const finalValue = options.markSecret && isSecret ? `secret://${resolvedValue}` : resolvedValue
+                return [key, finalValue]
             })
         )
     );
