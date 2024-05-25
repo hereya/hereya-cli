@@ -92,8 +92,8 @@ export class LocalInfrastructure implements Infrastructure {
     async undeploy(input: UndeployInput): Promise<UndeployOutput> {
         input.parameters = {
             ...input.parameters,
-            projectEnv: JSON.stringify(input.projectEnv ?? {}),
-            projectRootDir: input.projectRootDir
+            hereyaProjectEnv: JSON.stringify(input.projectEnv ?? {}),
+            hereyaProjectRootDir: input.projectRootDir
         }
         return this.destroy(input);
     }

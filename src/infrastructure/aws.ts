@@ -47,45 +47,39 @@ export class AwsInfrastructure implements Infrastructure {
     }
 
     async deploy(input: DeployInput): Promise<DeployOutput> {
-        const s3Key = `${input.id}/${randomUUID()}`;
-        const s3Bucket = 'hereya-projects-source-code';
-        const files = await this.getFilesToUpload(input.projectRootDir);
-        const s3Client = new S3Client({});
-        await Promise.all(files.map(async (file) => {
-            console.log(`Uploading ${file} to s3://${s3Bucket}/${s3Key}`);
-            await s3Client.send(new PutObjectCommand({
-                Body: await fs.readFile(path.join(input.projectRootDir, file)),
-                Bucket: s3Bucket,
-                Key: `${s3Key}/${file}`,
-            }));
-        }));
+        let files: string[] = [];
+        let s3Bucket = '';
+        let s3Client = new S3Client({});
+        let s3Key = '';
 
-        input.parameters = {
-            ...input.parameters,
-            hereyaProjectEnv: JSON.stringify(input.projectEnv ?? {}),
-        }
-
-        const output = await this.runCodeBuild({
-            ...input,
-            deploy: true,
-            sourceS3Key: s3Key
-        });
-
-        if (!output.success) {
-            return output;
-        }
-
-        const env = await this.getEnv(input.id);
-
-        await s3Client.send(new DeleteObjectsCommand({
-            Bucket: s3Bucket,
-            Delete: {
-                Objects: files.map(file => ({ Key: `${s3Key}/${file}` }))
+        try {
+            ({ files, s3Bucket, s3Client, s3Key } = await this.uploadProjectFiles(input));
+            input.parameters = {
+                ...input.parameters,
+                hereyaProjectEnv: JSON.stringify(input.projectEnv ?? {}),
+            }
+            const output = await this.runCodeBuild({
+                ...input,
+                deploy: true,
+                sourceS3Key: s3Key
+            });
+            if (!output.success) {
+                return output;
             }
 
-        }))
+            const env = await this.getEnv(input.id);
 
-        return { env, success: true };
+            return { env, success: true };
+        } finally {
+            if (s3Key && files.length > 0) {
+                await s3Client.send(new DeleteObjectsCommand({
+                    Bucket: s3Bucket,
+                    Delete: {
+                        Objects: files.map(file => ({ Key: `${s3Key}/${file}` }))
+                    }
+                }))
+            }
+        }
     }
 
     async destroy(input: DestroyInput): Promise<DestroyOutput> {
@@ -146,10 +140,49 @@ export class AwsInfrastructure implements Infrastructure {
         }
     }
 
-    async undeploy(_: UndeployInput): Promise<UndeployOutput> {
-        throw new Error('Method not implemented.');
-    }
+    async undeploy(input: UndeployInput): Promise<UndeployOutput> {
+        let files: string[] = [];
+        let s3Bucket = '';
+        let s3Client = new S3Client({});
+        let s3Key = '';
 
+        let env: { [key: string]: string } = {};
+        try {
+            env = await this.getEnv(input.id);
+        } catch (error: any) {
+            console.log(`Could not get env for ${input.id}: ${error.message}. Continuing with undeployment...`);
+        }
+
+        try {
+
+            ({ files, s3Bucket, s3Client, s3Key } = await this.uploadProjectFiles(input));
+            input.parameters = {
+                ...input.parameters,
+                hereyaProjectEnv: JSON.stringify(input.projectEnv ?? {}),
+            }
+            const output = await this.runCodeBuild({
+                ...input,
+                deploy: true,
+                destroy: true,
+                sourceS3Key: s3Key
+            });
+            if (!output.success) {
+                return output;
+            }
+
+            return { env, success: true };
+        } finally {
+            if (s3Key && files.length > 0) {
+                await s3Client.send(new DeleteObjectsCommand({
+                    Bucket: s3Bucket,
+                    Delete: {
+                        Objects: files.map(file => ({ Key: `${s3Key}/${file}` }))
+                    }
+                }))
+            }
+        }
+
+    }
 
     private async getEnv(id: string): Promise<{ [key: string]: string }> {
         const ssmClient = new SSMClient({});
@@ -159,6 +192,7 @@ export class AwsInfrastructure implements Infrastructure {
         }));
         return JSON.parse(ssmParameter.Parameter?.Value ?? '{}');
     }
+
 
     private async getFilesToUpload(rootDir: string): Promise<string[]> {
         const ig = ignore.default();
@@ -274,6 +308,25 @@ export class AwsInfrastructure implements Infrastructure {
         }
 
         return { success: true };
+    }
+
+    private async uploadProjectFiles(input: {
+        projectEnv: { [p: string]: string };
+        projectRootDir: string
+    } & ProvisionInput) {
+        const s3Key = `${input.id}/${randomUUID()}`;
+        const s3Bucket = 'hereya-projects-source-code';
+        const files = await this.getFilesToUpload(input.projectRootDir);
+        const s3Client = new S3Client({});
+        await Promise.all(files.map(async (file) => {
+            console.log(`Uploading ${file} to s3://${s3Bucket}/${s3Key}`);
+            await s3Client.send(new PutObjectCommand({
+                Body: await fs.readFile(path.join(input.projectRootDir, file)),
+                Bucket: s3Bucket,
+                Key: `${s3Key}/${file}`,
+            }));
+        }));
+        return { files, s3Bucket, s3Client, s3Key };
     }
 
 }
