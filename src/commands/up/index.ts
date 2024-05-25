@@ -110,7 +110,7 @@ export default class Up extends Command {
         }))
 
         const envManager = getEnvManager()
-        for (const { env, metadata, packageName } of removed) {
+        for (const { env, metadata } of removed) {
             // eslint-disable-next-line no-await-in-loop
             await Promise.all([
                 envManager.removeProjectEnv({
@@ -119,10 +119,6 @@ export default class Up extends Command {
                     projectRootDir,
                     workspace,
                 }),
-                configManager.removePackage({
-                    package: packageName,
-                    projectRootDir,
-                })
             ])
         }
 

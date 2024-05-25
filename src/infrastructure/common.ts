@@ -10,11 +10,13 @@ export enum InfrastructureType {
 export interface Infrastructure {
     bootstrap(input: BootstrapInput): Promise<void>;
 
+    deploy(input: DeployInput): Promise<DeployOutput>;
     destroy(input: DestroyInput): Promise<DestroyOutput>;
     provision(input: ProvisionInput): Promise<ProvisionOutput>;
     resolveEnv(input: ResolveEnvInput): Promise<ResolveEnvOutput>;
-
     saveEnv(input: SaveEnvInput): Promise<SaveEnvOutput>;
+
+    undeploy(input: UndeployInput): Promise<UndeployOutput>;
 }
 
 export type BootstrapInput = {
@@ -43,6 +45,16 @@ export type ProvisionOutput = {
 export type DestroyInput = ProvisionInput;
 
 export type DestroyOutput = ProvisionOutput;
+
+export type DeployInput = {
+    projectEnv: { [key: string]: string };
+    projectRootDir: string;
+} & ProvisionInput
+
+export type DeployOutput = ProvisionOutput;
+
+export type UndeployInput = DeployInput;
+export type UndeployOutput = DeployOutput;
 
 export type ResolveEnvInput = {
     value: string;

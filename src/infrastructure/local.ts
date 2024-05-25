@@ -4,12 +4,26 @@ import * as path from 'node:path';
 import { simpleGit } from 'simple-git';
 
 import { getIac } from '../iac/index.js';
-import { Infrastructure, ProvisionInput, ProvisionOutput, SaveEnvInput, SaveEnvOutput } from './common.js';
+import {
+    DeployInput,
+    DeployOutput,
+    Infrastructure,
+    ProvisionInput,
+    ProvisionOutput,
+    SaveEnvInput,
+    SaveEnvOutput,
+    UndeployInput,
+    UndeployOutput
+} from './common.js';
 
 export class LocalInfrastructure implements Infrastructure {
 
     async bootstrap() {
         console.log('Bootstrapping local infrastructure');
+    }
+
+    async deploy(_: DeployInput): Promise<DeployOutput> {
+        throw new Error('Method not implemented.');
     }
 
     async destroy(input: ProvisionInput): Promise<ProvisionOutput> {
@@ -68,6 +82,10 @@ export class LocalInfrastructure implements Infrastructure {
     async saveEnv(input: SaveEnvInput): Promise<SaveEnvOutput> {
         console.log(`Saving env to ${input.id}`);
         return { success: true };
+    }
+
+    async undeploy(_: UndeployInput): Promise<UndeployOutput> {
+        throw new Error('Method not implemented.');
     }
 
     private async download(pkgUrl: string, destPath: string) {

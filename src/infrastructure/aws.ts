@@ -6,6 +6,8 @@ import { IacType } from '../iac/common.js';
 import { runShell } from '../lib/shell.js';
 import {
     BootstrapInput,
+    DeployInput,
+    DeployOutput,
     DestroyInput,
     DestroyOutput,
     Infrastructure,
@@ -15,7 +17,9 @@ import {
     ResolveEnvInput,
     ResolveEnvOutput,
     SaveEnvInput,
-    SaveEnvOutput
+    SaveEnvOutput,
+    UndeployInput,
+    UndeployOutput
 } from './common.js';
 import { provisionPackage } from './index.js';
 
@@ -33,6 +37,10 @@ export class AwsInfrastructure implements Infrastructure {
         if (!output.success) {
             throw new Error(output.reason);
         }
+    }
+
+    async deploy(_: DeployInput): Promise<DeployOutput> {
+        throw new Error('Method not implemented.');
     }
 
     async destroy(input: DestroyInput): Promise<DestroyOutput> {
@@ -88,6 +96,10 @@ export class AwsInfrastructure implements Infrastructure {
         } catch (error: any) {
             return { reason: error.message, success: false };
         }
+    }
+
+    async undeploy(_: UndeployInput): Promise<UndeployOutput> {
+        throw new Error('Method not implemented.');
     }
 
     private async getEnv(id: string): Promise<{ [key: string]: string }> {

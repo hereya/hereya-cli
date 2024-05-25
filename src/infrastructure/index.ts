@@ -52,7 +52,19 @@ export async function destroyPackage(input: DestroyPackageInput): Promise<Destro
     }
 
     const { infrastructure } = infrastructure$
-    const destroyOutput = await infrastructure.destroy({
+    const destroyOutput = metadata.deploy ? await infrastructure.undeploy({
+        canonicalName,
+        env: input.env,
+        iacType: metadata.iac,
+        id: ((input.project || input.workspace) ? [input.project, input.workspace, canonicalName] : [canonicalName])
+        .filter(Boolean).join('')
+        .replaceAll(/[^\dA-Za-z]/g, ''),
+        parameters: input.parameters,
+        pkgName: input.package,
+        pkgUrl: packageUri,
+        projectEnv: input.projectEnv ?? {},
+        projectRootDir: input.projectRootDir!,
+    }) : await infrastructure.destroy({
         canonicalName,
         env: input.env,
         iacType: metadata.iac,
@@ -89,7 +101,19 @@ export async function provisionPackage(input: ProvisionPackageInput): Promise<Pr
     }
 
     const { infrastructure } = infrastructure$
-    const provisionOutput = await infrastructure.provision({
+    const provisionOutput = metadata.deploy ? await infrastructure.deploy({
+        canonicalName,
+        env: input.env,
+        iacType: metadata.iac,
+        id: ((input.project || input.workspace) ? [input.project, input.workspace, canonicalName] : [canonicalName])
+        .filter(Boolean).join('')
+        .replaceAll(/[^\dA-Za-z]/g, ''),
+        parameters: input.parameters,
+        pkgName: input.package,
+        pkgUrl: packageUri,
+        projectEnv: input.projectEnv ?? {},
+        projectRootDir: input.projectRootDir!,
+    }) : await infrastructure.provision({
         canonicalName,
         env: input.env,
         iacType: metadata.iac,
@@ -116,6 +140,8 @@ export type ProvisionPackageInput = {
     package: string
     parameters?: { [key: string]: string }
     project?: string
+    projectEnv?: { [key: string]: string }
+    projectRootDir?: string
     skipDeploy?: boolean
     workspace?: string
 }
