@@ -1,4 +1,5 @@
 import { Command, Flags } from '@oclif/core'
+import path from 'node:path';
 
 import { getBackend } from '../../backend/index.js';
 import { destroyPackage, provisionPackage } from '../../infrastructure/index.js';
@@ -29,7 +30,7 @@ export default class Deploy extends Command {
     public async run(): Promise<void> {
         const { flags } = await this.parse(Deploy)
 
-        const projectRootDir = flags.chdir || process.env.HEREYA_PROJECT_ROOT_DIR || process.cwd()
+        const projectRootDir = path.resolve(flags.chdir || process.env.HEREYA_PROJECT_ROOT_DIR || process.cwd())
         const configManager = getConfigManager()
         const loadConfigOutput = await configManager.loadConfig({ projectRootDir })
         if (!loadConfigOutput.found) {
@@ -62,6 +63,7 @@ export default class Deploy extends Command {
         const parameterManager = getParameterManager()
         const envManager = getEnvManager()
         const { env: projectEnv } = await envManager.getProjectEnv({
+            markSecret: true,
             projectRootDir,
             workspace,
         })
@@ -90,6 +92,7 @@ export default class Deploy extends Command {
         await Up.run(['--chdir', projectRootDir, '--workspace', workspace])
 
         const { env: newProjectEnv } = await envManager.getProjectEnv({
+            markSecret: true,
             projectRootDir,
             workspace,
         })

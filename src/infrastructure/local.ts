@@ -22,8 +22,13 @@ export class LocalInfrastructure implements Infrastructure {
         console.log('Bootstrapping local infrastructure');
     }
 
-    async deploy(_: DeployInput): Promise<DeployOutput> {
-        throw new Error('Method not implemented.');
+    async deploy(input: DeployInput): Promise<DeployOutput> {
+        input.parameters = {
+            ...input.parameters,
+            hereyaProjectEnv: JSON.stringify(input.projectEnv ?? {}),
+            hereyaProjectRootDir: input.projectRootDir
+        }
+        return this.provision(input);
     }
 
     async destroy(input: ProvisionInput): Promise<ProvisionOutput> {
@@ -84,8 +89,13 @@ export class LocalInfrastructure implements Infrastructure {
         return { success: true };
     }
 
-    async undeploy(_: UndeployInput): Promise<UndeployOutput> {
-        throw new Error('Method not implemented.');
+    async undeploy(input: UndeployInput): Promise<UndeployOutput> {
+        input.parameters = {
+            ...input.parameters,
+            projectEnv: JSON.stringify(input.projectEnv ?? {}),
+            projectRootDir: input.projectRootDir
+        }
+        return this.destroy(input);
     }
 
     private async download(pkgUrl: string, destPath: string) {

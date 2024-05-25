@@ -25,7 +25,7 @@ export class EnvManager {
             return { env: {} }
         }
 
-        const resolvedEnv = await resolveEnvValues(env);
+        const resolvedEnv = await resolveEnvValues(env, { markSecret: input.markSecret })
         return { env: resolvedEnv }
     }
 
@@ -71,6 +71,7 @@ export type AddEnvInput = {
 export type RemoveEnvInput = AddEnvInput;
 
 export type GetProjectEnvInput = {
+    markSecret?: boolean
     projectRootDir?: string
     workspace: string;
 }

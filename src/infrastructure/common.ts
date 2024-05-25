@@ -61,6 +61,7 @@ export type ResolveEnvInput = {
 }
 
 export type ResolveEnvOutput = {
+    isSecret?: boolean;
     value: string;
 }
 

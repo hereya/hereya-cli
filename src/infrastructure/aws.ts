@@ -74,7 +74,10 @@ export class AwsInfrastructure implements Infrastructure {
                 Name: input.value,
                 WithDecryption: true,
             }));
-            return { value: response.Parameter?.Value ?? input.value };
+            return {
+                isSecret: response.Parameter?.Type === 'SecureString',
+                value: response.Parameter?.Value ?? input.value
+            };
         }
 
         return { value: input.value };
