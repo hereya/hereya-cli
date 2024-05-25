@@ -1,3 +1,12 @@
+## [0.4.1](https://github.com/hereya/hereya-cli/compare/0.4.0...0.4.1) (2024-05-25)
+
+
+### Bug Fixes
+
+* Refactor environment variable assignment in terraform.ts ([53fd05f](https://github.com/hereya/hereya-cli/commit/53fd05f90a9d113c8250595dfb204e68c986b24d))
+
+
+
 # [0.4.0](https://github.com/hereya/hereya-cli/compare/0.3.4...0.4.0) (2024-05-25)
 
 
