@@ -1,4 +1,5 @@
 import { Args, Command, Flags } from '@oclif/core'
+import path from 'node:path';
 
 import { ApplyInput, DestroyInput, IacType } from '../../../iac/common.js';
 import { getIac } from '../../../iac/index.js';
@@ -26,6 +27,11 @@ export default class RemoteExec extends Command {
             description: 'The path to store the output env in',
             required: false,
         }),
+        source: Flags.string({
+            char: 's',
+            description: 'The source of the project to provision or destroy the package for',
+            required: false,
+        }),
     }
 
     public async run(): Promise<void> {
@@ -41,6 +47,12 @@ export default class RemoteExec extends Command {
         const iacType = process.env.HEREYA_IAC_TYPE
         const destroy = process.env.HEREYA_DESTROY === 'true'
         const infraType = process.env.HEREYA_INFRA_TYPE
+        const deploy = process.env.HEREYA_DEPLOY === 'true'
+        const source = flags.source ? path.resolve(flags.source) : ''
+
+        if (deploy && !source) {
+            return this.error('Deploy packages provisioning requires a source path')
+        }
 
 
         if (!id || !iacType || !infraType) {
@@ -55,6 +67,13 @@ export default class RemoteExec extends Command {
         const input = {
             env: workspaceEnv, id, parameters, pkgPath: args.pkgPath || process.cwd(),
         } satisfies ApplyInput
+
+        if (deploy) {
+            input.parameters = {
+                ...input.parameters,
+                hereyaProjectRootDir: source,
+            }
+        }
 
         const iac$ = getIac({ type: iacType as IacType });
         if (!iac$.supported) {

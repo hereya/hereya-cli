@@ -13,3 +13,13 @@ export async function getAnyPath(...candidates: string[]) {
 
     return checkAccess(0);
 }
+
+
+export async function fileExists(filePath: string) {
+    try {
+        await access(filePath, constants.F_OK);
+        return true;
+    } catch {
+        return false;
+    }
+}
