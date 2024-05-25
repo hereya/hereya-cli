@@ -6,8 +6,10 @@ import path from 'node:path';
 import sinon, { SinonStub } from 'sinon';
 
 import { localBackend } from '../../backend/index.js';
-import { localInfrastructure } from '../../infrastructure/index.js';
+import { awsInfrastructure, localInfrastructure } from '../../infrastructure/index.js';
+import { Config } from '../../lib/config/common.js';
 import { packageManager } from '../../lib/package/index.js';
+import { load } from '../../lib/yaml-utils.js';
 
 describe('add', () => {
     const homeDir = path.join(os.tmpdir(), 'hereya-test-add', randomUUID())
@@ -33,7 +35,6 @@ describe('add', () => {
         await fs.rm(ctx.rootDir, { force: true, recursive: true })
         await fs.rm(homeDir, { force: true, recursive: true })
     })
-
 
 
     setupTest
@@ -106,6 +107,13 @@ describe('add', () => {
             `
         )
     })
+    .stub(localInfrastructure, 'provision', stub => stub.resolves({
+        env: { FOO: "BAR", GIB: "legendary" },
+        success: true
+    }))
+    .stub(localBackend, 'saveState', stub => stub.resolves())
+
+    const setupSuccessTestWithPackageManagerMock = setupSuccessTest
     .stub(packageManager, 'getRepoContent', stub => stub.resolves({
         content:
             `
@@ -114,13 +122,8 @@ describe('add', () => {
             `,
         found: true,
     }))
-    .stub(localInfrastructure, 'provision', stub => stub.resolves({
-        env: { FOO: "BAR", GIB: "legendary" },
-        success: true
-    }))
-    .stub(localBackend, 'saveState', stub => stub.resolves())
 
-    setupSuccessTest
+    setupSuccessTestWithPackageManagerMock
     .command(['add', 'cloudy/docker_postgres'])
     .it('adds a package to the project and save exported variables', async ctx => {
         const envFile = await fs.readFile(path.join(ctx.rootDir, '.hereya', 'env.dev.yaml'), { encoding: 'utf8' })
@@ -130,7 +133,7 @@ describe('add', () => {
         expect(hereyaYaml).to.contain('cloudy/docker_postgres')
     })
 
-    setupSuccessTest
+    setupSuccessTestWithPackageManagerMock
     .do(async (ctx) => {
         await fs.mkdir(path.join(ctx.rootDir, 'hereyavars'), { recursive: true })
         await fs.writeFile(
@@ -158,7 +161,7 @@ describe('add', () => {
         }))).to.be.true
     })
 
-    setupSuccessTest
+    setupSuccessTestWithPackageManagerMock
     .command(['add', 'cloudy/docker_postgres', '--parameter', 'param1=value1', '-p', 'param2=value2'])
     .it('save user provided parameters', async ctx => {
         const paramFile = await fs.readFile(path.join(ctx.rootDir, 'hereyavars', 'cloudy-docker_postgres.yaml'), { encoding: 'utf8' })
@@ -166,7 +169,7 @@ describe('add', () => {
         expect(paramFile).to.contain('param2: value2')
     })
 
-    setupSuccessTest
+    setupSuccessTestWithPackageManagerMock
     .do(async (ctx) => {
         await fs.mkdir(path.join(ctx.rootDir, 'hereyavars'), { recursive: true })
         await fs.writeFile(path.join(ctx.rootDir, 'hereyavars', 'cloudy-docker_postgres.yaml'), 'myParam: myValue\n')
@@ -178,5 +181,47 @@ describe('add', () => {
         expect(paramFile).to.not.contain('param1: value1')
         expect(paramFile).to.not.contain('param2: value2')
     })
+
+    const setupDeploySuccessTest = setupSuccessTest
+    .stub(packageManager, 'getRepoContent', stub => stub.resolves({
+        content: `
+        iac: cdk
+        infra: aws
+        deploy: true
+        `,
+        found: true,
+    }))
+    .stub(awsInfrastructure, 'provision', stub => stub.resolves({
+        env: {},
+        success: true
+    }))
+
+    setupDeploySuccessTest
+    .command(['add', 'cloudy/fake-deploy'])
+    .it('skips provisioning if the package is a deployment package', async () => {
+        sinon.assert.notCalled(awsInfrastructure.provision as SinonStub)
+    });
+
+    setupDeploySuccessTest
+    .command(['add', 'cloudy/fake-deploy'])
+    .it('adds a deployment package to the project', async ctx => {
+        const { data: hereyaYaml } = await load<Config>(path.join(ctx.rootDir, 'hereya.yaml'))
+        expect(hereyaYaml).to.have.property('deploy')
+        expect(hereyaYaml.deploy).to.have.property('cloudy/fake-deploy')
+    })
+
+    setupDeploySuccessTest
+    .command(['add', 'cloudy/fake-deploy', '-p', 'param1=value1', '-p', 'param2=value2'])
+    .it('saves parameters', async ctx => {
+        const paramFile = await fs.readFile(path.join(ctx.rootDir, 'hereyavars', 'cloudy-fake-deploy.yaml'), { encoding: 'utf8' })
+        expect(paramFile).to.contain('param1: value1')
+        expect(paramFile).to.contain('param2: value2')
+    })
+
+    setupDeploySuccessTest
+    .command(['add', 'cloudy/fake-deploy',])
+    .it('saves the state', async () => {
+        sinon.assert.calledOnce(localBackend.saveState as SinonStub)
+    });
 
 })

@@ -120,7 +120,8 @@ describe('remove', () => {
     .exit(2)
     .it('fails for infra is not supported yet')
 
-    setupTest
+
+    const setupSuccess = setupTest
     .do(async () => {
         await fs.writeFile(
             path.join(homeDir, '.hereya', 'state', 'workspaces', 'dev.yaml'),
@@ -143,6 +144,9 @@ describe('remove', () => {
             packages:
                cloudy/docker_postgres:
                    version: "1.0.0"
+            deploy:
+                cloudy/fake-deploy:
+                     version: ""
             `
         )
     })
@@ -156,14 +160,6 @@ describe('remove', () => {
             `
         )
     })
-    .stub(packageManager, 'getRepoContent', stub => stub.resolves({
-        content:
-            `
-            iac: terraform
-            infra: local
-            `,
-        found: true,
-    }))
     .do(async (ctx) => {
         await fs.mkdir(path.join(ctx.rootDir, 'hereyavars'), { recursive: true })
         await fs.writeFile(
@@ -178,6 +174,17 @@ describe('remove', () => {
         success: true
     }))
     .stub(localBackend, 'saveState', stub => stub.resolves())
+
+
+    setupSuccess
+    .stub(packageManager, 'getRepoContent', stub => stub.resolves({
+        content:
+            `
+            iac: terraform
+            infra: local
+            `,
+        found: true,
+    }))
     .command(['remove', 'cloudy/docker_postgres'])
     .it('removes a package and its env variables from the project', async ctx => {
         const envFile = await fs.readFile(path.join(ctx.rootDir, '.hereya', 'env.dev.yaml'), 'utf8')
@@ -191,4 +198,34 @@ describe('remove', () => {
 
     })
 
+    setupSuccess
+    .stub(packageManager, 'getRepoContent', stub => stub.resolves({
+        content:
+            `
+            iac: terraform
+            infra: local
+            deploy: true
+            `,
+        found: true,
+    }))
+    .command(['remove', 'cloudy/fake-deploy'])
+    .it('skips un-deployment if the package is a deployment package', async () => {
+        sinon.assert.notCalled(localInfrastructure.destroy as SinonStub)
+    })
+
+    setupSuccess
+    .stub(packageManager, 'getRepoContent', stub => stub.resolves({
+        content:
+            `
+            iac: terraform
+            infra: local
+            deploy: true
+            `,
+        found: true,
+    }))
+    .command(['remove', 'cloudy/fake-deploy'])
+    .it('removes a deployment package', async ctx => {
+        const hereyaYaml = await fs.readFile(path.join(ctx.rootDir, 'hereya.yaml'), 'utf8')
+        expect(hereyaYaml).to.not.contain('cloudy/fake-deploy')
+    })
 })

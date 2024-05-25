@@ -21,7 +21,7 @@ export default class Deploy extends Command {
     }
 
     public async run(): Promise<void> {
-        const { args, flags } = await this.parse(Deploy)
+        await this.parse(Deploy)
 
     }
 }
