@@ -1,3 +1,12 @@
+# [0.4.0](https://github.com/hereya/hereya-cli/compare/0.3.4...0.4.0) (2024-05-25)
+
+
+### Features
+
+* Refactor AWS infrastructure and implement undeploy function ([f268b35](https://github.com/hereya/hereya-cli/commit/f268b35f95005a833cc400b720f86d1e2e79e4cf))
+
+
+
 ## [0.3.4](https://github.com/hereya/hereya-cli/compare/0.3.3...0.3.4) (2024-05-24)
 
 
