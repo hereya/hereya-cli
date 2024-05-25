@@ -76,6 +76,7 @@ export default class Add extends Command {
             package: args.package,
             parameters,
             project: config.project,
+            skipDeploy: true,
             workspace: config.workspace,
         })
 
@@ -95,6 +96,7 @@ export default class Add extends Command {
             workspace: config.workspace,
         })
         await configManager.addPackage({
+            deploy: metadata.deploy,
             package: args.package,
             projectRootDir,
         })

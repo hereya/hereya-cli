@@ -46,6 +46,11 @@ export async function destroyPackage(input: DestroyPackageInput): Promise<Destro
         return { reason: infrastructure$.reason, success: false }
     }
 
+    if (metadata.deploy && input.skipDeploy) {
+        console.log(`Skipping un-deployment of ${input.package}...`)
+        return { env: {}, metadata, success: true }
+    }
+
     const { infrastructure } = infrastructure$
     const destroyOutput = await infrastructure.destroy({
         canonicalName,
@@ -72,9 +77,15 @@ export async function provisionPackage(input: ProvisionPackageInput): Promise<Pr
     }
 
     const { canonicalName, metadata, packageUri } = resolvePackageOutput
+
     const infrastructure$ = getInfrastructure({ type: metadata.infra })
     if (!infrastructure$.supported) {
         return { reason: infrastructure$.reason, success: false }
+    }
+
+    if (metadata.deploy && input.skipDeploy) {
+        console.log(`Skipping deployment of ${input.package}...`)
+        return { env: {}, metadata, success: true }
     }
 
     const { infrastructure } = infrastructure$
@@ -105,6 +116,7 @@ export type ProvisionPackageInput = {
     package: string
     parameters?: { [key: string]: string }
     project?: string
+    skipDeploy?: boolean
     workspace?: string
 }
 

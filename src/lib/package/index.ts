@@ -63,6 +63,7 @@ export type ResolvePackageOutput = {
 }
 
 export const PackageMetadata = z.object({
+    deploy: z.boolean().optional(),
     iac: z.nativeEnum(IacType),
     infra: z.nativeEnum(InfrastructureType),
 });

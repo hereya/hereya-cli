@@ -73,7 +73,7 @@
   },
   "repository": "hereya/hereya-cli",
   "scripts": {
-    "generate": "oclif generate command $COMMAND && shx mkdir src/commands/$COMMAND && shx mv src/commands/$COMMAND.ts src/commands/$COMMAND/index.ts && shx mv test/commands/$COMMAND.test.ts src/commands/$COMMAND/index.test.ts && shx rm -rf test",
+    "generate": "npx oclif generate command $COMMAND && shx mkdir src/commands/$COMMAND && shx mv src/commands/$COMMAND.ts src/commands/$COMMAND/index.ts && shx mv test/commands/$COMMAND.test.ts src/commands/$COMMAND/index.test.ts && shx rm -rf test",
     "dev": "./bin/dev.js",
     "build": "shx rm -rf dist && tsc -b",
     "lint": "eslint .",
