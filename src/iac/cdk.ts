@@ -9,18 +9,15 @@ import { ApplyInput, ApplyOutput, DestroyInput, DestroyOutput, Iac } from './com
 export class Cdk implements Iac {
     async apply(input: ApplyInput): Promise<ApplyOutput> {
         try {
-            const parameterNames = await this.getParameterNames(input.pkgPath)
-            const serializedWorkspaceEnv = Object.entries(input.env)
-            .filter(([key]) => parameterNames.includes(key))
-            .flatMap(([key, value]) => ['--parameters', `${key}=${value}`])
-            const serializedParameters = Object.entries(input.parameters ?? {})
-            .filter(([key]) => parameterNames.includes(key))
-            .flatMap(([key, value]) => ['--parameters', `${key}=${value}`])
-
+            const {
+                serializedContext,
+                serializedParameters,
+                serializedWorkspaceEnv
+            } = await this.serializedParametersAndContext(input)
             runShell(
                 'npx',
                 [
-                    'cdk', 'deploy', '--require-approval', 'never', ...serializedWorkspaceEnv, ...serializedParameters,
+                    'cdk', 'deploy', '--require-approval', 'never', ...serializedWorkspaceEnv, ...serializedParameters, ...serializedContext,
                 ],
                 {
                     directory: input.pkgPath,
@@ -38,17 +35,15 @@ export class Cdk implements Iac {
     async destroy(input: DestroyInput): Promise<DestroyOutput> {
         try {
             const env = await this.getEnv(input.id)
-            const parameterNames = await this.getParameterNames(input.pkgPath)
-            const serializedWorkspaceEnv = Object.entries(input.env)
-            .filter(([key]) => parameterNames.includes(key))
-            .flatMap(([key, value]) => ['--parameters', `${key}=${value}`])
-            const serializedParameters = Object.entries(input.parameters ?? {})
-            .filter(([key]) => parameterNames.includes(key))
-            .flatMap(([key, value]) => ['--parameters', `${key}=${value}`])
+            const {
+                serializedContext,
+                serializedParameters,
+                serializedWorkspaceEnv
+            } = await this.serializedParametersAndContext(input)
             runShell(
                 'npx',
                 [
-                    'cdk', 'destroy', '--force', ...serializedWorkspaceEnv, ...serializedParameters,
+                    'cdk', 'destroy', '--force', ...serializedWorkspaceEnv, ...serializedParameters, ...serializedContext
                 ],
                 {
                     directory: input.pkgPath,
@@ -100,6 +95,26 @@ export class Cdk implements Iac {
         }
 
         return stack
+    }
+
+    private async serializedParametersAndContext(input: ApplyInput) {
+        const parameterNames = await this.getParameterNames(input.pkgPath)
+        const serializedParameters = Object.entries(input.parameters ?? {})
+        .filter(([key]) => parameterNames.includes(key))
+        .flatMap(([key, value]) => ['--parameters', `${key}=${value}`])
+        const serializedWorkspaceEnv = Object.entries(input.env)
+        .filter(([key]) => parameterNames.includes(key))
+        .flatMap(([key, value]) => ['--parameters', `${key}=${value}`])
+
+        const serializedContext = Object.entries(
+            {
+                ...input.env,
+                ...input.parameters,
+            }
+        ).filter(([key]) => !parameterNames.includes(key))
+        .flatMap(([key, value]) => ['--context', `${key}=${value}`])
+
+        return { serializedContext, serializedParameters, serializedWorkspaceEnv }
     }
 
 
