@@ -1,3 +1,12 @@
+## [0.4.2](https://github.com/hereya/hereya-cli/compare/0.4.1...0.4.2) (2024-05-26)
+
+
+### Bug Fixes
+
+* Update author details in package.json ([5e68d0d](https://github.com/hereya/hereya-cli/commit/5e68d0de606dc5793513a37b2ef04062591476cc))
+
+
+
 ## [0.4.1](https://github.com/hereya/hereya-cli/compare/0.4.0...0.4.1) (2024-05-25)
 
 
