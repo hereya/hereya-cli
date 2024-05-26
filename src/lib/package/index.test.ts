@@ -83,5 +83,27 @@ describe('package', () => {
                 packageUri: 'https://github.com/org/myPkg'
             });
         })
+
+        test
+        .stub(
+            packageManager, 'getRepoContent',
+            stub => stub.resolves({
+                content: `
+                iac: terraform
+                infra: local
+                `,
+                found: true
+            })
+        )
+        .env({ HEREYA_OVERRIDE_INFRA: 'aws' })
+        .it('overrides infra with HEREYA_OVERRIDE_INFRA', async () => {
+            const output = await resolvePackage({ package: 'org/myPkg' })
+            expect(output).to.have.property('found', true);
+            expect(output).to.deep.contain({
+                canonicalName: 'org-myPkg',
+                metadata: { iac: 'terraform', infra: 'aws' },
+                packageUri: 'https://github.com/org/myPkg'
+            });
+        })
     });
 });

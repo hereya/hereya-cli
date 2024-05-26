@@ -33,6 +33,10 @@ export async function resolvePackage(input: ResolvePackageInput): Promise<Resolv
     const metadataContent$ = metadataContentCandidates[0] as { content: string }
     try {
         const metadata = PackageMetadata.parse(yaml.parse(metadataContent$.content))
+        if (process.env.HEREYA_OVERRIDE_INFRA) {
+            metadata.infra = process.env.HEREYA_OVERRIDE_INFRA as InfrastructureType
+        }
+
         return {
             canonicalName: getPackageCanonicalName(input.package),
             found: true,
