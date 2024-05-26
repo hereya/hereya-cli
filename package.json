@@ -1,7 +1,7 @@
 {
   "name": "hereya-cli",
   "description": "Developer's Package Manager for Seamless Infrastructure Integration.",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "author": "Hereya Developers",
   "bin": {
     "hereya": "./bin/run.js"

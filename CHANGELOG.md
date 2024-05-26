@@ -1,3 +1,13 @@
+## [0.4.3](https://github.com/hereya/hereya-cli/compare/0.4.2...0.4.3) (2024-05-26)
+
+
+### Bug Fixes
+
+* Refactor getParameterNames method in cdk.ts ([3f3a3f7](https://github.com/hereya/hereya-cli/commit/3f3a3f74d94d3715347e08af77dbc8ff90e7386d))
+* Refactor parameter serialization in 'cdk.ts' ([bfc205f](https://github.com/hereya/hereya-cli/commit/bfc205fc132e3ddc88bfc078ebb1686535e87c3f))
+
+
+
 ## [0.4.2](https://github.com/hereya/hereya-cli/compare/0.4.1...0.4.2) (2024-05-26)
 
 
