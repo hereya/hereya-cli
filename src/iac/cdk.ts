@@ -66,12 +66,18 @@ export class Cdk implements Iac {
         return env
     }
 
-    private async getParameterNames(workDir: string) {
+    private async getParameterNames(input: ApplyInput) {
+        const workDir = input.pkgPath
+        const serializedContext = Object.entries({
+            ...input.env,
+            ...input.parameters,
+        }).flatMap(([key, value]) => ['--context', `${key}=${value}`])
+
         runShell('npm', ['install'], { directory: workDir })
         const result = runShell(
             'npx',
             [
-                'cdk', 'synth',
+                'cdk', 'synth', ...serializedContext,
             ],
             {
                 directory: workDir,
@@ -98,7 +104,7 @@ export class Cdk implements Iac {
     }
 
     private async serializedParametersAndContext(input: ApplyInput) {
-        const parameterNames = await this.getParameterNames(input.pkgPath)
+        const parameterNames = await this.getParameterNames(input)
         const serializedParameters = Object.entries(input.parameters ?? {})
         .filter(([key]) => parameterNames.includes(key))
         .flatMap(([key, value]) => ['--parameters', `${key}=${value}`])
