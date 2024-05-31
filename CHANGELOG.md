@@ -1,3 +1,12 @@
+## [0.4.4](https://github.com/hereya/hereya-cli/compare/0.4.3...0.4.4) (2024-05-31)
+
+
+### Bug Fixes
+
+* make package removal idempotent ([016377e](https://github.com/hereya/hereya-cli/commit/016377ed88d208e502b28b6afa48a85041350043))
+
+
+
 ## [0.4.3](https://github.com/hereya/hereya-cli/compare/0.4.2...0.4.3) (2024-05-26)
 
 
