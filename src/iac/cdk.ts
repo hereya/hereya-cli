@@ -1,4 +1,4 @@
-import { CloudFormationClient, DescribeStacksCommand } from '@aws-sdk/client-cloudformation';
+import { CloudFormationClient, DescribeStacksCommand, Stack } from '@aws-sdk/client-cloudformation';
 import { writeFileSync } from 'node:fs';
 import path from 'node:path';
 
@@ -92,12 +92,22 @@ export class Cdk implements Iac {
 
     private async getStack(stackName: string) {
         const cfnClient = new CloudFormationClient({})
-        const response = await cfnClient.send(new DescribeStacksCommand({
-            StackName: stackName,
-        }))
-        const stack = response.Stacks?.[0]
+        let stack: Stack | undefined
+        try {
+            const response = await cfnClient.send(new DescribeStacksCommand({
+                StackName: stackName,
+            }))
+            stack = response.Stacks?.[0]
+        } catch (error: any) {
+            if (error.name === 'ValidationError') {
+                return null
+            }
+
+            throw error
+        }
+
         if (!stack) {
-            throw new Error(`Stack ${stackName} not found`)
+            return null
         }
 
         return stack

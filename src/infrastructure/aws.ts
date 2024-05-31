@@ -187,10 +187,21 @@ export class AwsInfrastructure implements Infrastructure {
     private async getEnv(id: string): Promise<{ [key: string]: string }> {
         const ssmClient = new SSMClient({});
         const ssmParameterName = `/hereya/${id}`;
-        const ssmParameter = await ssmClient.send(new GetParameterCommand({
-            Name: ssmParameterName,
-        }));
-        return JSON.parse(ssmParameter.Parameter?.Value ?? '{}');
+        try {
+            const ssmParameter = await ssmClient.send(new GetParameterCommand({
+                Name: ssmParameterName,
+            }));
+            return JSON.parse(ssmParameter.Parameter?.Value ?? '{}');
+        } catch (error: any) {
+            if (error.name === "ParameterNotFound") {
+                console.debug(`Parameter "${ssmParameterName}" does not exist.`);
+
+                return {};
+            }
+
+            throw error;
+
+        }
     }
 
 
