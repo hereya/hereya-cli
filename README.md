@@ -1,7 +1,7 @@
 hereya-cli
 =================
 
-Developer's Package Manager for Seamless Infrastructure Integration.
+Use infrastructure components as simple software packages.
 
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)

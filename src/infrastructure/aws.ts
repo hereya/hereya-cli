@@ -44,6 +44,18 @@ export class AwsInfrastructure implements Infrastructure {
         if (!output.success) {
             throw new Error(output.reason);
         }
+
+        const { env } = output;
+        const key = '/hereya-bootstrap/config';
+        const ssmClient = new SSMClient({});
+        const value = JSON.stringify(env);
+        await ssmClient.send(new PutParameterCommand({
+            Name: key,
+            Overwrite: true,
+            Type: 'String',
+            Value: value
+        }));
+
     }
 
     async deploy(input: DeployInput): Promise<DeployOutput> {
@@ -325,8 +337,18 @@ export class AwsInfrastructure implements Infrastructure {
         projectEnv: { [p: string]: string };
         projectRootDir: string
     } & ProvisionInput) {
+        const key = '/hereya-bootstrap/config';
+        const ssmClient = new SSMClient({});
+        const response = await ssmClient.send(new GetParameterCommand({
+            Name: key,
+        }));
+        const bootstrapConfig = JSON.parse(response.Parameter?.Value ?? '{}');
+        if (!bootstrapConfig.hereyaSourceCodeBucketName) {
+            throw new Error('hereyaSourceCodeBucketName not found in bootstrap config');
+        }
+
         const s3Key = `${input.id}/${randomUUID()}`;
-        const s3Bucket = 'hereya-projects-source-code';
+        const s3Bucket = bootstrapConfig.hereyaSourceCodeBucketName;
         const files = await this.getFilesToUpload(input.projectRootDir);
         const s3Client = new S3Client({});
         await Promise.all(files.map(async (file) => {
