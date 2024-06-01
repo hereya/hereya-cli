@@ -38,10 +38,14 @@ export default class RemoteExec extends Command {
         const { args, flags } = await this.parse(RemoteExec)
 
         const workspaceEnv = Object.fromEntries(
-            (process.env.HEREYA_WORKSPACE_ENV?.split(',') ?? []).map(param => param.split('=')),
+            (process.env.HEREYA_WORKSPACE_ENV?.split(',') ?? [])
+            .filter(param => param.trim())
+            .map(param => param.split('=')),
         )
         const parameters = Object.fromEntries(
-            (process.env.HEREYA_PARAMETERS?.split(',') ?? []).map(param => param.split('=')),
+            (process.env.HEREYA_PARAMETERS?.split(',') ?? [])
+            .filter(param => param.trim())
+            .map(param => param.split('=')),
         )
         const id = process.env.HEREYA_ID
         const iacType = process.env.HEREYA_IAC_TYPE
