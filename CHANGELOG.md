@@ -1,3 +1,12 @@
+## [0.4.6](https://github.com/hereya/hereya-cli/compare/0.4.5...0.4.6) (2024-06-01)
+
+
+### Bug Fixes
+
+* Enhanced error resilience when parsing environment variables and parameters in remote execution. ([1b2a232](https://github.com/hereya/hereya-cli/commit/1b2a23228e034513dc5fdb26100823cfd519d1e7))
+
+
+
 ## [0.4.5](https://github.com/hereya/hereya-cli/compare/0.4.4...0.4.5) (2024-06-01)
 
 
