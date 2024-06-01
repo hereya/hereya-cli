@@ -1,3 +1,12 @@
+## [0.4.5](https://github.com/hereya/hereya-cli/compare/0.4.4...0.4.5) (2024-06-01)
+
+
+### Bug Fixes
+
+* Enhanced the SSMClient to retrieve bootstrap configuration for S3 bucket name instead of using a hardcoded value. Additionally, updated project description in package.json and README.md for better clarity. ([cdf7294](https://github.com/hereya/hereya-cli/commit/cdf7294b866d80292a76bfca60b5b21417fba69c))
+
+
+
 ## [0.4.4](https://github.com/hereya/hereya-cli/compare/0.4.3...0.4.4) (2024-05-31)
 
 
