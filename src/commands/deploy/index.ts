@@ -23,7 +23,7 @@ export default class Deploy extends Command {
         workspace: Flags.string({
             char: 'w',
             description: 'name of the workspace to deploy the packages for',
-            required: false,
+            required: true,
         }),
     }
 
@@ -75,6 +75,7 @@ export default class Deploy extends Command {
             })
             const destroyOutput = await destroyPackage({
                 env: workspaceEnv,
+                isDeploying: true,
                 package: packageName,
                 parameters,
                 project: config.project,
@@ -89,7 +90,7 @@ export default class Deploy extends Command {
             this.log(`Package ${packageName} un-deployed successfully`)
         }))
 
-        await Up.run(['--chdir', projectRootDir, '--workspace', workspace])
+        await Up.run(['--chdir', projectRootDir, '--workspace', workspace, '--deploy'])
 
         const { env: newProjectEnv } = await envManager.getProjectEnv({
             markSecret: true,
@@ -105,6 +106,7 @@ export default class Deploy extends Command {
             })
             const provisionOutput = await provisionPackage({
                 env: workspaceEnv,
+                isDeploying: true,
                 package: packageName,
                 parameters,
                 project: config.project,

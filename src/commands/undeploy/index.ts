@@ -23,7 +23,7 @@ export default class Undeploy extends Command {
         workspace: Flags.string({
             char: 'w',
             description: 'name of the workspace to undeploy the packages for',
-            required: false,
+            required: true,
         }),
     }
 
@@ -65,12 +65,13 @@ export default class Undeploy extends Command {
             })
             const destroyOutput = await destroyPackage({
                 env: workspaceEnv,
+                isDeploying: true,
                 package: packageName,
                 parameters,
                 project: config.project,
                 projectEnv,
                 projectRootDir,
-                workspace,
+                workspace
             })
             if (!destroyOutput.success) {
                 this.error(destroyOutput.reason)
@@ -79,6 +80,6 @@ export default class Undeploy extends Command {
             this.log(`Package ${packageName} un-deployed successfully`)
         }))
 
-        await Down.run(['--chdir', projectRootDir, '--workspace', workspace])
+        await Down.run(['--chdir', projectRootDir, '--workspace', workspace, '--deploy'])
     }
 }

@@ -112,8 +112,9 @@ describe('add', () => {
         });
 
         describe('standard package', () => {
+            let getRepoContentStub: SinonStub
             beforeEach(async () => {
-                sinon.stub(packageManager, 'getRepoContent').resolves({
+                getRepoContentStub = sinon.stub(packageManager, 'getRepoContent').resolves({
                     content:
                         `
                           iac: terraform
@@ -162,6 +163,28 @@ describe('add', () => {
                 const paramFile = await fs.readFile(path.join(rootDir, 'hereyavars', 'cloudy-docker_postgres.yaml'), { encoding: 'utf8' })
                 expect(paramFile).to.contain('param1: value1')
                 expect(paramFile).to.contain('param2: value2')
+            })
+
+            it('saves package deployment companion in hereya.yaml', async () => {
+                getRepoContentStub.restore()
+                getRepoContentStub = sinon.stub(packageManager, 'getRepoContent').resolves({
+                    content: `
+                    iac: terraform
+                    infra: local
+                    onDeploy:
+                       pkg: cloudy/aws-rds
+                       version: 1.0.0
+                    `,
+                    found: true,
+                })
+                await runCommand(['add', 'cloudy/docker_postgres'])
+                const { data: hereyaYaml } = await load<Config>(path.join(rootDir, 'hereya.yaml'))
+                expect(hereyaYaml.packages!['cloudy/docker_postgres']).to.deep.contain({
+                    onDeploy: {
+                        pkg: 'cloudy/aws-rds',
+                        version: '1.0.0'
+                    }
+                })
             })
         })
 

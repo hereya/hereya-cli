@@ -33,7 +33,13 @@ export async function resolvePackage(input: ResolvePackageInput): Promise<Resolv
     const metadataContent$ = metadataContentCandidates[0] as { content: string }
     try {
         const metadata = PackageMetadata.parse(yaml.parse(metadataContent$.content))
+
+        if (input.isDeploying && metadata.onDeploy) {
+            return resolvePackage({ package: metadata.onDeploy.pkg })
+        }
+
         if (process.env.HEREYA_OVERRIDE_INFRA) {
+            metadata.originalInfra = metadata.infra
             metadata.infra = process.env.HEREYA_OVERRIDE_INFRA as InfrastructureType
         }
 
@@ -41,7 +47,8 @@ export async function resolvePackage(input: ResolvePackageInput): Promise<Resolv
             canonicalName: getPackageCanonicalName(input.package),
             found: true,
             metadata,
-            packageUri: pkgUrl
+            packageUri: pkgUrl,
+            pkgName: input.package
         }
     } catch (error: any) {
         return { found: false, reason: error.message }
@@ -53,6 +60,7 @@ export function getPackageCanonicalName(packageName: string): string {
 }
 
 export type ResolvePackageInput = {
+    isDeploying?: boolean
     package: string
 }
 
@@ -61,6 +69,7 @@ export type ResolvePackageOutput = {
     found: true
     metadata: z.infer<typeof PackageMetadata>
     packageUri: string
+    pkgName: string
 } | {
     found: false
     reason: string
@@ -70,4 +79,11 @@ export const PackageMetadata = z.object({
     deploy: z.boolean().optional(),
     iac: z.nativeEnum(IacType),
     infra: z.nativeEnum(InfrastructureType),
+    onDeploy: z.object({
+        pkg: z.string(),
+        version: z.string(),
+    }).optional(),
+    originalInfra: z.nativeEnum(InfrastructureType).optional(),
 });
+
+export type IPackageMetadata = z.infer<typeof PackageMetadata>

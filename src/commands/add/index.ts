@@ -91,12 +91,12 @@ export default class Add extends Command {
         const envManager = getEnvManager()
         await envManager.addProjectEnv({
             env,
-            infra: metadata.infra,
+            infra: metadata.originalInfra ?? metadata.infra,
             projectRootDir,
             workspace: config.workspace,
         })
         await configManager.addPackage({
-            deploy: metadata.deploy,
+            metadata,
             package: args.package,
             projectRootDir,
         })

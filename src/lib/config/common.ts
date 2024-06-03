@@ -1,3 +1,5 @@
+import { IPackageMetadata } from '../package/index.js';
+
 export interface ConfigManager {
     addPackage: (input: AddPackageInput) => Promise<void>
     loadConfig: (input: LoadConfigInput) => Promise<LoadConfigOutput>
@@ -39,7 +41,7 @@ export interface SaveConfigInput {
 }
 
 export type AddPackageInput = {
-    deploy?: boolean
+    metadata: IPackageMetadata
     package: string
     projectRootDir?: string
 }

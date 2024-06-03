@@ -36,6 +36,9 @@ describe('deploy', () => {
             packages:
               cloudy/docker_postgres:
                 version: ''
+                onDeploy:
+                  pkg: cloudy/aws-postgres
+                  version: ''
               another/package:
                 version: ''
             deploy:
@@ -52,6 +55,20 @@ describe('deploy', () => {
                     iac: terraform
                     infra: local
                     deploy: true
+                    `,
+                    found: true,
+                }
+            }
+
+            if (repo === 'docker_postgres') {
+                return {
+                    content:
+                        `
+                    iac: terraform
+                    infra: local
+                    onDeploy:
+                        pkg: cloudy/aws-postgres
+                        version: ''
                     `,
                     found: true,
                 }
@@ -93,17 +110,17 @@ describe('deploy', () => {
 
     it('fails if the project is not initialized', async () => {
         await fs.rm(path.join(rootDir, 'hereya.yaml'))
-        const { stderr } = await runCommand(['deploy'])
+        const { stderr } = await runCommand(['deploy', '-w', 'my-workspace'])
         expect(stderr).to.contain(`Project not initialized. Run 'hereya init' first.`)
     })
 
-    it('provisions all packages in the project', async () => {
+    it('provisions all packages in the project using the deployment companion package when applicable', async () => {
         sinon.stub(envManager, 'addProjectEnv').resolves()
-        await runCommand(['deploy'])
+        await runCommand(['deploy', '-w', 'my-workspace'])
         sinon.assert.calledTwice(localInfrastructure.provision as SinonStub)
         sinon.assert.calledWithMatch(
             localInfrastructure.provision as SinonStub,
-            sinon.match.has('pkgName', 'cloudy/docker_postgres')
+            sinon.match.has('pkgName', 'cloudy/aws-postgres')
         )
         sinon.assert.calledWithMatch(
             localInfrastructure.provision as SinonStub,
@@ -156,7 +173,7 @@ describe('deploy', () => {
                 version: ''
             `
         )
-        await runCommand(['deploy'])
+        await runCommand(['deploy', '-w', 'my-workspace'])
         sinon.assert.calledTwice(localInfrastructure.provision as SinonStub)
         sinon.assert.calledOnce(localInfrastructure.destroy as SinonStub)
         sinon.assert.calledWithMatch(
@@ -191,7 +208,7 @@ describe('deploy', () => {
                 version: ''
             `
         )
-        await runCommand(['deploy'])
+        await runCommand(['deploy', '-w', 'my-workspace'])
         const projectState = await fs.readFile(path.join(homeDir, '.hereya', 'state', 'projects', 'test-project.yaml'), { encoding: 'utf8' })
         expect(projectState).to.contain('cloudy/docker_postgres')
         expect(projectState).to.contain('another/package')

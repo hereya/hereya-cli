@@ -35,12 +35,12 @@ export function getInfrastructure(input: GetInfrastructureInput): GetInfrastruct
 }
 
 export async function destroyPackage(input: DestroyPackageInput): Promise<DestroyPackageOutput> {
-    const resolvePackageOutput = await resolvePackage({ package: input.package })
+    const resolvePackageOutput = await resolvePackage({ isDeploying: input.isDeploying, package: input.package })
     if (!resolvePackageOutput.found) {
         return { reason: resolvePackageOutput.reason, success: false }
     }
 
-    const { canonicalName, metadata, packageUri } = resolvePackageOutput
+    const { canonicalName, metadata, packageUri, pkgName } = resolvePackageOutput
     const infrastructure$ = getInfrastructure({ type: metadata.infra })
     if (!infrastructure$.supported) {
         return { reason: infrastructure$.reason, success: false }
@@ -60,7 +60,7 @@ export async function destroyPackage(input: DestroyPackageInput): Promise<Destro
         .filter(Boolean).join('')
         .replaceAll(/[^\dA-Za-z]/g, ''),
         parameters: input.parameters,
-        pkgName: input.package,
+        pkgName,
         pkgUrl: packageUri,
         projectEnv: input.projectEnv ?? {},
         projectRootDir: input.projectRootDir!,
@@ -72,7 +72,7 @@ export async function destroyPackage(input: DestroyPackageInput): Promise<Destro
         .filter(Boolean).join('')
         .replaceAll(/[^\dA-Za-z]/g, ''),
         parameters: input.parameters,
-        pkgName: input.package,
+        pkgName,
         pkgUrl: packageUri,
     })
     if (!destroyOutput.success) {
@@ -83,12 +83,12 @@ export async function destroyPackage(input: DestroyPackageInput): Promise<Destro
 }
 
 export async function provisionPackage(input: ProvisionPackageInput): Promise<ProvisionPackageOutput> {
-    const resolvePackageOutput = await resolvePackage({ package: input.package })
+    const resolvePackageOutput = await resolvePackage({ isDeploying: input.isDeploying, package: input.package })
     if (!resolvePackageOutput.found) {
         return { reason: resolvePackageOutput.reason, success: false }
     }
 
-    const { canonicalName, metadata, packageUri } = resolvePackageOutput
+    const { canonicalName, metadata, packageUri, pkgName } = resolvePackageOutput
 
     const infrastructure$ = getInfrastructure({ type: metadata.infra })
     if (!infrastructure$.supported) {
@@ -109,7 +109,7 @@ export async function provisionPackage(input: ProvisionPackageInput): Promise<Pr
         .filter(Boolean).join('')
         .replaceAll(/[^\dA-Za-z]/g, ''),
         parameters: input.parameters,
-        pkgName: input.package,
+        pkgName,
         pkgUrl: packageUri,
         projectEnv: input.projectEnv ?? {},
         projectRootDir: input.projectRootDir!,
@@ -121,7 +121,7 @@ export async function provisionPackage(input: ProvisionPackageInput): Promise<Pr
         .filter(Boolean).join('')
         .replaceAll(/[^\dA-Za-z]/g, ''),
         parameters: input.parameters,
-        pkgName: input.package,
+        pkgName,
         pkgUrl: packageUri,
     })
     if (!provisionOutput.success) {
@@ -137,6 +137,7 @@ export type DestroyPackageOutput = ProvisionPackageOutput
 
 export type ProvisionPackageInput = {
     env?: { [key: string]: string }
+    isDeploying?: boolean
     package: string
     parameters?: { [key: string]: string }
     project?: string

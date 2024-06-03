@@ -17,7 +17,7 @@ export class SimpleConfigManager implements ConfigManager {
         const { config } = await this.loadConfig({ projectRootDir: input.projectRootDir })
         await yaml.save({
             ...config,
-            ...(input.deploy ? {
+            ...(input.metadata.deploy ? {
                 deploy: {
                     ...config.deploy,
                     [input.package]: {
@@ -29,6 +29,11 @@ export class SimpleConfigManager implements ConfigManager {
                     ...config.packages,
                     [input.package]: {
                         version: '',
+                        ...(input.metadata.onDeploy ? {
+                            onDeploy: {
+                                ...input.metadata.onDeploy,
+                            }
+                        } : {})
                     }
                 }
             }),
@@ -49,7 +54,7 @@ export class SimpleConfigManager implements ConfigManager {
         const { config } = await this.loadConfig({ projectRootDir: input.projectRootDir })
         const newPackages = { ...config.packages }
         const newDeploy = { ...config.deploy }
-        if (input.deploy) {
+        if (input.metadata.deploy) {
             delete newDeploy[input.package]
         } else {
             delete newPackages[input.package]

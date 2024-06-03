@@ -34,6 +34,9 @@ describe('undeploy', () => {
             packages:
               cloudy/docker_postgres:
                 version: ''
+                onDeploy:
+                  pkg: cloudy/aws-postgres
+                  version: ''
               another/package:
                 version: ''
             deploy:
@@ -52,6 +55,21 @@ describe('undeploy', () => {
                 `,
                     found: true,
                 }
+            }
+
+            if (repo === 'docker_postgres') {
+                return {
+                    content:
+                        `
+                iac: terraform
+                infra: local
+                onDeploy:
+                    pkg: cloudy/aws-postgres
+                    version: ''
+                `,
+                    found: true,
+                }
+
             }
 
             return {
@@ -89,19 +107,19 @@ describe('undeploy', () => {
 
     it('fails if the project is not initialized', async () => {
         await fs.rm(path.join(rootDir, 'hereya.yaml'))
-        const { stderr } = await runCommand(['undeploy'])
+        const { stderr } = await runCommand(['undeploy', '-w', 'my-workspace'])
         expect(stderr).to.contain(`Project not initialized. Run 'hereya init' first.`)
     })
 
-    it('destroys all packages in the project', async () => {
+    it('destroys all packages in the project using the deployment companion package when applicable', async () => {
         sinon.stub(envManager, 'removeProjectEnv').resolves()
 
-        await runCommand(['undeploy'])
+        await runCommand(['undeploy', '-w', 'my-workspace'])
 
         sinon.assert.calledTwice(localInfrastructure.destroy as SinonStub)
         sinon.assert.calledWithMatch(
             localInfrastructure.destroy as SinonStub,
-            sinon.match.has('pkgName', 'cloudy/docker_postgres')
+            sinon.match.has('pkgName', 'cloudy/aws-postgres')
         )
         sinon.assert.calledWithMatch(
             localInfrastructure.destroy as SinonStub,

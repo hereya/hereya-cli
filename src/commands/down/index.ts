@@ -18,6 +18,10 @@ export default class Down extends Command {
             description: 'directory to run command in',
             required: false,
         }),
+        deploy: Flags.boolean({
+            description: 'destroy deployment companion packages',
+            required: false,
+        }),
         workspace: Flags.string({
             char: 'w',
             description: 'name of the workspace to install the packages for',
@@ -62,6 +66,7 @@ export default class Down extends Command {
             })
             const destroyOutput = await destroyPackage({
                 env: workspaceEnv,
+                isDeploying: flags.deploy,
                 package: packageName,
                 parameters,
                 project: config.project,
@@ -81,7 +86,7 @@ export default class Down extends Command {
             // eslint-disable-next-line no-await-in-loop
             await envManager.removeProjectEnv({
                 env,
-                infra: metadata.infra,
+                infra: metadata.originalInfra ?? metadata.infra,
                 projectRootDir,
                 workspace,
             })

@@ -91,7 +91,11 @@ describe('package', () => {
             expect(output).to.have.property('found', true);
             expect(output).to.deep.contain({
                 canonicalName: 'org-myPkg',
-                metadata: { iac: 'terraform', infra: 'aws' },
+                metadata: {
+                    iac: 'terraform',
+                    infra: 'aws',
+                    originalInfra: 'local'
+                },
                 packageUri: 'https://github.com/org/myPkg'
             });
         })

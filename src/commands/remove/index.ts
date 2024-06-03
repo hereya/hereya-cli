@@ -90,7 +90,7 @@ export default class Remove extends Command {
             workspace: config.workspace
         })
         await configManager.removePackage({
-            deploy: metadata.deploy,
+            metadata,
             package: args.package,
             projectRootDir,
         })
