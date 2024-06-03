@@ -1,12 +1,9 @@
-import { expect, test } from '@oclif/test'
+import { runCommand } from '@oclif/test';
+import { expect } from 'chai'
 
 describe('bootstrap', () => {
-    test
-    .stdout()
-    .stderr()
-    .command(['bootstrap', 'fake'])
-    .it('rejects wrong infrastructure type', ctx => {
-        expect(ctx.stderr).to.contain('Infrastructure type fake is not supported yet!')
+    it('rejects wrong infrastructure type', async () => {
+        const { stderr } = await runCommand(['bootstrap', 'fake'])
+        expect(stderr).to.contain('Infrastructure type fake is not supported yet!')
     })
-
 })

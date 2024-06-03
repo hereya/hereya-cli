@@ -1,4 +1,5 @@
-import { expect, test } from '@oclif/test'
+import { runCommand } from '@oclif/test';
+import { expect } from 'chai';
 import { randomUUID } from 'node:crypto';
 import fs from 'node:fs/promises';
 import os from 'node:os';
@@ -9,13 +10,11 @@ import { localInfrastructure } from '../../../infrastructure/index.js';
 import { packageManager } from '../../../lib/package/index.js';
 
 describe('workspace:uninstall', () => {
-    const homeDir = path.join(os.tmpdir(), 'hereya-test-workspace-remove', randomUUID())
+    let homeDir: string;
 
-    const setupTest = test
-    .stdout()
-    .stderr()
-    .stub(os, 'homedir', stub => stub.returns(homeDir))
-    .do(async () => {
+    beforeEach(async () => {
+        homeDir = path.join(os.tmpdir(), 'hereya-test-workspace-uninstall', randomUUID())
+        sinon.stub(os, 'homedir').returns(homeDir)
         await fs.mkdir(homeDir, { recursive: true })
         await fs.mkdir(path.join(homeDir, '.hereya', 'state', 'workspaces'), { recursive: true })
         await fs.writeFile(
@@ -34,136 +33,135 @@ describe('workspace:uninstall', () => {
         `
         )
     })
-    .finally(async () => {
+
+    afterEach(async () => {
         await fs.rm(homeDir, { force: true, recursive: true })
+        sinon.restore()
     })
 
-    const setupTestWithDestroyStub = setupTest
-    .stub(localInfrastructure, 'destroy', stub => stub.resolves({
-        env: { FOO: "BAR", GIB: "legendary" },
-        success: true
-    }))
+    describe('with error', async () => {
+        beforeEach(async () => {
+            sinon.stub(localInfrastructure, 'destroy').resolves({
+                env: { FOO: "BAR", GIB: "legendary" },
+                success: true
+            })
+        })
 
-    setupTestWithDestroyStub
-    .command(['workspace:uninstall', 'cloud/postgres', '-w', 'wrong-workspace'])
-    .exit(2)
-    .it('fails if the workspace does not exist')
+        it('fails if the workspace does not exist', async () => {
+            const { error } = await runCommand(['workspace:uninstall', 'cloud/postgres', '-w', 'wrong-workspace'])
+            expect(error?.oclif?.exit).to.equal(2)
+        })
 
-    setupTestWithDestroyStub
-    .command(['workspace:uninstall', 'notin/workspace', '-w', 'test-workspace'])
-    .it('does nothing if the package is not in the workspace', async (ctx) => {
-        expect(ctx.stdout).to.contain('Package notin/workspace not found in workspace test-workspace')
+        it('does nothing if the package is not in the workspace', async () => {
+            const { stdout } = await runCommand(['workspace:uninstall', 'notin/workspace', '-w', 'test-workspace'])
+            expect(stdout).to.contain('Package notin/workspace not found in workspace test-workspace')
+        })
+
+        it('fails if the package cannot be resolved', async () => {
+            sinon.stub(packageManager, 'getRepoContent').resolves({ found: false, reason: 'not found' })
+            const { error } = await runCommand(['workspace:uninstall', 'cloud/postgres', '-w', 'test-workspace'])
+            expect(error?.oclif?.exit).to.equal(2)
+        })
+
+        it('fails for invalid infra', async () => {
+            sinon.stub(packageManager, 'getRepoContent').resolves({
+                content: `
+                iac: cdk
+                infra: invalid
+                `,
+                found: true,
+            })
+            const { error } = await runCommand(['workspace:uninstall', 'cloud/postgres', '-w', 'test-workspace'])
+            expect(error?.oclif?.exit).to.equal(2)
+
+        })
     })
 
-    setupTestWithDestroyStub
-    .stub(packageManager, 'getRepoContent', stub => stub.resolves({ found: false, reason: 'not found' }))
-    .command(['workspace:uninstall', 'cloud/postgres', '-w', 'test-workspace'])
-    .exit(2)
-    .it('fails if the package cannot be resolved')
+    describe('with success', async () => {
+        beforeEach(async () => {
+            sinon.stub(packageManager, 'getRepoContent').resolves({
+                content: `
+                iac: terraform
+                infra: local
+                `,
+                found: true,
+            })
+            sinon.stub(localInfrastructure, 'destroy').resolves({
+                env: { FOO: "BAR" },
+                success: true
+            })
+        })
 
-    setupTestWithDestroyStub
-    .stub(packageManager, 'getRepoContent', stub => stub.resolves({
-        content: `
-        iac: cdk
-        infra: invalid
-        `,
-        found: true,
-    }))
-    .command(['workspace:uninstall', 'cloud/postgres', '-w', 'test-workspace'])
-    .exit(2)
-    .it('fails for invalid infra')
+        it('removes a package and its env from a workspace', async () => {
+            const { stdout } = await runCommand(['workspace:uninstall', 'cloud/postgres', '-w', 'test-workspace'])
+            expect(stdout).to.contain('Package cloud/postgres removed from workspace test-workspace')
+            const workspaceContent = await fs.readFile(path.join(homeDir, '.hereya', 'state', 'workspaces', 'test-workspace.yaml'), 'utf8')
+            expect(workspaceContent).to.not.contain('cloud/postgres')
+            expect(workspaceContent).to.not.contain('FOO: BAR')
+            expect(workspaceContent).to.contain('GIB: legendary')
+            expect(workspaceContent).to.contain('another/package')
+        })
 
-
-    const setupSuccessTest = setupTest
-    .stub(packageManager, 'getRepoContent', stub => stub.resolves({
-        content: `
-        iac: terraform
-        infra: local
-        `,
-        found: true,
-    }))
-    .stub(localInfrastructure, 'destroy', stub => stub.resolves({
-        env: { FOO: "BAR" },
-        success: true
-    }))
-
-    setupSuccessTest
-    .command(['workspace:uninstall', 'cloud/postgres', '-w', 'test-workspace'])
-    .it('removes a package and its env from a workspace', async (ctx) => {
-        expect(ctx.stdout).to.contain('Package cloud/postgres removed from workspace test-workspace')
-        const workspaceContent = await fs.readFile(path.join(homeDir, '.hereya', 'state', 'workspaces', 'test-workspace.yaml'), 'utf8')
-        expect(workspaceContent).to.not.contain('cloud/postgres')
-        expect(workspaceContent).to.not.contain('FOO: BAR')
-        expect(workspaceContent).to.contain('GIB: legendary')
-        expect(workspaceContent).to.contain('another/package')
-    })
-
-    setupSuccessTest
-    .do(async () => {
-        await fs.writeFile(
-            path.join(homeDir, '.hereya', 'state', 'workspaces', 'test-workspace.yaml'),
+        it('should use saved parameters at package creation', async () => {
+            await fs.writeFile(
+                path.join(homeDir, '.hereya', 'state', 'workspaces', 'test-workspace.yaml'),
+                `
+            name: test-workspace
+            id: test-workspace
+            env:
+              FOO: BAR
+              GIB: legendary
+            packages:
+              cloud/postgres:
+                version: ''
+                parameters:
+                   network: vpc-123
+                   port: 5442
+              another/package:
+                version: ''
             `
-        name: test-workspace
-        id: test-workspace
-        env:
-          FOO: BAR
-          GIB: legendary
-        packages:
-          cloud/postgres:
-            version: ''
-            parameters:
-               network: vpc-123
-               port: 5442
-          another/package:
-            version: ''
-        `
-        )
-    })
-    .command(['workspace:uninstall', 'cloud/postgres', '-w', 'test-workspace'])
-    .it('should use saved parameters at package creation', async () => {
-        sinon.assert.calledWithMatch((localInfrastructure.destroy as SinonStub), sinon.match.has('parameters', {
-            network: 'vpc-123',
-            port: 5442
-        }))
-    });
+            )
+            await runCommand(['workspace:uninstall', 'cloud/postgres', '-w', 'test-workspace'])
+            sinon.assert.calledWithMatch((localInfrastructure.destroy as SinonStub), sinon.match.has('parameters', {
+                network: 'vpc-123',
+                port: 5442
+            }))
+        });
 
-    setupSuccessTest
-    .do(async () => {
-        await fs.writeFile(
-            path.join(homeDir, '.hereya', 'state', 'workspaces', 'test-workspace.yaml'),
+        it('should use user specified parameters', async () => {
+            await fs.writeFile(
+                path.join(homeDir, '.hereya', 'state', 'workspaces', 'test-workspace.yaml'),
+                `
+            name: test-workspace
+            id: test-workspace
+            env:
+              FOO: BAR
+              GIB: legendary
+            packages:
+              cloud/postgres:
+                version: ''
+                parameters:
+                   network: vpc-123
+                   port: 5442
+                   keep: true
+              another/package:
+                version: ''
             `
-        name: test-workspace
-        id: test-workspace
-        env:
-          FOO: BAR
-          GIB: legendary
-        packages:
-          cloud/postgres:
-            version: ''
-            parameters:
-               network: vpc-123
-               port: 5442
-               keep: true
-          another/package:
-            version: ''
-        `
-        )
-        await fs.writeFile(
-            path.join(homeDir, 'my-params.yaml'),
-            `
-            network: vpc-456
-            port: 5443
-            `
-        )
+            )
+            await fs.writeFile(
+                path.join(homeDir, 'my-params.yaml'),
+                `
+                network: vpc-456
+                port: 5443
+                `
+            )
+            await runCommand(['workspace:uninstall', 'cloud/postgres', '-w', 'test-workspace', '-p', 'network=vpc-789', '-f', `${homeDir}/my-params.yaml`])
+            sinon.assert.calledWithMatch((localInfrastructure.destroy as SinonStub), sinon.match.has('parameters', {
+                keep: true,
+                network: 'vpc-789',
+                port: 5443
+            }))
+        });
     })
-    .command(['workspace:uninstall', 'cloud/postgres', '-w', 'test-workspace', '-p', 'network=vpc-789', '-f', `${homeDir}/my-params.yaml`])
-    .it('should use user specified parameters', async () => {
-        sinon.assert.calledWithMatch((localInfrastructure.destroy as SinonStub), sinon.match.has('parameters', {
-            keep: true,
-            network: 'vpc-789',
-            port: 5443
-        }))
-    });
-
 
 })

@@ -1,33 +1,31 @@
-import { expect, test } from '@oclif/test';
+import { expect } from 'chai';
+import sinon from 'sinon';
 
 import { packageManager, resolvePackage } from './index.js';
 
 describe('package', () => {
     describe('resolvePackage', () => {
+        afterEach(() => {
+            sinon.restore();
+        });
 
-        test
-        .it('requires package name to be in the format owner/repository', async () => {
+        it('requires package name to be in the format owner/repository', async () => {
             const output = await resolvePackage({ package: 'invalid' })
             expect(output).to.have.property('found', false);
         });
 
-        test
-        .stub(
-            packageManager, 'getRepoContent',
-            stub => stub.resolves({
+        it('requires package to have hereyarc file', async () => {
+            sinon.stub(packageManager, 'getRepoContent').resolves({
                 found: false,
                 reason: 'not found'
-            })
-        )
-        .it('requires package to have hereyarc file', async _ => {
+            });
             const output = await resolvePackage({ package: 'owner/repo' })
             expect(output).to.have.property('found', false);
         });
 
-        test
-        .stub(
-            packageManager, 'getRepoContent',
-            stub => stub.callsFake(async ({ path }) => {
+        it(`works for yaml extensions`, async () => {
+            sinon.stub(
+                packageManager, 'getRepoContent').callsFake(async ({ path }) => {
                 if (path === 'hereyarc.yaml') {
                     return {
                         content: `
@@ -43,8 +41,6 @@ describe('package', () => {
                     reason: 'not found'
                 }
             })
-        )
-        .it(`works for yaml extensions`, async _ => {
             const output = await resolvePackage({ package: 'org/myPkg' })
             expect(output).to.have.property('found', true);
             expect(output).to.deep.contain({
@@ -54,10 +50,9 @@ describe('package', () => {
             });
         })
 
-        test
-        .stub(
-            packageManager, 'getRepoContent',
-            stub => stub.callsFake(async ({ path }) => {
+        it(`works for yml extensions`, async () => {
+            sinon.stub(
+                packageManager, 'getRepoContent').callsFake(async ({ path }) => {
                 if (path === 'hereyarc.yml') {
                     return {
                         content: `
@@ -73,8 +68,6 @@ describe('package', () => {
                     reason: 'not found'
                 }
             })
-        )
-        .it(`works for yml extensions`, async _ => {
             const output = await resolvePackage({ package: 'org/myPkg' })
             expect(output).to.have.property('found', true);
             expect(output).to.deep.contain({
@@ -84,19 +77,16 @@ describe('package', () => {
             });
         })
 
-        test
-        .stub(
-            packageManager, 'getRepoContent',
-            stub => stub.resolves({
+        it('overrides infra with HEREYA_OVERRIDE_INFRA', async () => {
+            sinon.stub(
+                packageManager, 'getRepoContent').resolves({
                 content: `
                 iac: terraform
                 infra: local
                 `,
                 found: true
             })
-        )
-        .env({ HEREYA_OVERRIDE_INFRA: 'aws' })
-        .it('overrides infra with HEREYA_OVERRIDE_INFRA', async () => {
+            process.env.HEREYA_OVERRIDE_INFRA = 'aws';
             const output = await resolvePackage({ package: 'org/myPkg' })
             expect(output).to.have.property('found', true);
             expect(output).to.deep.contain({

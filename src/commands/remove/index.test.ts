@@ -1,4 +1,5 @@
-import { expect, test } from '@oclif/test';
+import { runCommand } from '@oclif/test';
+import { expect } from 'chai';
 import { randomUUID } from 'node:crypto';
 import fs from 'node:fs/promises';
 import os from 'node:os';
@@ -9,53 +10,45 @@ import { localBackend } from '../../backend/index.js';
 import { localInfrastructure } from '../../infrastructure/index.js';
 import { packageManager } from '../../lib/package/index.js';
 
-
 describe('remove', () => {
-    const homeDir = path.join(os.tmpdir(), 'hereya-test-add', randomUUID())
+    let homeDir: string
+    let rootDir: string
 
-    const setupTest = test
-    .add('rootDir', path.join(os.tmpdir(), 'hereya-test-remove', randomUUID()))
-    .stub(os, 'homedir', stub => stub.returns(homeDir))
-    .do(async () => {
+    beforeEach(async () => {
+        homeDir = path.join(os.tmpdir(), 'hereya-test-add', randomUUID())
+        sinon.stub(os, 'homedir').returns(homeDir)
         await fs.mkdir(path.join(homeDir, '.hereya', 'state', 'workspaces'), { recursive: true })
-    })
-    .do(async (ctx) => {
-        await fs.mkdir(ctx.rootDir, { recursive: true })
-        process.env.HEREYA_PROJECT_ROOT_DIR = ctx.rootDir
+
+        rootDir = path.join(os.tmpdir(), 'hereya-test-remove', randomUUID())
+        await fs.mkdir(rootDir, { recursive: true })
+        process.env.HEREYA_PROJECT_ROOT_DIR = rootDir
 
         await fs.writeFile(
             path.join(homeDir, '.hereya', 'state', 'workspaces', 'test-workspace.yaml'),
             'name: test-workspace\nid: test-workspace\n'
         )
-    })
-    .stderr()
-    .stdout()
-    .finally(async (ctx) => {
-        await fs.rm(ctx.rootDir, { force: true, recursive: true })
+    });
+
+    afterEach(async () => {
+        sinon.restore()
+        await fs.rm(rootDir, { force: true, recursive: true })
         await fs.rm(homeDir, { force: true, recursive: true })
+    });
+
+    it('does not work on uninitialized projects', async () => {
+        const { stderr } = await runCommand(['remove', 'cloudy/docker_postgres'])
+        expect(stderr).to.contain(`Project not initialized. Run 'hereya init' first.`)
     })
 
-    setupTest
-    .command(['remove', 'cloudy/docker_postgres'])
-    .it('does not work on uninitialized projects', async ctx => {
-        expect(ctx.stderr).to.contain(`Project not initialized. Run 'hereya init' first.`)
+    it('does nothing if the package is not in the project', async () => {
+        await fs.writeFile(path.join(rootDir, 'hereya.yaml'), 'project: test-project\nworkspace: test-workspace\n')
+        const { stderr } = await runCommand(['remove', 'notin/project'])
+        expect(stderr).to.contain('Package notin/project not found in project')
     })
 
-
-    setupTest
-    .do(async (ctx) => {
-        await fs.writeFile(path.join(ctx.rootDir, 'hereya.yaml'), 'project: test-project\nworkspace: test-workspace\n')
-    })
-    .command(['remove', 'notin/project'])
-    .it('does nothing if the package is not in the project', async ctx => {
-        expect(ctx.stderr).to.contain('Package notin/project not found in project')
-    })
-
-
-    setupTest
-    .do(async (ctx) => {
+    it('fails if the package cannot be resolved', async () => {
         await fs.writeFile(
-            path.join(ctx.rootDir, 'hereya.yaml'),
+            path.join(rootDir, 'hereya.yaml'),
             `
               project: test-project
               workspace: test-workspace
@@ -64,17 +57,14 @@ describe('remove', () => {
                     version: ''
             `
         )
+        sinon.stub(packageManager, 'getRepoContent').resolves({ found: false, reason: 'not found' })
+        const { error } = await runCommand(['remove', 'not/exist'])
+        expect(error?.oclif?.exit).to.equal(2)
     })
-    .stub(packageManager, 'getRepoContent', stub => stub.resolves({ found: false, reason: 'not found' }))
-    .command(['remove', 'not/exist'])
-    .exit(2)
-    .it('fails if the package cannot be resolved')
 
-
-    setupTest
-    .do(async (ctx) => {
+    it('fails for invalid infra', async () => {
         await fs.writeFile(
-            path.join(ctx.rootDir, 'hereya.yaml'),
+            path.join(rootDir, 'hereya.yaml'),
             `
               project: test-project
               workspace: test-workspace
@@ -83,23 +73,20 @@ describe('remove', () => {
                     version: ''
             `
         )
+        sinon.stub(packageManager, 'getRepoContent').resolves({
+            content: `
+            iac: terraform
+            infra: invalid
+            `,
+            found: true,
+        })
+        const { error } = await runCommand(['remove', 'wrong/infra'])
+        expect(error?.oclif?.exit).to.equal(2)
     })
-    .stub(packageManager, 'getRepoContent', stub => stub.resolves({
-        content: `
-        iac: terraform
-        infra: invalid
-        `,
-        found: true,
-    }))
-    .command(['remove', 'wrong/infra'])
-    .exit(2)
-    .it('fails for invalid infra')
 
-
-    setupTest
-    .do(async (ctx) => {
+    it('fails for infra is not supported yet', async () => {
         await fs.writeFile(
-            path.join(ctx.rootDir, 'hereya.yaml'),
+            path.join(rootDir, 'hereya.yaml'),
             `
               project: test-project
               workspace: test-workspace
@@ -108,24 +95,22 @@ describe('remove', () => {
                     version: ''
             `
         )
+        sinon.stub(packageManager, 'getRepoContent').resolves({
+            content: `
+            iac: cdk
+            infra: not-supported
+            `,
+            found: true,
+        })
+        const { error } = await runCommand(['remove', 'unsupported/infra'])
+        expect(error?.oclif?.exit).to.equal(2)
     })
-    .stub(packageManager, 'getRepoContent', stub => stub.resolves({
-        content: `
-        iac: cdk
-        infra: not-supported
-        `,
-        found: true,
-    }))
-    .command(['remove', 'unsupported/infra'])
-    .exit(2)
-    .it('fails for infra is not supported yet')
 
-
-    const setupSuccess = setupTest
-    .do(async () => {
-        await fs.writeFile(
-            path.join(homeDir, '.hereya', 'state', 'workspaces', 'dev.yaml'),
-            `
+    describe('with success', () => {
+        beforeEach(async () => {
+            await fs.writeFile(
+                path.join(homeDir, '.hereya', 'state', 'workspaces', 'dev.yaml'),
+                `
             name: dev
             id: dev
             env:
@@ -134,11 +119,9 @@ describe('remove', () => {
                awesome/pkg:
                     version: ''
             `
-        )
-    })
-    .do(async (ctx) => {
-        await fs.writeFile(path.join(ctx.rootDir, 'hereya.yaml'),
-            `
+            )
+            await fs.writeFile(path.join(rootDir, 'hereya.yaml'),
+                `
             project: test-project
             workspace: dev
             packages:
@@ -148,84 +131,76 @@ describe('remove', () => {
                 cloudy/fake-deploy:
                      version: ""
             `
-        )
-    })
-    .do(async (ctx) => {
-        await fs.mkdir(path.join(ctx.rootDir, '.hereya'), { recursive: true })
-        await fs.writeFile(path.join(ctx.rootDir, '.hereya', 'env.dev.yaml'),
-            `
+            )
+            await fs.mkdir(path.join(rootDir, '.hereya'), { recursive: true })
+            await fs.writeFile(path.join(rootDir, '.hereya', 'env.dev.yaml'),
+                `
             FOO: local:BAR
             GIB: local:legendary
             AND: local:another
             `
-        )
-    })
-    .do(async (ctx) => {
-        await fs.mkdir(path.join(ctx.rootDir, 'hereyavars'), { recursive: true })
-        await fs.writeFile(
-            path.join(ctx.rootDir, 'hereyavars', 'cloudy-docker_postgres.yaml'),
-            `
+            )
+            await fs.mkdir(path.join(rootDir, 'hereyavars'), { recursive: true })
+            await fs.writeFile(
+                path.join(rootDir, 'hereyavars', 'cloudy-docker_postgres.yaml'),
+                `
             myParam: myValue
             `
-        )
-    })
-    .stub(localInfrastructure, 'destroy', stub => stub.resolves({
-        env: { FOO: "BAR", GIB: "legendary" },
-        success: true
-    }))
-    .stub(localBackend, 'saveState', stub => stub.resolves())
+            )
+            sinon.stub(localInfrastructure, 'destroy').resolves({
+                env: { FOO: "BAR", GIB: "legendary" },
+                success: true
+            })
+            sinon.stub(localBackend, 'saveState').resolves()
+        })
 
+        it('removes a package and its env variables from the project', async () => {
+            sinon.stub(packageManager, 'getRepoContent').resolves({
+                content:
+                    `
+                iac: terraform
+                infra: local
+                `,
+                found: true,
+            })
+            await runCommand(['remove', 'cloudy/docker_postgres'])
+            const envFile = await fs.readFile(path.join(rootDir, '.hereya', 'env.dev.yaml'), 'utf8')
+            expect(envFile).to.not.contain('FOO: local:BAR')
+            expect(envFile).to.not.contain('GIB: local:legendary')
+            expect(envFile).to.contain('AND: local:another')
+            const hereyaYaml = await fs.readFile(path.join(rootDir, 'hereya.yaml'), 'utf8')
+            expect(hereyaYaml).to.not.contain('cloudy/docker_postgres')
 
-    setupSuccess
-    .stub(packageManager, 'getRepoContent', stub => stub.resolves({
-        content:
-            `
-            iac: terraform
-            infra: local
-            `,
-        found: true,
-    }))
-    .command(['remove', 'cloudy/docker_postgres'])
-    .it('removes a package and its env variables from the project', async ctx => {
-        const envFile = await fs.readFile(path.join(ctx.rootDir, '.hereya', 'env.dev.yaml'), 'utf8')
-        expect(envFile).to.not.contain('FOO: local:BAR')
-        expect(envFile).to.not.contain('GIB: local:legendary')
-        expect(envFile).to.contain('AND: local:another')
-        const hereyaYaml = await fs.readFile(path.join(ctx.rootDir, 'hereya.yaml'), 'utf8')
-        expect(hereyaYaml).to.not.contain('cloudy/docker_postgres')
+            expect((localInfrastructure.destroy as SinonStub).calledWithMatch(sinon.match.has('parameters', { myParam: 'myValue' }))).to.be.true
+        })
 
-        expect((localInfrastructure.destroy as SinonStub).calledWithMatch(sinon.match.has('parameters', { myParam: 'myValue' }))).to.be.true
+        it('skips un-deployment if the package is a deployment package', async () => {
+            sinon.stub(packageManager, 'getRepoContent').resolves({
+                content:
+                    `
+                iac: terraform
+                infra: local
+                deploy: true
+                `,
+                found: true,
+            })
+            await runCommand(['remove', 'cloudy/fake-deploy'])
+            sinon.assert.notCalled(localInfrastructure.destroy as SinonStub)
+        })
 
-    })
-
-    setupSuccess
-    .stub(packageManager, 'getRepoContent', stub => stub.resolves({
-        content:
-            `
-            iac: terraform
-            infra: local
-            deploy: true
-            `,
-        found: true,
-    }))
-    .command(['remove', 'cloudy/fake-deploy'])
-    .it('skips un-deployment if the package is a deployment package', async () => {
-        sinon.assert.notCalled(localInfrastructure.destroy as SinonStub)
-    })
-
-    setupSuccess
-    .stub(packageManager, 'getRepoContent', stub => stub.resolves({
-        content:
-            `
-            iac: terraform
-            infra: local
-            deploy: true
-            `,
-        found: true,
-    }))
-    .command(['remove', 'cloudy/fake-deploy'])
-    .it('removes a deployment package', async ctx => {
-        const hereyaYaml = await fs.readFile(path.join(ctx.rootDir, 'hereya.yaml'), 'utf8')
-        expect(hereyaYaml).to.not.contain('cloudy/fake-deploy')
+        it('removes a deployment package', async () => {
+            sinon.stub(packageManager, 'getRepoContent').resolves({
+                content:
+                    `
+                iac: terraform
+                infra: local
+                deploy: true
+                `,
+                found: true,
+            })
+            await runCommand(['remove', 'cloudy/fake-deploy'])
+            const hereyaYaml = await fs.readFile(path.join(rootDir, 'hereya.yaml'), 'utf8')
+            expect(hereyaYaml).to.not.contain('cloudy/fake-deploy')
+        })
     })
 })

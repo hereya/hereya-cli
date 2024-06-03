@@ -1,4 +1,5 @@
-import { expect, test } from '@oclif/test'
+import { runCommand } from '@oclif/test';
+import { expect } from 'chai';
 import { randomUUID } from 'node:crypto';
 import fs from 'node:fs/promises';
 import os from 'node:os';
@@ -10,13 +11,11 @@ import { packageManager } from '../../../lib/package/index.js';
 import { load } from '../../../lib/yaml-utils.js';
 
 describe('workspace:install', () => {
-    const homeDir = path.join(os.tmpdir(), 'hereya-test-workspace-add', randomUUID())
+    let homeDir: string;
 
-    const setupTest = test
-    .stdout()
-    .stderr()
-    .stub(os, 'homedir', stub => stub.returns(homeDir))
-    .do(async () => {
+    beforeEach(async () => {
+        homeDir = path.join(os.tmpdir(), 'hereya-test-workspace-install', randomUUID())
+        sinon.stub(os, 'homedir').returns(homeDir)
         await fs.mkdir(homeDir, { recursive: true })
         await fs.mkdir(path.join(homeDir, '.hereya', 'state', 'workspaces'), { recursive: true })
         await fs.writeFile(
@@ -24,62 +23,64 @@ describe('workspace:install', () => {
             'name: test-workspace\nid: test-workspace\n'
         )
     })
-    .finally(async () => {
+
+    afterEach(async () => {
         await fs.rm(homeDir, { force: true, recursive: true })
+        sinon.restore()
     })
 
-    const setupTestWithProvisioningStub = setupTest
-    .stub(localInfrastructure, 'provision', stub => stub.resolves({
-        env: { FOO: "BAR", GIB: "legendary" },
-        success: true
-    }))
+    describe('with error', () => {
+        beforeEach(async () => {
+            sinon.stub(localInfrastructure, 'provision').resolves({
+                env: { FOO: "BAR", GIB: "legendary" },
+                success: true
+            })
+        })
 
-    setupTestWithProvisioningStub
-    .stub(packageManager, 'getRepoContent', stub => stub.resolves({ found: false, reason: 'not found' }))
-    .command(['workspace:install', 'cloudy/docker_postgres', '-w', 'test-workspace'])
-    .exit(2)
-    .it('fails if the package cannot be resolved')
+        it('fails if the package cannot be resolved', async () => {
+            sinon.stub(packageManager, 'getRepoContent').resolves({ found: false, reason: 'not found' })
+            const { error } = await runCommand(['workspace:install', 'cloudy/docker_postgres', '-w', 'test-workspace'])
+            expect(error?.oclif?.exit).to.equal(2)
+        })
 
-    setupTestWithProvisioningStub
-    .stub(packageManager, 'getRepoContent', stub => stub.resolves({
-        content: `
-        iac: cdk
-        infra: invalid
-        `,
-        found: true,
-    }))
-    .command(['workspace:install', 'wrong/infra', '-w', 'test-workspace'])
-    .exit(2)
-    .it('fails for invalid infra')
+        it('fails for invalid infra', async () => {
+            sinon.stub(packageManager, 'getRepoContent').resolves({
+                content: `
+                iac: cdk
+                infra: invalid
+                `,
+                found: true,
+            })
+            const { error } = await runCommand(['workspace:install', 'wrong/infra', '-w', 'test-workspace'])
+            expect(error?.oclif?.exit).to.equal(2)
+        })
 
-    setupTestWithProvisioningStub
-    .stub(packageManager, 'getRepoContent', stub => stub.resolves({
-        content: `
-        iac: terraform
-        infra: local
-        `,
-        found: true,
-    }))
-    .do(async () => {
-        await fs.rm(path.join(homeDir, '.hereya', 'state', 'workspaces'), { force: true, recursive: true })
+        it('fails if the workspace cannot be found', async () => {
+            sinon.stub(packageManager, 'getRepoContent').resolves({
+                content: `
+                iac: terraform
+                infra: local
+                `,
+                found: true,
+            })
+            await fs.rm(path.join(homeDir, '.hereya', 'state', 'workspaces'), { force: true, recursive: true })
+            const { error } = await runCommand(['workspace:install', 'workspace/notfound', '-w', 'notfound'])
+            expect(error?.oclif?.exit).to.equal(2)
+        })
     })
-    .command(['workspace:install', 'workspace/notfound', '-w', 'notfound'])
-    .exit(2)
-    .it('fails if the workspace cannot be found')
 
-
-    const setupSuccessTest = setupTest
-    .stub(packageManager, 'getRepoContent', stub => stub.resolves({
-        content: `
-        iac: cdk
-        infra: local
-        `,
-        found: true,
-    }))
-    .do(async () => {
-        await fs.writeFile(
-            path.join(homeDir, '.hereya', 'state', 'workspaces', 'my-dev.yaml'),
-            `
+    describe('with success', async () => {
+        beforeEach(async () => {
+            sinon.stub(packageManager, 'getRepoContent').resolves({
+                content: `
+            iac: cdk
+            infra: local
+            `,
+                found: true,
+            })
+            await fs.writeFile(
+                path.join(homeDir, '.hereya', 'state', 'workspaces', 'my-dev.yaml'),
+                `
             name: my-dev
             id: my-dev
             env:
@@ -88,63 +89,58 @@ describe('workspace:install', () => {
                 existing/pkg:
                     version: '1.0.0'
             `
-        )
-    })
-    .stub(localInfrastructure, 'provision', stub => stub.resolves({
-        env: { ANOTHER_ENV: "legendary", NEW_ENV: "new-var" },
-        success: true
-    }))
-
-    setupSuccessTest
-    .command(['workspace:install', 'mynew/package', '-w', 'my-dev'])
-    .it('adds a package to the workspace and saves exported env to workspace', async ctx => {
-        expect(ctx.stdout).to.contain('Package mynew/package added to workspace my-dev')
-        const workspaceContent = await fs.readFile(path.join(homeDir, '.hereya', 'state', 'workspaces', 'my-dev.yaml'), 'utf8')
-        expect(workspaceContent).to.contain('mynew/package')
-        expect(workspaceContent).to.contain('NEW_ENV: local:new-var')
-        expect(workspaceContent).to.contain('ANOTHER_ENV: local:legendary')
-        expect(workspaceContent).to.contain('EXISTING: aws:env_var')
-    })
-
-    setupSuccessTest
-    .command(['workspace:install', 'mynew/package', '-w', 'my-dev', '-p', 'PARAM=VALUE', '-p', 'ANOTHER=VALUE'])
-    .it('uses and saves user specified parameters', async () => {
-        expect((localInfrastructure.provision as SinonStub).calledWithMatch(
-            sinon.match.has('parameters', { ANOTHER: 'VALUE', PARAM: 'VALUE' })
-        )).to.be.true
-        const { data: workspaceContent } = await load<any>(path.join(homeDir, '.hereya', 'state', 'workspaces', 'my-dev.yaml'))
-        expect(workspaceContent.packages['mynew/package'].parameters).to.deep.equal({
-            ANOTHER: 'VALUE',
-            PARAM: 'VALUE'
-        })
-    })
-
-    setupSuccessTest
-    .do(async () => {
-        await fs.writeFile(
-            path.join(homeDir, 'my-params.yaml'),
-            `
-          networkId: jupiter
-          ipVersion: 4
-          namespace:
-            name: my-namespace
-            id: my-namespace-id
-          `
-        )
-    })
-    .command(['workspace:install', 'mynew/package', '-w', 'my-dev', '-p', 'ipVersion=6', '-f', `${homeDir}/my-params.yaml`])
-    .it('uses parameters from file', async () => {
-
-        sinon.assert.calledWithMatch(localInfrastructure.provision as SinonStub,
-            sinon.match.has('parameters', {
-                ipVersion: '6',
-                namespace: {
-                    id: 'my-namespace-id',
-                    name: 'my-namespace'
-                },
-                networkId: 'jupiter'
+            )
+            sinon.stub(localInfrastructure, 'provision').resolves({
+                env: { ANOTHER_ENV: "legendary", NEW_ENV: "new-var" },
+                success: true
             })
-        )
+        })
+
+        it('adds a package to the workspace and saves exported env to workspace', async () => {
+            const { stdout } = await runCommand(['workspace:install', 'mynew/package', '-w', 'my-dev'])
+            expect(stdout).to.contain('Package mynew/package added to workspace my-dev')
+            const workspaceContent = await fs.readFile(path.join(homeDir, '.hereya', 'state', 'workspaces', 'my-dev.yaml'), 'utf8')
+            expect(workspaceContent).to.contain('mynew/package')
+            expect(workspaceContent).to.contain('NEW_ENV: local:new-var')
+            expect(workspaceContent).to.contain('ANOTHER_ENV: local:legendary')
+            expect(workspaceContent).to.contain('EXISTING: aws:env_var')
+        })
+
+        it('uses and saves user specified parameters', async () => {
+            await runCommand(['workspace:install', 'mynew/package', '-w', 'my-dev', '-p', 'PARAM=VALUE', '-p', 'ANOTHER=VALUE'])
+            expect((localInfrastructure.provision as SinonStub).calledWithMatch(
+                sinon.match.has('parameters', { ANOTHER: 'VALUE', PARAM: 'VALUE' })
+            )).to.be.true
+            const { data: workspaceContent } = await load<any>(path.join(homeDir, '.hereya', 'state', 'workspaces', 'my-dev.yaml'))
+            expect(workspaceContent.packages['mynew/package'].parameters).to.deep.equal({
+                ANOTHER: 'VALUE',
+                PARAM: 'VALUE'
+            })
+        })
+
+        it('uses parameters from file', async () => {
+            await fs.writeFile(
+                path.join(homeDir, 'my-params.yaml'),
+                `
+              networkId: jupiter
+              ipVersion: 4
+              namespace:
+                name: my-namespace
+                id: my-namespace-id
+              `
+            )
+            await runCommand(['workspace:install', 'mynew/package', '-w', 'my-dev', '-p', 'ipVersion=6', '-f', `${homeDir}/my-params.yaml`])
+            sinon.assert.calledWithMatch(localInfrastructure.provision as SinonStub,
+                sinon.match.has('parameters', {
+                    ipVersion: '6',
+                    namespace: {
+                        id: 'my-namespace-id',
+                        name: 'my-namespace'
+                    },
+                    networkId: 'jupiter'
+                })
+            )
+        })
     })
 
 })

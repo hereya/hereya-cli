@@ -1,40 +1,37 @@
-import { expect, test } from '@oclif/test';
+import { runCommand } from '@oclif/test';
+import { expect } from 'chai';
 import { randomUUID } from 'node:crypto';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
 describe('env', () => {
-    const setupTest = test
-    .add('rootDir', path.join(os.tmpdir(), 'hereya-test-env', randomUUID()))
-    .do(async (ctx) => {
-        await fs.mkdir(ctx.rootDir, { recursive: true })
-        process.env.HEREYA_PROJECT_ROOT_DIR = ctx.rootDir
-    })
-    .stderr()
-    .stdout()
-    .finally(async (ctx) => {
-        await fs.rm(ctx.rootDir, { force: true, recursive: true })
+    let rootDir: string
+
+    beforeEach(async () => {
+        rootDir = path.join(os.tmpdir(), 'hereya-test-env', randomUUID())
+        await fs.mkdir(rootDir, { recursive: true })
+        process.env.HEREYA_PROJECT_ROOT_DIR = rootDir
     })
 
-    setupTest
-    .command(['env'])
-    .it('does not work on uninitialized projects', async ctx => {
-        expect(ctx.stderr).to.contain(`Project not initialized. Run 'hereya init' first.`)
+    afterEach(async () => {
+        await fs.rm(rootDir, { force: true, recursive: true })
     })
 
-    setupTest
-    .do(async (ctx) => {
-        await fs.writeFile(path.join(ctx.rootDir, 'hereya.yaml'), 'project: test-project\n')
+    it('does not work on uninitialized projects', async () => {
+        const { stderr } = await runCommand(['env'])
+        expect(stderr).to.contain(`Project not initialized. Run 'hereya init' first.`)
     })
-    .command(['env'])
-    .exit(2)
-    .it('fails if workspace is not set')
 
-    setupTest
-    .do(async (ctx) => {
+    it('fails if workspace is not set', async () => {
+        await fs.writeFile(path.join(rootDir, 'hereya.yaml'), 'project: test-project\n')
+        const { error } = await runCommand(['env'])
+        expect(error?.oclif?.exit).to.equal(2)
+    });
+
+    it('prints the env vars for the right workspace', async () => {
         await fs.writeFile(
-            path.join(ctx.rootDir, 'hereya.yaml'),
+            path.join(rootDir, 'hereya.yaml'),
             `
             project: test-project
             workspace: my-workspace
@@ -43,32 +40,29 @@ describe('env', () => {
                 version: ''
             `
         )
-        await fs.mkdir(path.join(ctx.rootDir, '.hereya'), { recursive: true })
+        await fs.mkdir(path.join(rootDir, '.hereya'), { recursive: true })
         await fs.writeFile(
-            path.join(ctx.rootDir, '.hereya', 'env.my-workspace.yaml'),
+            path.join(rootDir, '.hereya', 'env.my-workspace.yaml'),
             `
             FOO: local:bar
             GIB: local:legendary
             `
         )
         await fs.writeFile(
-            path.join(ctx.rootDir, '.hereya', 'env.another.yaml'),
+            path.join(rootDir, '.hereya', 'env.another.yaml'),
             `
             GLUE: local:not_me
             `
         )
-    })
-    .command(['env'])
-    .it('prints the env vars for the right workspace', async ctx => {
-        expect(ctx.stdout).to.contain('FOO=bar')
-        expect(ctx.stdout).to.contain('GIB=legendary')
-        expect(ctx.stdout).to.not.contain('GLUE')
+        const { stdout } = await runCommand(['env'])
+        expect(stdout).to.contain('FOO=bar')
+        expect(stdout).to.contain('GIB=legendary')
+        expect(stdout).to.not.contain('GLUE')
     })
 
-    setupTest
-    .do(async (ctx) => {
+    it('can override the workspace with the -w flag', async () => {
         await fs.writeFile(
-            path.join(ctx.rootDir, 'hereya.yaml'),
+            path.join(rootDir, 'hereya.yaml'),
             `
             project: test-project
             workspace: default
@@ -77,26 +71,23 @@ describe('env', () => {
                 version: ''
             `
         )
-        await fs.mkdir(path.join(ctx.rootDir, '.hereya'), { recursive: true })
+        await fs.mkdir(path.join(rootDir, '.hereya'), { recursive: true })
         await fs.writeFile(
-            path.join(ctx.rootDir, '.hereya', 'env.default.yaml'),
+            path.join(rootDir, '.hereya', 'env.default.yaml'),
             `
             FOO: local:bar
             GIB: local:legendary
             `
         )
         await fs.writeFile(
-            path.join(ctx.rootDir, '.hereya', 'env.another.yaml'),
+            path.join(rootDir, '.hereya', 'env.another.yaml'),
             `
             GLUE: local:now_me
             `
         )
+        const { stdout } = await runCommand(['env', '-w', 'another'])
+        expect(stdout).to.contain('GLUE=now_me')
+        expect(stdout).to.not.contain('FOO')
+        expect(stdout).to.not.contain('GIB')
     })
-    .command(['env', '-w', 'another'])
-    .it('can override the workspace with the -w flag', async ctx => {
-        expect(ctx.stdout).to.contain('GLUE=now_me')
-        expect(ctx.stdout).to.not.contain('FOO')
-        expect(ctx.stdout).to.not.contain('GIB')
-    })
-
 })

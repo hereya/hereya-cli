@@ -1,20 +1,18 @@
-import { expect, test } from '@oclif/test'
+import { runCommand } from '@oclif/test';
+import { expect } from 'chai';
 import { randomUUID } from 'node:crypto';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import sinon from 'sinon';
 
 describe('workspace:delete', () => {
-    const homeDir = path.join(os.tmpdir(), 'hereya-test-workspace-delete', randomUUID())
+    let homeDir: string;
 
-    const setupTest = test
-    .stdout()
-    .stderr()
-    .stub(os, 'homedir', stub => stub.returns(homeDir))
-    .do(async () => {
+    beforeEach(async () => {
+        homeDir = path.join(os.tmpdir(), 'hereya-test-workspace-delete', randomUUID())
+        sinon.stub(os, 'homedir').returns(homeDir)
         await fs.mkdir(homeDir, { recursive: true })
-    })
-    .do(async () => {
         await fs.mkdir(path.join(homeDir, '.hereya', 'state', 'workspaces'), { recursive: true })
         await fs.writeFile(
             path.join(homeDir, '.hereya', 'state', 'workspaces', 'my-dev.yaml'),
@@ -29,34 +27,32 @@ describe('workspace:delete', () => {
             `
         )
     })
-    .finally(async () => {
+
+    afterEach(async () => {
         await fs.rm(homeDir, { force: true, recursive: true })
+        sinon.restore()
     })
 
-    setupTest
-    .command(['workspace:delete', 'not-existing'])
-    .it('succeeds if the workspace does not exist', async ctx => {
-        expect(ctx.stdout).to.contain('Workspace not-existing does not exist')
+    it('succeeds if the workspace does not exist', async () => {
+        const { stdout } = await runCommand(['workspace:delete', 'not-existing'])
+        expect(stdout).to.contain('Workspace not-existing does not exist')
     })
 
-    setupTest
-    .command(['workspace:delete', 'my-dev'])
-    .exit(2)
-    .it('fails if the workspace has packages')
+    it('fails if the workspace has packages', async () => {
+        const { error } = await runCommand(['workspace:delete', 'my-dev'])
+        expect(error?.oclif?.exit).to.equal(2)
+    })
 
-    setupTest
-    .do(async () => {
+    it('fails if workspace content is invalid', async () => {
         await fs.writeFile(
             path.join(homeDir, '.hereya', 'state', 'workspaces', 'my-dev.yaml'),
             'Invalid yaml\nblablablklkdnlkd\n'
         )
+        const { error } = await runCommand(['workspace:delete', 'my-dev'])
+        expect(error?.oclif?.exit).to.equal(2)
     })
-    .command(['workspace:delete', 'my-dev'])
-    .exit(2)
-    .it('fails if workspace content is invalid')
 
-    setupTest
-    .do(async () => {
+    it('deletes the workspace', async () => {
         await fs.writeFile(
             path.join(homeDir, '.hereya', 'state', 'workspaces', 'ready.yaml'),
             `
@@ -65,11 +61,10 @@ describe('workspace:delete', () => {
             packages: {}
             `
         )
-    })
-    .command(['workspace:delete', 'ready'])
-    .it('deletes the workspace', async ctx => {
-        expect(ctx.stdout).to.contain('Workspace ready deleted successfully')
+        const { stdout } = await runCommand(['workspace:delete', 'ready'])
+        expect(stdout).to.contain('Workspace ready deleted successfully')
         const workspacePath = path.join(homeDir, '.hereya', 'state', 'workspaces', 'ready.yaml')
         expect(await fs.access(workspacePath).then(() => true).catch(() => false)).to.be.false
     })
+
 })

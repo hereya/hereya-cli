@@ -1,4 +1,5 @@
-import { expect, test } from '@oclif/test'
+import { runCommand } from '@oclif/test';
+import { expect } from 'chai';
 import { randomUUID } from 'node:crypto';
 import fs from 'node:fs/promises';
 import os from 'node:os';
@@ -11,26 +12,23 @@ import { packageManager } from '../../lib/package/index.js';
 import { load } from '../../lib/yaml-utils.js';
 
 describe('down', () => {
-    const homeDir = path.join(os.tmpdir(), 'hereya-test-install', randomUUID())
+    let homeDir: string
+    let rootDir: string
 
-    const setupTest = test
-    .do(async () => {
+    beforeEach(async () => {
+        homeDir = path.join(os.tmpdir(), 'hereya-test-install', randomUUID())
+        sinon.stub(os, 'homedir').returns(homeDir)
         await fs.mkdir(path.join(homeDir, '.hereya', 'state', 'workspaces'), { recursive: true })
-    })
-    .add('rootDir', path.join(os.tmpdir(), 'hereya-test', randomUUID()))
-    .stub(os, 'homedir', stub => stub.returns(homeDir))
-    .do(async (ctx) => {
-        await fs.mkdir(ctx.rootDir, { recursive: true })
-        process.env.HEREYA_PROJECT_ROOT_DIR = ctx.rootDir
-
         await fs.writeFile(
             path.join(homeDir, '.hereya', 'state', 'workspaces', 'my-workspace.yaml'),
             'name: my-workspace\nid: my-workspace\n'
         )
-    })
-    .do(async (ctx) => {
+
+        rootDir = path.join(os.tmpdir(), 'hereya-test', randomUUID())
+        await fs.mkdir(rootDir, { recursive: true })
+        process.env.HEREYA_PROJECT_ROOT_DIR = rootDir
         await fs.writeFile(
-            path.join(ctx.rootDir, 'hereya.yaml'),
+            path.join(rootDir, 'hereya.yaml'),
             `
             project: test-project
             workspace: my-workspace
@@ -41,46 +39,43 @@ describe('down', () => {
                 version: ''
             `
         )
-    })
-    .stub(packageManager, 'getRepoContent', stub => stub.resolves({
-        content:
-            `
-            iac: terraform
-            infra: local
-            `,
-        found: true,
-    }))
-    .stub(localInfrastructure, 'provision', stub => stub.resolves({
-        env: {},
-        success: true
-    }))
-    .stub(localInfrastructure, 'destroy', stub => stub.resolves({
-        env: {
-            BAZ: 'qux',
-            FOO: 'bar',
-        },
-        success: true
-    }))
-    .stderr()
-    .stdout()
-    .finally(async (ctx) => {
-        await fs.rm(ctx.rootDir, { force: true, recursive: true })
+
+        sinon.stub(packageManager, 'getRepoContent').resolves({
+            content:
+                `
+                iac: terraform
+                infra: local
+                `,
+            found: true,
+        })
+        sinon.stub(localInfrastructure, 'provision').resolves({
+            env: {},
+            success: true
+        })
+        sinon.stub(localInfrastructure, 'destroy').resolves({
+            env: {
+                BAZ: 'qux',
+                FOO: 'bar',
+            },
+            success: true
+        })
+    });
+
+    afterEach(async () => {
+        sinon.restore()
+        await fs.rm(rootDir, { force: true, recursive: true })
         await fs.rm(homeDir, { force: true, recursive: true })
+    });
+
+    it('fails if the project is not initialized', async () => {
+        await fs.rm(path.join(rootDir, 'hereya.yaml'))
+        const { stderr } = await runCommand(['down'])
+        expect(stderr).to.contain(`Project not initialized. Run 'hereya init' first.`)
     })
 
-    setupTest
-    .do(async (ctx) => {
-        await fs.rm(path.join(ctx.rootDir, 'hereya.yaml'))
-    })
-    .command(['down'])
-    .it('fails if the project is not initialized', async ctx => {
-        expect(ctx.stderr).to.contain(`Project not initialized. Run 'hereya init' first.`)
-    })
-
-    setupTest
-    .stub(envManager, 'removeProjectEnv', stub => stub.resolves({ success: true }))
-    .command(['down'])
-    .it('destroys all packages in the project', async () => {
+    it('destroys all packages in the project', async () => {
+        sinon.stub(envManager, 'removeProjectEnv').resolves();
+        await runCommand(['down'])
         sinon.assert.calledTwice(localInfrastructure.destroy as SinonStub);
         sinon.assert.calledWithMatch(
             localInfrastructure.destroy as SinonStub,
@@ -96,16 +91,13 @@ describe('down', () => {
         );
     })
 
-    setupTest
-    .do(async () => {
+    it('destroys all packages in the project for the specified workspace', async () => {
         await fs.writeFile(
             path.join(homeDir, '.hereya', 'state', 'workspaces', 'another-workspace.yaml'),
             'name: another-workspace\nid: another-workspace\n'
         )
-    })
-    .stub(envManager, 'removeProjectEnv', stub => stub.resolves({ success: true }))
-    .command(['down', '--workspace', 'another-workspace'])
-    .it('destroys all packages in the project for the specified workspace', async () => {
+        sinon.stub(envManager, 'removeProjectEnv').resolves()
+        await runCommand(['down', '--workspace', 'another-workspace'])
         sinon.assert.calledTwice(localInfrastructure.destroy as SinonStub)
         sinon.assert.calledWithMatch(
             envManager.removeProjectEnv as SinonStub,
@@ -113,27 +105,23 @@ describe('down', () => {
         )
     })
 
-    setupTest
-    .do(async (ctx) => {
-        await fs.mkdir(path.join(ctx.rootDir, '.hereya'), { recursive: true })
+    it('clears up the workspace environment file', async () => {
+        await fs.mkdir(path.join(rootDir, '.hereya'), { recursive: true })
         await fs.writeFile(
-            path.join(ctx.rootDir, '.hereya', 'env.my-workspace.yaml'),
+            path.join(rootDir, '.hereya', 'env.my-workspace.yaml'),
             `
             FOO: bar
             BAZ: qux
             `
         )
-    })
-    .command(['down'])
-    .it('clears up the workspace environment file', async (ctx) => {
-        const file$ = await load(path.join(ctx.rootDir, '.hereya', 'env.my-workspace.yaml'))
+        await runCommand(['down'])
+        const file$ = await load(path.join(rootDir, '.hereya', 'env.my-workspace.yaml'))
         if (file$.found) {
             expect(file$.data).to.deep.equal({})
         }
     })
 
-    setupTest
-    .do(async () => {
+    it('updates the state file', async () => {
         await fs.mkdir(path.join(homeDir, '.hereya', 'state', 'projects'), { recursive: true })
         await fs.writeFile(
             path.join(homeDir, '.hereya', 'state', 'projects', 'test-project.yaml'),
@@ -148,12 +136,11 @@ describe('down', () => {
                 version: ''
             `
         )
-    })
-    .command(['down'])
-    .it('updates the state file', async () => {
+        await runCommand(['down'])
         const projectState = await fs.readFile(path.join(homeDir, '.hereya', 'state', 'projects', 'test-project.yaml'), { encoding: 'utf8' })
         expect(projectState).to.contain('cloudy/docker_postgres')
         expect(projectState).to.contain('another/package')
         expect(projectState).not.to.contain('removed/package')
     })
-})
+});
+
