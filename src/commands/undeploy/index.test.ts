@@ -1,4 +1,5 @@
-import { expect, test } from '@oclif/test'
+import { runCommand } from '@oclif/test';
+import { expect } from 'chai';
 import { randomUUID } from 'node:crypto';
 import fs from 'node:fs/promises';
 import os from 'node:os';
@@ -10,26 +11,23 @@ import { envManager } from '../../lib/env/index.js';
 import { packageManager } from '../../lib/package/index.js';
 
 describe('undeploy', () => {
-    const homeDir = path.join(os.tmpdir(), 'hereya-test-install', randomUUID())
+    let homeDir: string
+    let rootDir: string
 
-    const setupTest = test
-    .do(async () => {
+    beforeEach(async () => {
+        homeDir = path.join(os.tmpdir(), 'hereya-test-undeploy', randomUUID())
+        sinon.stub(os, 'homedir').returns(homeDir)
         await fs.mkdir(path.join(homeDir, '.hereya', 'state', 'workspaces'), { recursive: true })
-    })
-    .add('rootDir', path.join(os.tmpdir(), 'hereya-test', randomUUID()))
-    .stub(os, 'homedir', stub => stub.returns(homeDir))
-    .do(async (ctx) => {
-        await fs.mkdir(ctx.rootDir, { recursive: true })
-        process.env.HEREYA_PROJECT_ROOT_DIR = ctx.rootDir
-
         await fs.writeFile(
             path.join(homeDir, '.hereya', 'state', 'workspaces', 'my-workspace.yaml'),
             'name: my-workspace\nid: my-workspace\n'
         )
-    })
-    .do(async (ctx) => {
+
+        rootDir = path.join(os.tmpdir(), 'hereya-test', randomUUID())
+        await fs.mkdir(rootDir, { recursive: true })
+        process.env.HEREYA_PROJECT_ROOT_DIR = rootDir
         await fs.writeFile(
-            path.join(ctx.rootDir, 'hereya.yaml'),
+            path.join(rootDir, 'hereya.yaml'),
             `
             project: test-project
             workspace: my-workspace
@@ -43,65 +41,63 @@ describe('undeploy', () => {
                 version: ''
             `
         )
-    })
-    .stub(packageManager, 'getRepoContent', stub => stub.callsFake(async ({ repo }) => {
-        if (repo === 'fake-deploy' || repo === 'dummy-deployer') {
-            return {
-                content:
-                    `
+        sinon.stub(packageManager, 'getRepoContent').callsFake(async ({ repo }: { repo: string }) => {
+            if (repo === 'fake-deploy' || repo === 'dummy-deployer') {
+                return {
+                    content:
+                        `
                 iac: terraform
                 infra: local
                 deploy: true
                 `,
-                found: true,
+                    found: true,
+                }
             }
-        }
 
-        return {
-            content:
-                `
+            return {
+                content:
+                    `
             iac: terraform
             infra: local
             `,
-            found: true,
-        }
-    }))
-    .stub(localInfrastructure, 'provision', stub => stub.resolves({
-        env: {},
-        success: true
-    }))
-    .stub(localInfrastructure, 'deploy', stub => stub.resolves({
-        env: {},
-        success: true
-    }))
-    .stub(localInfrastructure, 'destroy', stub => stub.resolves({
-        env: {},
-        success: true
-    }))
-    .stub(localInfrastructure, 'undeploy', stub => stub.resolves({
-        env: {},
-        success: true
-    }))
-    .stderr()
-    .stdout()
-    .finally(async (ctx) => {
-        await fs.rm(ctx.rootDir, { force: true, recursive: true })
+                found: true,
+            }
+        })
+        sinon.stub(localInfrastructure, 'provision').resolves({
+            env: {},
+            success: true
+        })
+        sinon.stub(localInfrastructure, 'destroy').resolves({
+            env: {},
+            success: true
+        })
+        sinon.stub(localInfrastructure, 'deploy').resolves({
+            env: {},
+            success: true
+        })
+        sinon.stub(localInfrastructure, 'undeploy').resolves({
+            env: {},
+            success: true
+        })
+    })
+
+    afterEach(async () => {
+        sinon.restore()
+        await fs.rm(rootDir, { force: true, recursive: true })
         await fs.rm(homeDir, { force: true, recursive: true })
     })
 
-    setupTest
-    .do(async (ctx) => {
-        await fs.rm(path.join(ctx.rootDir, 'hereya.yaml'))
-    })
-    .command(['undeploy'])
-    .it('fails if the project is not initialized', async ctx => {
-        expect(ctx.stderr).to.contain(`Project not initialized. Run 'hereya init' first.`)
+    it('fails if the project is not initialized', async () => {
+        await fs.rm(path.join(rootDir, 'hereya.yaml'))
+        const { stderr } = await runCommand(['undeploy'])
+        expect(stderr).to.contain(`Project not initialized. Run 'hereya init' first.`)
     })
 
-    setupTest
-    .stub(envManager, 'removeProjectEnv', stub => stub.resolves({ success: true }))
-    .command(['undeploy'])
-    .it('destroys all packages in the project', async () => {
+    it('destroys all packages in the project', async () => {
+        sinon.stub(envManager, 'removeProjectEnv').resolves()
+
+        await runCommand(['undeploy'])
+
         sinon.assert.calledTwice(localInfrastructure.destroy as SinonStub)
         sinon.assert.calledWithMatch(
             localInfrastructure.destroy as SinonStub,
@@ -117,17 +113,15 @@ describe('undeploy', () => {
         )
     })
 
-    setupTest
-    .do(async () => {
+    it('destroys all packages in the project for the specified workspace', async () => {
         await fs.writeFile(
             path.join(homeDir, '.hereya', 'state', 'workspaces', 'another-workspace.yaml'),
             'name: another-workspace\nid: another-workspace\n'
         )
-    })
-    .stub(envManager, 'removeProjectEnv', stub => stub.resolves({ success: true }))
-    .stub(envManager, 'getProjectEnv', stub => stub.resolves({ env: {} }))
-    .command(['undeploy', '--workspace', 'another-workspace'])
-    .it('destroys all packages in the project for the specified workspace', async () => {
+        sinon.stub(envManager, 'removeProjectEnv').resolves()
+        sinon.stub(envManager, 'getProjectEnv').resolves({ env: {} })
+        await runCommand(['undeploy', '--workspace', 'another-workspace'])
+
         sinon.assert.calledTwice(localInfrastructure.destroy as SinonStub)
         sinon.assert.calledWithMatch(
             envManager.removeProjectEnv as SinonStub,
@@ -139,5 +133,4 @@ describe('undeploy', () => {
             sinon.match.has('workspace', 'another-workspace')
         )
     })
-
 })
