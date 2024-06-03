@@ -1,3 +1,12 @@
+# [0.5.0](https://github.com/hereya/hereya-cli/compare/0.4.6...0.5.0) (2024-06-03)
+
+
+### Features
+
+* Add support for deployment companion packages ([a81c1fa](https://github.com/hereya/hereya-cli/commit/a81c1fa872b8bce7e7ef08e9035ec7988f93e2e0))
+
+
+
 ## [0.4.6](https://github.com/hereya/hereya-cli/compare/0.4.5...0.4.6) (2024-06-01)
 
 
