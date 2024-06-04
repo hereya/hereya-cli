@@ -135,13 +135,22 @@ describe('deploy', () => {
     it('provisions all packages in the project for the specified workspace', async () => {
         await fs.writeFile(
             path.join(homeDir, '.hereya', 'state', 'workspaces', 'another-workspace.yaml'),
-            'name: another-workspace\nid: another-workspace\n'
+            `
+            name: another-workspace
+            id: another-workspace
+            env:
+              ENV_VAR: local:value
+            `
         )
         sinon.stub(envManager, 'addProjectEnv').resolves()
         sinon.stub(envManager, 'getProjectEnv').resolves({ env: {} })
         await runCommand(['deploy', '--workspace', 'another-workspace'])
 
         sinon.assert.calledTwice(localInfrastructure.provision as SinonStub)
+        sinon.assert.alwaysCalledWithMatch(
+            localInfrastructure.provision as SinonStub,
+            sinon.match.has('env', sinon.match.has('ENV_VAR', 'value'))
+        )
         sinon.assert.calledWithMatch(
             envManager.addProjectEnv as SinonStub,
             sinon.match.has('workspace', 'another-workspace')

@@ -15,9 +15,9 @@ export class Cdk implements Iac {
                 serializedWorkspaceEnv
             } = await this.serializedParametersAndContext(input)
             runShell(
-                'npx',
+                'cdk',
                 [
-                    'cdk', 'deploy', '--require-approval', 'never', ...serializedWorkspaceEnv, ...serializedParameters,
+                    'deploy', '--require-approval', 'never', ...serializedWorkspaceEnv, ...serializedParameters,
                 ],
                 {
                     directory: input.pkgPath,
@@ -44,9 +44,9 @@ export class Cdk implements Iac {
                 serializedWorkspaceEnv
             } = await this.serializedParametersAndContext(input)
             runShell(
-                'npx',
+                'cdk',
                 [
-                    'cdk', 'destroy', '--force', ...serializedWorkspaceEnv, ...serializedParameters
+                    'destroy', '--force', ...serializedWorkspaceEnv, ...serializedParameters
                 ],
                 {
                     directory: input.pkgPath,
@@ -76,9 +76,9 @@ export class Cdk implements Iac {
         const workDir = input.pkgPath
         runShell('npm', ['install'], { directory: workDir })
         const result = runShell(
-            'npx',
+            'cdk',
             [
-                'cdk', 'synth',
+                'synth',
             ],
             {
                 directory: workDir,

@@ -51,7 +51,7 @@ export default class Deploy extends Command {
         }
 
         const removedPackages = savedPackages.filter((packageName) => !deployPackages.includes(packageName))
-        const workspace = flags.workspace || config.workspace
+        const { workspace } = flags
         const getWorkspaceEnvOutput = await backend.getWorkspaceEnv({
             project: config.project,
             workspace,
