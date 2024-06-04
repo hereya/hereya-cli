@@ -1,3 +1,12 @@
+## [0.5.2](https://github.com/hereya/hereya-cli/compare/0.5.1...0.5.2) (2024-06-04)
+
+
+### Bug Fixes
+
+* Add logging for deployment environments ([337ff01](https://github.com/hereya/hereya-cli/commit/337ff01d9c558d661f652296731cf50458813a3e))
+
+
+
 ## [0.5.1](https://github.com/hereya/hereya-cli/compare/0.5.0...0.5.1) (2024-06-04)
 
 
