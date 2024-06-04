@@ -1,3 +1,12 @@
+## [0.5.1](https://github.com/hereya/hereya-cli/compare/0.5.0...0.5.1) (2024-06-04)
+
+
+### Bug Fixes
+
+* Store and delete parameters securely in AWS Parameter Store ([fcaf7f2](https://github.com/hereya/hereya-cli/commit/fcaf7f28f9964c52b8b9acb5ccec229cc12d5160))
+
+
+
 # [0.5.0](https://github.com/hereya/hereya-cli/compare/0.4.6...0.5.0) (2024-06-03)
 
 
