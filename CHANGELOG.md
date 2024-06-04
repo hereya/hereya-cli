@@ -1,3 +1,12 @@
+## [0.5.6](https://github.com/hereya/hereya-cli/compare/0.5.5...0.5.6) (2024-06-04)
+
+
+### Bug Fixes
+
+* Change script commands from cdk to npx aws-cdk ([9c83eb6](https://github.com/hereya/hereya-cli/commit/9c83eb690d6461d366432507aff7af6f6d67f73c))
+
+
+
 ## [0.5.5](https://github.com/hereya/hereya-cli/compare/0.5.4...0.5.5) (2024-06-04)
 
 
