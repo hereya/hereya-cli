@@ -1,3 +1,12 @@
+## [0.5.4](https://github.com/hereya/hereya-cli/compare/0.5.3...0.5.4) (2024-06-04)
+
+
+### Bug Fixes
+
+* Add support for Terraform in aws.ts ([a8564cf](https://github.com/hereya/hereya-cli/commit/a8564cffb0cc3e50579e492e6e00a712683c002e))
+
+
+
 ## [0.5.3](https://github.com/hereya/hereya-cli/compare/0.5.2...0.5.3) (2024-06-04)
 
 
