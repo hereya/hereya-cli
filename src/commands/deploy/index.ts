@@ -5,6 +5,7 @@ import { getBackend } from '../../backend/index.js';
 import { destroyPackage, provisionPackage } from '../../infrastructure/index.js';
 import { getConfigManager } from '../../lib/config/index.js';
 import { getEnvManager } from '../../lib/env/index.js';
+import { logEnv } from '../../lib/env-utils.js';
 import { getParameterManager } from '../../lib/parameter/index.js';
 import Up from '../up/index.js';
 
@@ -119,6 +120,7 @@ export default class Deploy extends Command {
             }
 
             this.log(`Package ${packageName} deployed successfully`)
+            logEnv(provisionOutput.env, this.log.bind(this))
         }))
     }
 }
