@@ -1,3 +1,12 @@
+## [0.5.7](https://github.com/hereya/hereya-cli/compare/0.5.6...0.5.7) (2024-06-04)
+
+
+### Bug Fixes
+
+* Replace JSON string encoding with base64 for project environment variables ([b1b8d31](https://github.com/hereya/hereya-cli/commit/b1b8d31e8ec8845f2497ae66c096b219dd83f5c7))
+
+
+
 ## [0.5.6](https://github.com/hereya/hereya-cli/compare/0.5.5...0.5.6) (2024-06-04)
 
 
