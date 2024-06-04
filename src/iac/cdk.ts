@@ -10,18 +10,21 @@ export class Cdk implements Iac {
     async apply(input: ApplyInput): Promise<ApplyOutput> {
         try {
             const {
-                serializedContext,
+                remainingEnv,
                 serializedParameters,
                 serializedWorkspaceEnv
             } = await this.serializedParametersAndContext(input)
             runShell(
                 'npx',
                 [
-                    'cdk', 'deploy', '--require-approval', 'never', ...serializedWorkspaceEnv, ...serializedParameters, ...serializedContext,
+                    'cdk', 'deploy', '--require-approval', 'never', ...serializedWorkspaceEnv, ...serializedParameters,
                 ],
                 {
                     directory: input.pkgPath,
-                    env: { STACK_NAME: input.id },
+                    env: {
+                        ...remainingEnv,
+                        STACK_NAME: input.id
+                    },
                 },
             )
             const env = await this.getEnv(input.id)
@@ -36,18 +39,21 @@ export class Cdk implements Iac {
         try {
             const env = await this.getEnv(input.id)
             const {
-                serializedContext,
+                remainingEnv,
                 serializedParameters,
                 serializedWorkspaceEnv
             } = await this.serializedParametersAndContext(input)
             runShell(
                 'npx',
                 [
-                    'cdk', 'destroy', '--force', ...serializedWorkspaceEnv, ...serializedParameters, ...serializedContext
+                    'cdk', 'destroy', '--force', ...serializedWorkspaceEnv, ...serializedParameters
                 ],
                 {
                     directory: input.pkgPath,
-                    env: { STACK_NAME: input.id }
+                    env: {
+                        ...remainingEnv,
+                        STACK_NAME: input.id
+                    }
                 },
             )
             return { env, success: true }
@@ -68,20 +74,16 @@ export class Cdk implements Iac {
 
     private async getParameterNames(input: ApplyInput) {
         const workDir = input.pkgPath
-        const serializedContext = Object.entries({
-            ...input.env,
-            ...input.parameters,
-        }).flatMap(([key, value]) => ['--context', `${key}=${value}`])
-
         runShell('npm', ['install'], { directory: workDir })
         const result = runShell(
             'npx',
             [
-                'cdk', 'synth', ...serializedContext,
+                'cdk', 'synth',
             ],
             {
                 directory: workDir,
-                stdio: 'pipe'
+                env: { ...process.env, ...input.env, ...input.parameters },
+                stdio: 'pipe',
             },
         )
         const stackYamlPath = path.join(workDir, '.stack.yaml')
@@ -122,15 +124,17 @@ export class Cdk implements Iac {
         .filter(([key]) => parameterNames.includes(key))
         .flatMap(([key, value]) => ['--parameters', `${key}=${value}`])
 
-        const serializedContext = Object.entries(
-            {
-                ...input.env,
-                ...input.parameters,
-            }
-        ).filter(([key]) => !parameterNames.includes(key))
-        .flatMap(([key, value]) => ['--context', `${key}=${value}`])
+        const remainingEnv = Object.fromEntries(
+            Object.entries(
+                {
+                    ...input.env,
+                    ...input.parameters,
+                }
+            ).filter(([key]) => !parameterNames.includes(key))
+        )
 
-        return { serializedContext, serializedParameters, serializedWorkspaceEnv }
+
+        return { remainingEnv, serializedParameters, serializedWorkspaceEnv }
     }
 
 
