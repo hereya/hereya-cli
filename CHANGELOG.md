@@ -1,3 +1,12 @@
+## [0.5.5](https://github.com/hereya/hereya-cli/compare/0.5.4...0.5.5) (2024-06-04)
+
+
+### Bug Fixes
+
+* Update deployment test and replace 'npx' with 'cdk' ([e6fdd66](https://github.com/hereya/hereya-cli/commit/e6fdd6659634caf8a2e983b2a2c79dfcd1d0b941))
+
+
+
 ## [0.5.4](https://github.com/hereya/hereya-cli/compare/0.5.3...0.5.4) (2024-06-04)
 
 
