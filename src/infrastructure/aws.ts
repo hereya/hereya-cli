@@ -251,6 +251,11 @@ export class AwsInfrastructure implements Infrastructure {
                 break;
             }
 
+            case IacType.terraform: {
+                codebuildProjectName = 'hereyaTerraform';
+                break;
+            }
+
             default: {
                 return { reason: `IAC type ${input.iacType} is not supported yet!`, success: false };
             }
