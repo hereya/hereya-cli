@@ -5,6 +5,7 @@ import { ApplyInput, DestroyInput, IacType } from '../../../iac/common.js';
 import { getIac } from '../../../iac/index.js';
 import { InfrastructureType } from '../../../infrastructure/common.js';
 import { getInfrastructure } from '../../../infrastructure/index.js';
+import { base64ToJSONString } from '../../../lib/object-utils.js';
 import { save } from '../../../lib/yaml-utils.js';
 
 export default class RemoteExec extends Command {
@@ -47,6 +48,7 @@ export default class RemoteExec extends Command {
             .filter(param => param.trim())
             .map(param => param.split('=')),
         )
+        parameters.hereyaProjectEnv = parameters.hereyaProjectEnv ? base64ToJSONString(parameters.hereyaProjectEnv) : undefined
         const id = process.env.HEREYA_ID
         const iacType = process.env.HEREYA_IAC_TYPE
         const destroy = process.env.HEREYA_DESTROY === 'true'

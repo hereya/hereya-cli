@@ -10,6 +10,7 @@ import path from 'node:path';
 
 import { IacType } from '../iac/common.js';
 import { fileExists, getAnyPath } from '../lib/filesystem.js';
+import { objectToBase64 } from '../lib/object-utils.js';
 import { runShell } from '../lib/shell.js';
 import {
     BootstrapInput,
@@ -68,7 +69,7 @@ export class AwsInfrastructure implements Infrastructure {
             ({ files, s3Bucket, s3Client, s3Key } = await this.uploadProjectFiles(input));
             input.parameters = {
                 ...input.parameters,
-                hereyaProjectEnv: JSON.stringify(input.projectEnv ?? {}),
+                hereyaProjectEnv: objectToBase64(input.projectEnv),
             }
             const output = await this.runCodeBuild({
                 ...input,
@@ -170,7 +171,7 @@ export class AwsInfrastructure implements Infrastructure {
             ({ files, s3Bucket, s3Client, s3Key } = await this.uploadProjectFiles(input));
             input.parameters = {
                 ...input.parameters,
-                hereyaProjectEnv: JSON.stringify(input.projectEnv ?? {}),
+                hereyaProjectEnv: objectToBase64(input.projectEnv),
             }
             const output = await this.runCodeBuild({
                 ...input,
