@@ -256,6 +256,16 @@ export class AwsInfrastructure implements Infrastructure {
             }
         }
 
+        const ssmClient = new SSMClient({});
+        const parameterName = `/hereya/package-parameters/${input.id}`;
+        await ssmClient.send(new PutParameterCommand({
+            Name: parameterName,
+            Overwrite: true,
+            Type: 'SecureString',
+            Value: Object.entries(input.parameters ?? {}).map(([key, value]) => `${key}=${value}`).join(','),
+
+        }))
+
         const response = await codebuildClient.send(new StartBuildCommand({
             environmentVariablesOverride: [
                 {
@@ -275,8 +285,8 @@ export class AwsInfrastructure implements Infrastructure {
                 },
                 {
                     name: 'HEREYA_PARAMETERS',
-                    type: 'PLAINTEXT',
-                    value: Object.entries(input.parameters ?? {}).map(([key, value]) => `${key}=${value}`).join(','),
+                    type: 'PARAMETER_STORE',
+                    value: parameterName,
                 },
                 {
                     name: 'HEREYA_WORKSPACE_ENV',
@@ -329,6 +339,11 @@ export class AwsInfrastructure implements Infrastructure {
         if (deploymentResult?.buildStatus !== 'SUCCEEDED') {
             return { reason: `Deployment failed with status ${deploymentResult?.buildStatus}`, success: false };
         }
+
+        // remove the parameter
+        await ssmClient.send(new DeleteParameterCommand({
+            Name: parameterName,
+        }));
 
         return { success: true };
     }
