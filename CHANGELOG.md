@@ -1,3 +1,12 @@
+## [0.5.3](https://github.com/hereya/hereya-cli/compare/0.5.2...0.5.3) (2024-06-04)
+
+
+### Bug Fixes
+
+* Refactor implementation of serialized contexts in CDK scripts ([ca58a68](https://github.com/hereya/hereya-cli/commit/ca58a689a7a71ec06d012fe0994f0fc186766fcf))
+
+
+
 ## [0.5.2](https://github.com/hereya/hereya-cli/compare/0.5.1...0.5.2) (2024-06-04)
 
 
