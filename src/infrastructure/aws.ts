@@ -277,13 +277,15 @@ export class AwsInfrastructure implements Infrastructure {
 
         const ssmClient = new SSMClient({});
         const parameterName = `/hereya/package-parameters/${input.id}`;
-        await ssmClient.send(new PutParameterCommand({
-            Name: parameterName,
-            Overwrite: true,
-            Type: 'SecureString',
-            Value: Object.entries(input.parameters ?? {}).map(([key, value]) => `${key}=${value}`).join(','),
-
-        }))
+        const parameterValue = Object.entries(input.parameters ?? {}).map(([key, value]) => `${key}=${value}`).join(',');
+        if (parameterValue) {
+            await ssmClient.send(new PutParameterCommand({
+                Name: parameterName,
+                Overwrite: true,
+                Type: 'SecureString',
+                Value: parameterValue,
+            }))
+        }
 
         const response = await codebuildClient.send(new StartBuildCommand({
             environmentVariablesOverride: [
@@ -304,8 +306,8 @@ export class AwsInfrastructure implements Infrastructure {
                 },
                 {
                     name: 'HEREYA_PARAMETERS',
-                    type: 'PARAMETER_STORE',
-                    value: parameterName,
+                    type: parameterValue ? 'PARAMETER_STORE' : 'PLAINTEXT',
+                    value: parameterValue ? parameterName : '',
                 },
                 {
                     name: 'HEREYA_WORKSPACE_ENV',
