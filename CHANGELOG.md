@@ -1,3 +1,12 @@
+## [0.6.1](https://github.com/hereya/hereya-cli/compare/0.6.0...0.6.1) (2024-06-05)
+
+
+### Bug Fixes
+
+* Add parameter value check in aws.ts ([d0c7006](https://github.com/hereya/hereya-cli/commit/d0c70060d74b768c606202aa10576d88850c3043))
+
+
+
 # [0.6.0](https://github.com/hereya/hereya-cli/compare/0.5.7...0.6.0) (2024-06-05)
 
 
