@@ -362,9 +362,11 @@ export class AwsInfrastructure implements Infrastructure {
         }
 
         // remove the parameter
-        await ssmClient.send(new DeleteParameterCommand({
-            Name: parameterName,
-        }));
+        if (parameterValue) {
+            await ssmClient.send(new DeleteParameterCommand({
+                Name: parameterName,
+            }));
+        }
 
         return { success: true };
     }
