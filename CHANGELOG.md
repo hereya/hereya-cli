@@ -1,3 +1,12 @@
+## [0.6.2](https://github.com/hereya/hereya-cli/compare/0.6.1...0.6.2) (2024-06-05)
+
+
+### Bug Fixes
+
+* Add condition to parameter deletion in AWS ([f5b366e](https://github.com/hereya/hereya-cli/commit/f5b366e507f45e7a48725d48b78107e63c7c8233))
+
+
+
 ## [0.6.1](https://github.com/hereya/hereya-cli/compare/0.6.0...0.6.1) (2024-06-05)
 
 
