@@ -1,5 +1,6 @@
 import { BatchGetBuildsCommand, Build, CodeBuildClient, StartBuildCommand } from '@aws-sdk/client-codebuild';
 import { DeleteObjectsCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { GetSecretValueCommand, SecretsManagerClient } from '@aws-sdk/client-secrets-manager';
 import { DeleteParameterCommand, GetParameterCommand, PutParameterCommand, SSMClient } from '@aws-sdk/client-ssm';
 import { GetCallerIdentityCommand, STSClient } from '@aws-sdk/client-sts';
 import { glob } from 'glob';
@@ -129,6 +130,18 @@ export class AwsInfrastructure implements Infrastructure {
             return {
                 isSecret: response.Parameter?.Type === 'SecureString',
                 value: response.Parameter?.Value ?? input.value
+            };
+        }
+
+        const secretManagerArnPattern = /^arn:aws:secretsmanager:[\da-z-]+:\d{12}:secret:[\w-]+/;
+        const secretManagerClient = new SecretsManagerClient({});
+        if (secretManagerArnPattern.test(input.value)) {
+            const response = await secretManagerClient.send(new GetSecretValueCommand({
+                SecretId: input.value,
+            }));
+            return {
+                isSecret: true,
+                value: response.SecretString ?? input.value
             };
         }
 
