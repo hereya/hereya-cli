@@ -1,3 +1,12 @@
+# [0.6.0](https://github.com/hereya/hereya-cli/compare/0.5.7...0.6.0) (2024-06-05)
+
+
+### Features
+
+* Add Secrets Manager support to AWS infrastructure ([1ade89b](https://github.com/hereya/hereya-cli/commit/1ade89bb0d620f8d5a0314eab77f789cd739cb5d))
+
+
+
 ## [0.5.7](https://github.com/hereya/hereya-cli/compare/0.5.6...0.5.7) (2024-06-04)
 
 
