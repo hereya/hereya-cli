@@ -1,3 +1,12 @@
+## [0.6.3](https://github.com/hereya/hereya-cli/compare/0.6.2...0.6.3) (2024-06-06)
+
+
+### Bug Fixes
+
+* Add arg and flag handling for WorkspaceEnv command ([fe50bed](https://github.com/hereya/hereya-cli/commit/fe50bedb6e07209eefe65a1e90cacb1cdbd6ba26))
+
+
+
 ## [0.6.2](https://github.com/hereya/hereya-cli/compare/0.6.1...0.6.2) (2024-06-05)
 
 
