@@ -1,20 +1,31 @@
-import { Command, Flags } from '@oclif/core'
+import { Args, Command, Flags } from '@oclif/core'
 
 import { getConfigManager } from '../../lib/config/index.js';
 import { getEnvManager } from '../../lib/env/index.js';
 import { logEnv } from '../../lib/env-utils.js';
 
 export default class Env extends Command {
+    static override args = {
+        name: Args.string({ description: 'name of the env to display', required: false }),
+    }
+
     static override description = 'Print project environment variables.'
 
     static override examples = [
         '<%= config.bin %> <%= command.id %>',
+        '<%= config.bin %> <%= command.id %> myEnv',
         '<%= config.bin %> <%= command.id %> -w dev',
+        '<%= config.bin %> <%= command.id %> -w dev -l',
     ]
 
     static flags = {
         chdir: Flags.string({
             description: 'project root directory',
+            required: false,
+        }),
+        list: Flags.boolean({
+            char: 'l',
+            description: 'list only the env vars without values',
             required: false,
         }),
         workspace: Flags.string({
@@ -26,7 +37,7 @@ export default class Env extends Command {
 
 
     public async run(): Promise<void> {
-        const { flags } = await this.parse(Env)
+        const { args, flags } = await this.parse(Env)
 
         const projectRootDir = flags.chdir || process.env.HEREYA_PROJECT_ROOT_DIR
         const configManager = getConfigManager()
@@ -37,7 +48,7 @@ export default class Env extends Command {
         }
 
         const { config } = loadConfigOutput
-        let { workspace } = flags
+        let { list, workspace } = flags
 
         if (!workspace) {
             workspace = config.workspace
@@ -52,6 +63,21 @@ export default class Env extends Command {
             projectRootDir,
             workspace,
         })
+
+        if (args.name) {
+            if (env[args.name] === undefined) {
+                this.error(`Env var ${args.name} not found`)
+            }
+
+            this.log(env[args.name])
+            return
+        }
+
+        if (list) {
+            this.log(Object.keys(env).join('\n'))
+            return
+        }
+
         logEnv(env)
     }
 }
