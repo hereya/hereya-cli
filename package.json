@@ -1,7 +1,7 @@
 {
   "name": "hereya-cli",
   "description": "Infrastructure as Package",
-  "version": "0.6.3",
+  "version": "0.6.4",
   "author": "Hereya Developers",
   "bin": {
     "hereya": "./bin/run.js"

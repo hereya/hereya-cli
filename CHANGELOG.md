@@ -1,3 +1,12 @@
+## [0.6.4](https://github.com/hereya/hereya-cli/compare/0.6.3...0.6.4) (2024-06-06)
+
+
+### Bug Fixes
+
+* Update the Env command to support specific env display and list mode ([08c5fa0](https://github.com/hereya/hereya-cli/commit/08c5fa0879f6ba797bdcd8b493c3dc2f1c6572d6))
+
+
+
 ## [0.6.3](https://github.com/hereya/hereya-cli/compare/0.6.2...0.6.3) (2024-06-06)
 
 
