@@ -30,7 +30,7 @@ import {
     UndeployInput,
     UndeployOutput
 } from './common.js';
-import { provisionPackage } from './index.js';
+import { destroyPackage, provisionPackage } from './index.js';
 
 export class AwsInfrastructure implements Infrastructure {
     async bootstrap(_: BootstrapInput): Promise<void> {
@@ -163,6 +163,24 @@ export class AwsInfrastructure implements Infrastructure {
             return { success: true };
         } catch (error: any) {
             return { reason: error.message, success: false };
+        }
+    }
+
+    async unbootstrap(_: BootstrapInput): Promise<void> {
+        const ssmClient = new SSMClient({});
+        const key = '/hereya-bootstrap/config';
+        try {
+            await ssmClient.send(new DeleteParameterCommand({
+                Name: key,
+            }));
+        } catch (error: any) {
+            console.log(`Could not delete parameter "${key}": ${error.message}. Continuing with unbootstrap...`);
+        }
+
+        const bootstrapPackage = 'hereya/bootstrap-aws-stack';
+        const output = await destroyPackage({ package: bootstrapPackage });
+        if (!output.success) {
+            throw new Error(output.reason);
         }
     }
 

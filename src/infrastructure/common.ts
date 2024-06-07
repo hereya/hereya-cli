@@ -9,13 +9,13 @@ export enum InfrastructureType {
 
 export interface Infrastructure {
     bootstrap(input: BootstrapInput): Promise<void>;
-
     deploy(input: DeployInput): Promise<DeployOutput>;
     destroy(input: DestroyInput): Promise<DestroyOutput>;
     provision(input: ProvisionInput): Promise<ProvisionOutput>;
     resolveEnv(input: ResolveEnvInput): Promise<ResolveEnvOutput>;
     saveEnv(input: SaveEnvInput): Promise<SaveEnvOutput>;
 
+    unbootstrap(input: BootstrapInput): Promise<void>;
     undeploy(input: UndeployInput): Promise<UndeployOutput>;
 }
 

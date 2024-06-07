@@ -89,6 +89,10 @@ export class LocalInfrastructure implements Infrastructure {
         return { success: true };
     }
 
+    async unbootstrap() {
+        console.log('Unbootstrapping local infrastructure');
+    }
+
     async undeploy(input: UndeployInput): Promise<UndeployOutput> {
         input.parameters = {
             ...input.parameters,
