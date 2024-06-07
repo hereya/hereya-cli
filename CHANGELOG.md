@@ -1,3 +1,12 @@
+# [0.7.0](https://github.com/hereya/hereya-cli/compare/0.6.4...0.7.0) (2024-06-07)
+
+
+### Features
+
+* Add unbootstrap functionality for AWS and local infrastructure ([53e1cd0](https://github.com/hereya/hereya-cli/commit/53e1cd0f9991d385ea8d5cef0c0413ce82b65aca))
+
+
+
 ## [0.6.4](https://github.com/hereya/hereya-cli/compare/0.6.3...0.6.4) (2024-06-06)
 
 
