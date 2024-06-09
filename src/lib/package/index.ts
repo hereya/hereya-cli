@@ -34,6 +34,10 @@ export async function resolvePackage(input: ResolvePackageInput): Promise<Resolv
     try {
         const metadata = PackageMetadata.parse(yaml.parse(metadataContent$.content))
 
+        if (!metadata.deploy && metadata.dependencies) {
+            return { found: false, reason: 'Package has dependencies but is not a deploy package' }
+        }
+
         if (input.isDeploying && metadata.onDeploy) {
             return resolvePackage({ package: metadata.onDeploy.pkg })
         }
@@ -76,6 +80,7 @@ export type ResolvePackageOutput = {
 }
 
 export const PackageMetadata = z.object({
+    dependencies: z.record(z.string()).optional(),
     deploy: z.boolean().optional(),
     iac: z.nativeEnum(IacType),
     infra: z.nativeEnum(InfrastructureType),

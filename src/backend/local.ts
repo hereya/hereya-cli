@@ -15,6 +15,8 @@ import {
     CreateWorkspaceOutput,
     DeleteWorkspaceInput,
     DeleteWorkspaceOutput,
+    GetProvisioningIdInput,
+    GetProvisioningIdOutput,
     GetStateInput,
     GetStateOutput,
     GetWorkspaceEnvInput,
@@ -146,6 +148,16 @@ export class LocalBackend implements Backend {
         await fs.rm(workspacePath)
 
         return {
+            success: true,
+        }
+    }
+
+    async getProvisioningId(input: GetProvisioningIdInput): Promise<GetProvisioningIdOutput> {
+        const id = ((input.project || input.workspace) ? [input.project, input.workspace, input.packageCanonicalName] : [input.packageCanonicalName])
+        .filter(Boolean).join('')
+        .replaceAll(/[^\dA-Za-z]/g, '')
+        return {
+            id,
             success: true,
         }
     }
