@@ -1,3 +1,13 @@
+# [0.8.0](https://github.com/hereya/hereya-cli/compare/0.7.0...0.8.0) (2024-06-10)
+
+
+### Features
+
+* Add dependencies handling and provisioning ID support ([f4c0289](https://github.com/hereya/hereya-cli/commit/f4c02894bb6e214c14d9aff921885d0ad99bb6ac))
+* Update tests to consider package dependencies ([572fc29](https://github.com/hereya/hereya-cli/commit/572fc297c4cfc343d5ffaf230482625721261fe8))
+
+
+
 # [0.7.0](https://github.com/hereya/hereya-cli/compare/0.6.4...0.7.0) (2024-06-07)
 
 
