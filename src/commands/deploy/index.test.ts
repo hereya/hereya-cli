@@ -55,6 +55,9 @@ describe('deploy', () => {
                     iac: terraform
                     infra: local
                     deploy: true
+                    dependencies:
+                       cloudy/deploy-dep1: ''
+                       cloudy/deploy-dep2: '0.1.0'
                     `,
                     found: true,
                 }
@@ -114,10 +117,10 @@ describe('deploy', () => {
         expect(stderr).to.contain(`Project not initialized. Run 'hereya init' first.`)
     })
 
-    it('provisions all packages in the project using the deployment companion package when applicable', async () => {
+    it('provisions all packages in the project using the deployment companion package and dependencies when applicable and depl', async () => {
         sinon.stub(envManager, 'addProjectEnv').resolves()
         await runCommand(['deploy', '-w', 'my-workspace'])
-        sinon.assert.calledTwice(localInfrastructure.provision as SinonStub)
+        expect((localInfrastructure.provision as SinonStub).callCount).to.equal(4)
         sinon.assert.calledWithMatch(
             localInfrastructure.provision as SinonStub,
             sinon.match.has('pkgName', 'cloudy/aws-postgres')
@@ -146,7 +149,7 @@ describe('deploy', () => {
         sinon.stub(envManager, 'getProjectEnv').resolves({ env: {} })
         await runCommand(['deploy', '--workspace', 'another-workspace'])
 
-        sinon.assert.calledTwice(localInfrastructure.provision as SinonStub)
+        expect((localInfrastructure.provision as SinonStub).callCount).to.equal(4)
         sinon.assert.alwaysCalledWithMatch(
             localInfrastructure.provision as SinonStub,
             sinon.match.has('env', sinon.match.has('ENV_VAR', 'value'))
@@ -183,11 +186,19 @@ describe('deploy', () => {
             `
         )
         await runCommand(['deploy', '-w', 'my-workspace'])
-        sinon.assert.calledTwice(localInfrastructure.provision as SinonStub)
-        sinon.assert.calledOnce(localInfrastructure.destroy as SinonStub)
+        expect((localInfrastructure.provision as SinonStub).callCount).to.equal(4)
+        expect((localInfrastructure.destroy as SinonStub).callCount).to.equal(3)
         sinon.assert.calledWithMatch(
             localInfrastructure.destroy as SinonStub,
             sinon.match.has('pkgName', 'removed/package')
+        )
+        sinon.assert.calledWithMatch(
+            localInfrastructure.destroy as SinonStub,
+            sinon.match.has('pkgName', 'cloudy/deploy-dep1')
+        )
+        sinon.assert.calledWithMatch(
+            localInfrastructure.destroy as SinonStub,
+            sinon.match.has('pkgName', 'cloudy/deploy-dep2')
         )
         sinon.assert.calledOnce(localInfrastructure.deploy as SinonStub)
         sinon.assert.calledOnce(localInfrastructure.undeploy as SinonStub)

@@ -42,13 +42,19 @@ export class Terraform implements Iac {
     }
 
     async destroy(input: DestroyInput): Promise<DestroyOutput> {
-        const applyOutput = await this.apply(input)
-        if (!applyOutput.success) {
-            return applyOutput
-        }
-
-        const { env } = applyOutput
         try {
+            runShell(
+                'terraform',
+                ['init'],
+                {
+                    directory: input.pkgPath,
+                    env: {
+                        ...input.env,
+                        ...mapObject(input.parameters ?? {}, (key, value) => [`TF_VAR_${key}`, value])
+                    }
+                }
+            )
+            const env = await this.getEnv(input.pkgPath)
             runShell(
                 'terraform',
                 ['destroy', '-auto-approve'],
