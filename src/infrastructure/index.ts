@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { getBackend } from '../backend/index.js';
 import { PackageMetadata, resolvePackage } from '../lib/package/index.js';
 import { AwsInfrastructure } from './aws.js';
 import { Infrastructure, InfrastructureType } from './common.js';
@@ -52,13 +53,22 @@ export async function destroyPackage(input: DestroyPackageInput): Promise<Destro
     }
 
     const { infrastructure } = infrastructure$
+    const backend = await getBackend()
+    const id$ = await backend.getProvisioningId({
+        packageCanonicalName: canonicalName,
+        project: input.project,
+        workspace: input.workspace
+    })
+    if (!id$.success) {
+        return { reason: id$.reason, success: false }
+    }
+
+    const { id } = id$
     const destroyOutput = metadata.deploy ? await infrastructure.undeploy({
         canonicalName,
         env: input.env,
         iacType: metadata.iac,
-        id: ((input.project || input.workspace) ? [input.project, input.workspace, canonicalName] : [canonicalName])
-        .filter(Boolean).join('')
-        .replaceAll(/[^\dA-Za-z]/g, ''),
+        id,
         parameters: input.parameters,
         pkgName,
         pkgUrl: packageUri,
@@ -68,15 +78,26 @@ export async function destroyPackage(input: DestroyPackageInput): Promise<Destro
         canonicalName,
         env: input.env,
         iacType: metadata.iac,
-        id: ((input.project || input.workspace) ? [input.project, input.workspace, canonicalName] : [canonicalName])
-        .filter(Boolean).join('')
-        .replaceAll(/[^\dA-Za-z]/g, ''),
+        id,
         parameters: input.parameters,
         pkgName,
         pkgUrl: packageUri,
     })
     if (!destroyOutput.success) {
         return { reason: destroyOutput.reason, success: false }
+    }
+
+    const dependencies = metadata.dependencies ?? {}
+    const depsOutput = await Promise.all(Object.entries(dependencies).map(async ([depName]) => destroyPackage({
+        ...input,
+        package: depName,
+    })));
+
+    if (!depsOutput.every(output => output.success)) {
+        return {
+            reason: `Failed to destroy all dependencies: ${depsOutput.filter(o => !o.success).map(o => !o.success && o.reason)}`,
+            success: false
+        }
     }
 
     return { env: destroyOutput.env, metadata, success: true }
@@ -100,14 +121,46 @@ export async function provisionPackage(input: ProvisionPackageInput): Promise<Pr
         return { env: {}, metadata, success: true }
     }
 
+    const dependencies = metadata.dependencies ?? {}
+    const depsOutput = await Promise.all(Object.entries(dependencies).map(async ([depName]) => provisionPackage({
+        ...input,
+        package: depName,
+    })));
+
+    if (!depsOutput.every(output => output.success)) {
+        return {
+            reason: `Failed to provision all dependencies: ${depsOutput.filter(o => !o.success).map(o => !o.success && o.reason)}`,
+            success: false
+        }
+    }
+
+    let depsEnv = {}
+    for (const output of depsOutput) {
+        if (output.success) {
+            depsEnv = { ...depsEnv, ...output.env }
+        } else {
+            return { reason: output.reason, success: false }
+        }
+    }
+
     const { infrastructure } = infrastructure$
+    const backend = await getBackend()
+    const id$ = await backend.getProvisioningId({
+        packageCanonicalName: canonicalName,
+        project: input.project,
+        workspace: input.workspace
+    })
+    if (!id$.success) {
+        return { reason: id$.reason, success: false }
+    }
+
+    const { id } = id$
+
     const provisionOutput = metadata.deploy ? await infrastructure.deploy({
         canonicalName,
-        env: input.env,
+        env: { ...input.env, ...depsEnv },
         iacType: metadata.iac,
-        id: ((input.project || input.workspace) ? [input.project, input.workspace, canonicalName] : [canonicalName])
-        .filter(Boolean).join('')
-        .replaceAll(/[^\dA-Za-z]/g, ''),
+        id,
         parameters: input.parameters,
         pkgName,
         pkgUrl: packageUri,
@@ -117,9 +170,7 @@ export async function provisionPackage(input: ProvisionPackageInput): Promise<Pr
         canonicalName,
         env: input.env,
         iacType: metadata.iac,
-        id: ((input.project || input.workspace) ? [input.project, input.workspace, canonicalName] : [canonicalName])
-        .filter(Boolean).join('')
-        .replaceAll(/[^\dA-Za-z]/g, ''),
+        id,
         parameters: input.parameters,
         pkgName,
         pkgUrl: packageUri,

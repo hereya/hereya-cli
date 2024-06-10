@@ -4,8 +4,9 @@ import { Config } from '../lib/config/common.js';
 export interface Backend {
     addPackageToWorkspace(input: AddPackageToWorkspaceInput): Promise<AddPackageToWorkspaceOutput>;
     createWorkspace(input: CreateWorkspaceInput): Promise<CreateWorkspaceOutput>;
-
     deleteWorkspace(input: DeleteWorkspaceInput): Promise<DeleteWorkspaceOutput>;
+
+    getProvisioningId(input: GetProvisioningIdInput): Promise<GetProvisioningIdOutput>;
     getState(input: GetStateInput): Promise<GetStateOutput>;
     getWorkspace(workspace: string): Promise<GetWorkspaceOutput>;
     getWorkspaceEnv(input: GetWorkspaceEnvInput): Promise<GetWorkspaceEnvOutput>;
@@ -120,6 +121,20 @@ export type DeleteWorkspaceInput = {
 
 export type DeleteWorkspaceOutput = {
     message?: string;
+    success: true;
+} | {
+    reason: string;
+    success: false;
+}
+
+export type GetProvisioningIdInput = {
+    packageCanonicalName: string;
+    project?: string;
+    workspace?: string;
+}
+
+export type GetProvisioningIdOutput = {
+    id: string;
     success: true;
 } | {
     reason: string;

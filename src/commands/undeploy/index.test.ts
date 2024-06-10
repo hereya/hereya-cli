@@ -52,6 +52,9 @@ describe('undeploy', () => {
                 iac: terraform
                 infra: local
                 deploy: true
+                dependencies:
+                   cloudy/dep1: ''
+                   cloudy/dep2: '0.1.0'
                 `,
                     found: true,
                 }
@@ -116,7 +119,7 @@ describe('undeploy', () => {
 
         await runCommand(['undeploy', '-w', 'my-workspace'])
 
-        sinon.assert.calledTwice(localInfrastructure.destroy as SinonStub)
+        expect((localInfrastructure.destroy as SinonStub).callCount).to.equal(4)
         sinon.assert.calledWithMatch(
             localInfrastructure.destroy as SinonStub,
             sinon.match.has('pkgName', 'cloudy/aws-postgres')
@@ -140,7 +143,7 @@ describe('undeploy', () => {
         sinon.stub(envManager, 'getProjectEnv').resolves({ env: {} })
         await runCommand(['undeploy', '--workspace', 'another-workspace'])
 
-        sinon.assert.calledTwice(localInfrastructure.destroy as SinonStub)
+        expect((localInfrastructure.destroy as SinonStub).callCount).to.equal(4)
         sinon.assert.calledWithMatch(
             envManager.removeProjectEnv as SinonStub,
             sinon.match.has('workspace', 'another-workspace')
