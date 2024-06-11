@@ -120,32 +120,37 @@ export class AwsInfrastructure implements Infrastructure {
     }
 
     async resolveEnv(input: ResolveEnvInput): Promise<ResolveEnvOutput> {
-        const parameterStoreArnPattern = /^arn:aws:ssm:[\da-z-]+:\d{12}:parameter\/[\w./-]+$/;
-        const ssmClient = new SSMClient({});
-        if (parameterStoreArnPattern.test(input.value)) {
-            const response = await ssmClient.send(new GetParameterCommand({
-                Name: input.value,
-                WithDecryption: true,
-            }));
-            return {
-                isSecret: response.Parameter?.Type === 'SecureString',
-                value: response.Parameter?.Value ?? input.value
-            };
-        }
+        try {
+            const parameterStoreArnPattern = /^arn:aws:ssm:[\da-z-]+:\d{12}:parameter\/[\w./-]+$/;
+            const ssmClient = new SSMClient({});
+            if (parameterStoreArnPattern.test(input.value)) {
+                const response = await ssmClient.send(new GetParameterCommand({
+                    Name: input.value,
+                    WithDecryption: true,
+                }));
+                return {
+                    isSecret: response.Parameter?.Type === 'SecureString',
+                    value: response.Parameter?.Value ?? input.value
+                };
+            }
 
-        const secretManagerArnPattern = /^arn:aws:secretsmanager:[\da-z-]+:\d{12}:secret:[\w-]+/;
-        const secretManagerClient = new SecretsManagerClient({});
-        if (secretManagerArnPattern.test(input.value)) {
-            const response = await secretManagerClient.send(new GetSecretValueCommand({
-                SecretId: input.value,
-            }));
-            return {
-                isSecret: true,
-                value: response.SecretString ?? input.value
-            };
-        }
+            const secretManagerArnPattern = /^arn:aws:secretsmanager:[\da-z-]+:\d{12}:secret:[\w-]+/;
+            const secretManagerClient = new SecretsManagerClient({});
+            if (secretManagerArnPattern.test(input.value)) {
+                const response = await secretManagerClient.send(new GetSecretValueCommand({
+                    SecretId: input.value,
+                }));
+                return {
+                    isSecret: true,
+                    value: response.SecretString ?? input.value
+                };
+            }
 
-        return { value: input.value };
+            return { value: input.value };
+        } catch (error: any) {
+            console.warn(`Could not resolve value "${input.value}": ${error.message}. Will return the original value.`)
+            return { value: input.value };
+        }
     }
 
     async saveEnv(input: SaveEnvInput): Promise<SaveEnvOutput> {
