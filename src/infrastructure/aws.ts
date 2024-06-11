@@ -308,6 +308,7 @@ export class AwsInfrastructure implements Infrastructure {
                 Type: 'SecureString',
                 Value: parameterValue,
             }))
+
         }
 
         const response = await codebuildClient.send(new StartBuildCommand({
