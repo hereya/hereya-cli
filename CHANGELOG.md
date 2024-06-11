@@ -1,3 +1,12 @@
+## [0.8.1](https://github.com/hereya/hereya-cli/compare/0.8.0...0.8.1) (2024-06-11)
+
+
+### Bug Fixes
+
+* Add space to enhance code readability in aws.ts ([987faab](https://github.com/hereya/hereya-cli/commit/987faab0739bef150c434197b909fed6a9009ba4))
+
+
+
 # [0.8.0](https://github.com/hereya/hereya-cli/compare/0.7.0...0.8.0) (2024-06-10)
 
 
