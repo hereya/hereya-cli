@@ -1,3 +1,12 @@
+## [0.8.2](https://github.com/hereya/hereya-cli/compare/0.8.1...0.8.2) (2024-06-28)
+
+
+### Bug Fixes
+
+* Add Terraform binary downloading support ([98b48b2](https://github.com/hereya/hereya-cli/commit/98b48b252b76a7edb5d388dac1dc64158351d240))
+
+
+
 ## [0.8.1](https://github.com/hereya/hereya-cli/compare/0.8.0...0.8.1) (2024-06-11)
 
 
