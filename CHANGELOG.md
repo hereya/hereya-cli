@@ -1,3 +1,12 @@
+## [0.8.3](https://github.com/hereya/hereya-cli/compare/0.8.2...0.8.3) (2024-06-28)
+
+
+### Bug Fixes
+
+* Use AWS_DEFAULT_REGION as fallback for AWS_REGION ([b5b3d2c](https://github.com/hereya/hereya-cli/commit/b5b3d2cf4d6206a703e3a82bb2f20f432fb1c37b)), closes [#10](https://github.com/hereya/hereya-cli/issues/10)
+
+
+
 ## [0.8.2](https://github.com/hereya/hereya-cli/compare/0.8.1...0.8.2) (2024-06-28)
 
 
