@@ -36,7 +36,7 @@ export class AwsInfrastructure implements Infrastructure {
     async bootstrap(_: BootstrapInput): Promise<void> {
         const stsClient = new STSClient({});
         const { Account: accountId } = await stsClient.send(new GetCallerIdentityCommand({}));
-        const region = process.env.AWS_REGION;
+        const region = process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION;
 
         runShell('npx', ['cdk', 'bootstrap', `aws://${accountId}/${region}`])
 
