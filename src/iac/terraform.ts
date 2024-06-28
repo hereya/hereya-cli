@@ -108,6 +108,7 @@ export class Terraform implements Iac {
 
         const tfPath = this.terraformBinPath()
 
+
         try {
             await fs.promises.access(tfPath, fs.constants.X_OK)
             return false
