@@ -300,7 +300,7 @@ export class AwsInfrastructure implements Infrastructure {
 
         const ssmClient = new SSMClient({});
         const parameterName = `/hereya/package-parameters/${input.id}`;
-        const parameterValue = Object.entries(input.parameters ?? {}).map(([key, value]) => `${key}=${JSON.stringify(value)}`).join(',');
+        const parameterValue = Object.entries(input.parameters ?? {}).map(([key, value]) => `${key}=${typeof value === "object" ? JSON.stringify(value) : value}`).join(',');
         if (parameterValue) {
             await ssmClient.send(new PutParameterCommand({
                 Name: parameterName,
@@ -336,7 +336,7 @@ export class AwsInfrastructure implements Infrastructure {
                 {
                     name: 'HEREYA_WORKSPACE_ENV',
                     type: 'PLAINTEXT',
-                    value: Object.entries(input.env ?? {}).map(([key, value]) => `${key}=${JSON.stringify(value)}`).join(','),
+                    value: Object.entries(input.env ?? {}).map(([key, value]) => `${key}=${typeof value === "object" ? JSON.stringify(value) : value}`).join(','),
                 },
                 {
                     name: 'PKG_REPO_URL',

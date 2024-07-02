@@ -20,9 +20,9 @@ export class Terraform implements Iac {
                 {
                     directory: input.pkgPath,
                     env: {
-                        ...mapObject(input.env ?? {}, (key, value) => [`TF_VAR_${key}`, value]),
+                        ...mapObject(input.env ?? {}, (key, value) => [`TF_VAR_${key}`, typeof value === "object" ? JSON.stringify(value) : value]),
                         ...input.env,
-                        ...mapObject(input.parameters ?? {}, (key, value) => [`TF_VAR_${key}`, value])
+                        ...mapObject(input.parameters ?? {}, (key, value) => [`TF_VAR_${key}`, typeof value === "object" ? JSON.stringify(value) : value])
                     }
                 }
             )
@@ -32,9 +32,9 @@ export class Terraform implements Iac {
                 {
                     directory: input.pkgPath,
                     env: {
-                        ...mapObject(input.env ?? {}, (key, value) => [`TF_VAR_${key}`, value]),
+                        ...mapObject(input.env ?? {}, (key, value) => [`TF_VAR_${key}`, typeof value === "object" ? JSON.stringify(value) : value]),
                         ...input.env,
-                        ...mapObject(input.parameters ?? {}, (key, value) => [`TF_VAR_${key}`, value])
+                        ...mapObject(input.parameters ?? {}, (key, value) => [`TF_VAR_${key}`, typeof value === "object" ? JSON.stringify(value) : value])
                     }
                 }
             )
@@ -61,9 +61,9 @@ export class Terraform implements Iac {
                 {
                     directory: input.pkgPath,
                     env: {
-                        ...mapObject(input.env ?? {}, (key, value) => [`TF_VAR_${key}`, value]),
+                        ...mapObject(input.env ?? {}, (key, value) => [`TF_VAR_${key}`, typeof value === "object" ? JSON.stringify(value) : value]),
                         ...input.env,
-                        ...mapObject(input.parameters ?? {}, (key, value) => [`TF_VAR_${key}`, value])
+                        ...mapObject(input.parameters ?? {}, (key, value) => [`TF_VAR_${key}`, typeof value === "object" ? JSON.stringify(value) : value])
                     }
                 }
             )
@@ -74,9 +74,9 @@ export class Terraform implements Iac {
                 {
                     directory: input.pkgPath,
                     env: {
-                        ...mapObject(input.env ?? {}, (key, value) => [`TF_VAR_${key}`, value]),
+                        ...mapObject(input.env ?? {}, (key, value) => [`TF_VAR_${key}`, typeof value === "object" ? JSON.stringify(value) : value]),
                         ...input.env,
-                        ...mapObject(input.parameters ?? {}, (key, value) => [`TF_VAR_${key}`, value])
+                        ...mapObject(input.parameters ?? {}, (key, value) => [`TF_VAR_${key}`, typeof value === "object" ? JSON.stringify(value) : value])
                     }
                 }
             )
