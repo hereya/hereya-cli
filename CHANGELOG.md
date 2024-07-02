@@ -1,3 +1,12 @@
+## [0.8.5](https://github.com/hereya/hereya-cli/compare/0.8.4...0.8.5) (2024-07-02)
+
+
+### Bug Fixes
+
+* Update parameter formatting in AWS script ([4d5ff1e](https://github.com/hereya/hereya-cli/commit/4d5ff1e09ab1ff556251bab002e2fc88ba6280f7))
+
+
+
 ## [0.8.4](https://github.com/hereya/hereya-cli/compare/0.8.3...0.8.4) (2024-07-02)
 
 
