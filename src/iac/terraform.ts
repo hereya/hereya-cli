@@ -20,6 +20,7 @@ export class Terraform implements Iac {
                 {
                     directory: input.pkgPath,
                     env: {
+                        ...mapObject(input.env ?? {}, (key, value) => [`TF_VAR_${key}`, value]),
                         ...input.env,
                         ...mapObject(input.parameters ?? {}, (key, value) => [`TF_VAR_${key}`, value])
                     }
@@ -31,6 +32,7 @@ export class Terraform implements Iac {
                 {
                     directory: input.pkgPath,
                     env: {
+                        ...mapObject(input.env ?? {}, (key, value) => [`TF_VAR_${key}`, value]),
                         ...input.env,
                         ...mapObject(input.parameters ?? {}, (key, value) => [`TF_VAR_${key}`, value])
                     }
@@ -59,6 +61,7 @@ export class Terraform implements Iac {
                 {
                     directory: input.pkgPath,
                     env: {
+                        ...mapObject(input.env ?? {}, (key, value) => [`TF_VAR_${key}`, value]),
                         ...input.env,
                         ...mapObject(input.parameters ?? {}, (key, value) => [`TF_VAR_${key}`, value])
                     }
@@ -71,6 +74,7 @@ export class Terraform implements Iac {
                 {
                     directory: input.pkgPath,
                     env: {
+                        ...mapObject(input.env ?? {}, (key, value) => [`TF_VAR_${key}`, value]),
                         ...input.env,
                         ...mapObject(input.parameters ?? {}, (key, value) => [`TF_VAR_${key}`, value])
                     }
