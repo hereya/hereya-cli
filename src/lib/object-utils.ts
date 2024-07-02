@@ -16,3 +16,16 @@ export function objectToBase64(obj: object): string {
 export function base64ToJSONString(base64: string): string {
     return Buffer.from(base64, 'base64').toString('utf8')
 }
+
+export function tryBase64ToJSONString(base64: string): string {
+    try {
+        const value = base64ToJSONString(base64)
+        if (typeof JSON.parse(value) === 'object') {
+            return value
+        }
+
+        return base64
+    } catch {
+        return base64
+    }
+}

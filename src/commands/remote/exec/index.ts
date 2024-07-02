@@ -5,7 +5,7 @@ import { ApplyInput, DestroyInput, IacType } from '../../../iac/common.js';
 import { getIac } from '../../../iac/index.js';
 import { InfrastructureType } from '../../../infrastructure/common.js';
 import { getInfrastructure } from '../../../infrastructure/index.js';
-import { base64ToJSONString } from '../../../lib/object-utils.js';
+import { base64ToJSONString, tryBase64ToJSONString } from '../../../lib/object-utils.js';
 import { save } from '../../../lib/yaml-utils.js';
 
 export default class RemoteExec extends Command {
@@ -41,14 +41,16 @@ export default class RemoteExec extends Command {
         const workspaceEnv = Object.fromEntries(
             (process.env.HEREYA_WORKSPACE_ENV?.split(',') ?? [])
             .filter(param => param.trim())
-            .map(param => param.split('=')),
+            .map(param => param.split('='))
+            .map(([key, value]) => [key, tryBase64ToJSONString(value)])
         )
-        const parameters = Object.fromEntries(
+        const parameters: { [p: string]: string } = Object.fromEntries(
             (process.env.HEREYA_PARAMETERS?.split(',') ?? [])
             .filter(param => param.trim())
-            .map(param => param.split('=')),
+            .map(param => param.split('='))
+            .map(([key, value]) => [key, tryBase64ToJSONString(value)]),
         )
-        parameters.hereyaProjectEnv = parameters.hereyaProjectEnv ? base64ToJSONString(parameters.hereyaProjectEnv) : undefined
+        parameters.hereyaProjectEnv = parameters.hereyaProjectEnv ? base64ToJSONString(parameters.hereyaProjectEnv) : ''
         const id = process.env.HEREYA_ID
         const iacType = process.env.HEREYA_IAC_TYPE
         const destroy = process.env.HEREYA_DESTROY === 'true'
