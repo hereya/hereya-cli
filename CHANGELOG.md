@@ -1,3 +1,12 @@
+## [0.8.4](https://github.com/hereya/hereya-cli/compare/0.8.3...0.8.4) (2024-07-02)
+
+
+### Bug Fixes
+
+* Add mapping for terraform variables in env ([02e957b](https://github.com/hereya/hereya-cli/commit/02e957b2e5c121fdbfda7d3292c96da451324537))
+
+
+
 ## [0.8.3](https://github.com/hereya/hereya-cli/compare/0.8.2...0.8.3) (2024-06-28)
 
 
