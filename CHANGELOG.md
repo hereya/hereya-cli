@@ -1,3 +1,12 @@
+## [0.8.6](https://github.com/hereya/hereya-cli/compare/0.8.5...0.8.6) (2024-07-02)
+
+
+### Bug Fixes
+
+* Refactor parameter and environment variables handling ([8f4ae5a](https://github.com/hereya/hereya-cli/commit/8f4ae5ac43c06d399464ffde19959c9ee52f2aa5))
+
+
+
 ## [0.8.5](https://github.com/hereya/hereya-cli/compare/0.8.4...0.8.5) (2024-07-02)
 
 
