@@ -1,3 +1,12 @@
+## [0.8.7](https://github.com/hereya/hereya-cli/compare/0.8.6...0.8.7) (2024-07-02)
+
+
+### Bug Fixes
+
+* Implement Base64 encoding for object values ([1f9ebd9](https://github.com/hereya/hereya-cli/commit/1f9ebd9acea3b57933ecfbaa25526f76c409bfb8))
+
+
+
 ## [0.8.6](https://github.com/hereya/hereya-cli/compare/0.8.5...0.8.6) (2024-07-02)
 
 
