@@ -1,3 +1,12 @@
+## [0.9.1](https://github.com/hereya/hereya-cli/compare/0.9.0...0.9.1) (2024-07-07)
+
+
+### Bug Fixes
+
+* Add utility functions for object and base64 manipulations ([bd14172](https://github.com/hereya/hereya-cli/commit/bd14172b699fde442cc20753eedf2543eaa87128))
+
+
+
 # [0.9.0](https://github.com/hereya/hereya-cli/compare/0.8.7...0.9.0) (2024-07-07)
 
 
