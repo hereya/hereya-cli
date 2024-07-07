@@ -14,12 +14,14 @@ export function objectToBase64(obj: object): string {
 }
 
 export function base64ToJSONString(base64: string): string {
-    return Buffer.from(base64, 'base64').toString('utf8')
+    // without padding
+    return Buffer.from(base64.replace(/=*$/, ''), 'base64').toString('utf8')
 }
 
 export function tryBase64ToJSONString(base64: string): string {
     try {
-        const value = base64ToJSONString(base64)
+        const paddedBase64 = base64.padEnd(base64.length + (4 - base64.length % 4) % 4, '=')
+        const value = base64ToJSONString(paddedBase64)
         if (typeof JSON.parse(value) === 'object') {
             return value
         }
