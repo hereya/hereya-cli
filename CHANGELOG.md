@@ -1,3 +1,12 @@
+## [0.9.2](https://github.com/hereya/hereya-cli/compare/0.9.1...0.9.2) (2024-07-08)
+
+
+### Bug Fixes
+
+* fix env serialization ([ead46f6](https://github.com/hereya/hereya-cli/commit/ead46f6014ac5877c39eb386d46ac518af3c25ad))
+
+
+
 ## [0.9.1](https://github.com/hereya/hereya-cli/compare/0.9.0...0.9.1) (2024-07-07)
 
 
