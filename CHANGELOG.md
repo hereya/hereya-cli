@@ -1,3 +1,12 @@
+# [0.10.0](https://github.com/hereya/hereya-cli/compare/0.9.2...0.10.0) (2024-07-08)
+
+
+### Features
+
+* Add new commands for setting and unsetting workspace environment variables ([f163c8a](https://github.com/hereya/hereya-cli/commit/f163c8a36051d662911d766e6e2577e818cc58d2))
+
+
+
 ## [0.9.2](https://github.com/hereya/hereya-cli/compare/0.9.1...0.9.2) (2024-07-08)
 
 

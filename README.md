@@ -20,7 +20,7 @@ $ npm install -g hereya-cli
 $ hereya COMMAND
 running command...
 $ hereya (--version)
-hereya-cli/0.9.2 linux-x64 node-v18.20.3
+hereya-cli/0.10.0 linux-x64 node-v18.20.3
 $ hereya --help [COMMAND]
 USAGE
   $ hereya COMMAND
@@ -45,6 +45,8 @@ USAGE
 * [`hereya workspace create NAME`](#hereya-workspace-create-name)
 * [`hereya workspace delete NAME`](#hereya-workspace-delete-name)
 * [`hereya workspace env [NAME]`](#hereya-workspace-env-name)
+* [`hereya workspace env set`](#hereya-workspace-env-set)
+* [`hereya workspace env unset`](#hereya-workspace-env-unset)
 * [`hereya workspace install PACKAGE`](#hereya-workspace-install-package)
 * [`hereya workspace uninstall PACKAGE`](#hereya-workspace-uninstall-package)
 
@@ -71,7 +73,7 @@ EXAMPLES
   $ hereya add cloudy/docker_postgres
 ```
 
-_See code: [src/commands/add/index.ts](https://github.com/hereya/hereya-cli/blob/0.9.2/src/commands/add/index.ts)_
+_See code: [src/commands/add/index.ts](https://github.com/hereya/hereya-cli/blob/0.10.0/src/commands/add/index.ts)_
 
 ## `hereya bootstrap INFRASTRUCTURETYPE`
 
@@ -96,7 +98,7 @@ EXAMPLES
   $ hereya bootstrap local
 ```
 
-_See code: [src/commands/bootstrap/index.ts](https://github.com/hereya/hereya-cli/blob/0.9.2/src/commands/bootstrap/index.ts)_
+_See code: [src/commands/bootstrap/index.ts](https://github.com/hereya/hereya-cli/blob/0.10.0/src/commands/bootstrap/index.ts)_
 
 ## `hereya deploy`
 
@@ -117,7 +119,7 @@ EXAMPLES
   $ hereya deploy
 ```
 
-_See code: [src/commands/deploy/index.ts](https://github.com/hereya/hereya-cli/blob/0.9.2/src/commands/deploy/index.ts)_
+_See code: [src/commands/deploy/index.ts](https://github.com/hereya/hereya-cli/blob/0.10.0/src/commands/deploy/index.ts)_
 
 ## `hereya down`
 
@@ -139,7 +141,7 @@ EXAMPLES
   $ hereya down
 ```
 
-_See code: [src/commands/down/index.ts](https://github.com/hereya/hereya-cli/blob/0.9.2/src/commands/down/index.ts)_
+_See code: [src/commands/down/index.ts](https://github.com/hereya/hereya-cli/blob/0.10.0/src/commands/down/index.ts)_
 
 ## `hereya env [NAME]`
 
@@ -170,7 +172,7 @@ EXAMPLES
   $ hereya env -w dev -l
 ```
 
-_See code: [src/commands/env/index.ts](https://github.com/hereya/hereya-cli/blob/0.9.2/src/commands/env/index.ts)_
+_See code: [src/commands/env/index.ts](https://github.com/hereya/hereya-cli/blob/0.10.0/src/commands/env/index.ts)_
 
 ## `hereya help [COMMAND]`
 
@@ -216,7 +218,7 @@ EXAMPLES
   $ hereya init myProject -w=defaultWorkspace --chdir=./myProject
 ```
 
-_See code: [src/commands/init/index.ts](https://github.com/hereya/hereya-cli/blob/0.9.2/src/commands/init/index.ts)_
+_See code: [src/commands/init/index.ts](https://github.com/hereya/hereya-cli/blob/0.10.0/src/commands/init/index.ts)_
 
 ## `hereya remote exec [PKGPATH]`
 
@@ -240,7 +242,7 @@ EXAMPLES
   $ hereya remote exec
 ```
 
-_See code: [src/commands/remote/exec/index.ts](https://github.com/hereya/hereya-cli/blob/0.9.2/src/commands/remote/exec/index.ts)_
+_See code: [src/commands/remote/exec/index.ts](https://github.com/hereya/hereya-cli/blob/0.10.0/src/commands/remote/exec/index.ts)_
 
 ## `hereya remove PACKAGE`
 
@@ -263,7 +265,7 @@ EXAMPLES
   $ hereya remove cloudy/docker_postgres
 ```
 
-_See code: [src/commands/remove/index.ts](https://github.com/hereya/hereya-cli/blob/0.9.2/src/commands/remove/index.ts)_
+_See code: [src/commands/remove/index.ts](https://github.com/hereya/hereya-cli/blob/0.10.0/src/commands/remove/index.ts)_
 
 ## `hereya run CMD`
 
@@ -289,7 +291,7 @@ EXAMPLES
   $ hereya run -w uat -- node index.js
 ```
 
-_See code: [src/commands/run/index.ts](https://github.com/hereya/hereya-cli/blob/0.9.2/src/commands/run/index.ts)_
+_See code: [src/commands/run/index.ts](https://github.com/hereya/hereya-cli/blob/0.10.0/src/commands/run/index.ts)_
 
 ## `hereya unbootstrap INFRASTRUCTURETYPE`
 
@@ -314,7 +316,7 @@ EXAMPLES
   $ hereya unbootstrap local
 ```
 
-_See code: [src/commands/unbootstrap/index.ts](https://github.com/hereya/hereya-cli/blob/0.9.2/src/commands/unbootstrap/index.ts)_
+_See code: [src/commands/unbootstrap/index.ts](https://github.com/hereya/hereya-cli/blob/0.10.0/src/commands/unbootstrap/index.ts)_
 
 ## `hereya undeploy`
 
@@ -335,7 +337,7 @@ EXAMPLES
   $ hereya undeploy
 ```
 
-_See code: [src/commands/undeploy/index.ts](https://github.com/hereya/hereya-cli/blob/0.9.2/src/commands/undeploy/index.ts)_
+_See code: [src/commands/undeploy/index.ts](https://github.com/hereya/hereya-cli/blob/0.10.0/src/commands/undeploy/index.ts)_
 
 ## `hereya up`
 
@@ -357,7 +359,7 @@ EXAMPLES
   $ hereya up
 ```
 
-_See code: [src/commands/up/index.ts](https://github.com/hereya/hereya-cli/blob/0.9.2/src/commands/up/index.ts)_
+_See code: [src/commands/up/index.ts](https://github.com/hereya/hereya-cli/blob/0.10.0/src/commands/up/index.ts)_
 
 ## `hereya workspace create NAME`
 
@@ -377,7 +379,7 @@ EXAMPLES
   $ hereya workspace create dev
 ```
 
-_See code: [src/commands/workspace/create/index.ts](https://github.com/hereya/hereya-cli/blob/0.9.2/src/commands/workspace/create/index.ts)_
+_See code: [src/commands/workspace/create/index.ts](https://github.com/hereya/hereya-cli/blob/0.10.0/src/commands/workspace/create/index.ts)_
 
 ## `hereya workspace delete NAME`
 
@@ -397,7 +399,7 @@ EXAMPLES
   $ hereya workspace delete dev
 ```
 
-_See code: [src/commands/workspace/delete/index.ts](https://github.com/hereya/hereya-cli/blob/0.9.2/src/commands/workspace/delete/index.ts)_
+_See code: [src/commands/workspace/delete/index.ts](https://github.com/hereya/hereya-cli/blob/0.10.0/src/commands/workspace/delete/index.ts)_
 
 ## `hereya workspace env [NAME]`
 
@@ -423,7 +425,52 @@ EXAMPLES
   $ hereya workspace env myEnv -w dev
 ```
 
-_See code: [src/commands/workspace/env/index.ts](https://github.com/hereya/hereya-cli/blob/0.9.2/src/commands/workspace/env/index.ts)_
+_See code: [src/commands/workspace/env/index.ts](https://github.com/hereya/hereya-cli/blob/0.10.0/src/commands/workspace/env/index.ts)_
+
+## `hereya workspace env set`
+
+set an env var for a workspace
+
+```
+USAGE
+  $ hereya workspace env set -i <value> -n <value> -v <value> -w <value> [-s]
+
+FLAGS
+  -i, --infra=<value>      (required) the infrastructure to store the env var in
+  -n, --name=<value>       (required) name of the env var to set
+  -s, --sensitive          whether the env var is sensitive
+  -v, --value=<value>      (required) value of the env var to set
+  -w, --workspace=<value>  (required) name of the workspace to set an env var for
+
+DESCRIPTION
+  set an env var for a workspace
+
+EXAMPLES
+  $ hereya workspace env set -w my-workspace -n myVar -v my-value -i aws -s
+```
+
+_See code: [src/commands/workspace/env/set/index.ts](https://github.com/hereya/hereya-cli/blob/0.10.0/src/commands/workspace/env/set/index.ts)_
+
+## `hereya workspace env unset`
+
+unset an env var for a workspace
+
+```
+USAGE
+  $ hereya workspace env unset -n <value> -w <value>
+
+FLAGS
+  -n, --name=<value>       (required) name of the env var to unset
+  -w, --workspace=<value>  (required) name of the workspace to unset an env var for
+
+DESCRIPTION
+  unset an env var for a workspace
+
+EXAMPLES
+  $ hereya workspace env unset -w my-workspace -n myVar
+```
+
+_See code: [src/commands/workspace/env/unset/index.ts](https://github.com/hereya/hereya-cli/blob/0.10.0/src/commands/workspace/env/unset/index.ts)_
 
 ## `hereya workspace install PACKAGE`
 
@@ -449,7 +496,7 @@ EXAMPLES
   $ hereya workspace install hereya/aws-cognito
 ```
 
-_See code: [src/commands/workspace/install/index.ts](https://github.com/hereya/hereya-cli/blob/0.9.2/src/commands/workspace/install/index.ts)_
+_See code: [src/commands/workspace/install/index.ts](https://github.com/hereya/hereya-cli/blob/0.10.0/src/commands/workspace/install/index.ts)_
 
 ## `hereya workspace uninstall PACKAGE`
 
@@ -475,5 +522,5 @@ EXAMPLES
   $ hereya workspace uninstall hereya/aws-cognito
 ```
 
-_See code: [src/commands/workspace/uninstall/index.ts](https://github.com/hereya/hereya-cli/blob/0.9.2/src/commands/workspace/uninstall/index.ts)_
+_See code: [src/commands/workspace/uninstall/index.ts](https://github.com/hereya/hereya-cli/blob/0.10.0/src/commands/workspace/uninstall/index.ts)_
 <!-- commandsstop -->
