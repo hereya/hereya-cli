@@ -1,8 +1,8 @@
-import { Backend } from './common.js';
-import { LocalBackend } from './local.js';
+import {Backend} from './common.js'
+import {LocalBackend} from './local.js'
 
-export const localBackend = new LocalBackend();
+export const localBackend = new LocalBackend()
 
 export async function getBackend(): Promise<Backend> {
-    return localBackend;
+  return localBackend
 }
