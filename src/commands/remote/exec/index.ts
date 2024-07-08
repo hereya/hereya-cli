@@ -50,7 +50,6 @@ export default class RemoteExec extends Command {
             .map(param => param.split('='))
             .map(([key, value]) => [key, tryBase64ToJSONString(value)]),
         )
-        parameters.hereyaProjectEnv = parameters.hereyaProjectEnv ? base64ToJSONString(parameters.hereyaProjectEnv) : ''
         const id = process.env.HEREYA_ID
         const iacType = process.env.HEREYA_IAC_TYPE
         const destroy = process.env.HEREYA_DESTROY === 'true'
