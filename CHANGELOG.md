@@ -1,3 +1,12 @@
+# [0.11.0](https://github.com/hereya/hereya-cli/compare/0.10.0...0.11.0) (2025-01-17)
+
+
+### Features
+
+* prepare for release ([cd3c658](https://github.com/hereya/hereya-cli/commit/cd3c658d8774910a3d9a86fef809b99118bf491a))
+
+
+
 # [0.10.0](https://github.com/hereya/hereya-cli/compare/0.9.2...0.10.0) (2024-07-08)
 
 
