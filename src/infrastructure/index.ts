@@ -139,7 +139,7 @@ export async function provisionPackage(input: ProvisionPackageInput): Promise<Pr
         if (output.success) {
             depsEnv = { ...depsEnv, ...output.env }
         } else {
-            return { reason: output.reason, success: false }
+            return { reason: (output as any).reason, success: false }
         }
     }
 

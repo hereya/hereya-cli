@@ -1,4 +1,4 @@
-import { access, constants } from 'node:fs/promises';
+import { access, constants, readdir } from 'node:fs/promises';
 
 export async function getAnyPath(...candidates: string[]) {
     const checkAccess = async (index: number): Promise<string> => {
@@ -23,3 +23,12 @@ export async function fileExists(filePath: string) {
         return false;
     }
 }
+
+export async function isNotEmpty(directoryPath: string) {
+    try {
+      const files = await readdir(directoryPath)
+      return files.length > 0
+    } catch {
+      return false
+    }
+  }

@@ -1,28 +1,35 @@
 export interface Iac {
-    apply(input: ApplyInput): Promise<ApplyOutput>;
+  apply(input: ApplyInput): Promise<ApplyOutput>
 
-    destroy(input: DestroyInput): Promise<DestroyOutput>;
+  destroy(input: DestroyInput): Promise<DestroyOutput>
 }
 
 export enum IacType {
-    cdk = 'cdk',
-    terraform = 'terraform',
+  cdk = 'cdk',
+  terraform = 'terraform',
 }
 
 export type ApplyInput = {
-    env: { [key: string]: string };
-    id: string;
-    parameters?: { [key: string]: string };
-    pkgPath: string;
+  env: {[key: string]: string}
+  id: string
+  infraConfig?: {
+    terraformStateBucketName: string
+    terraformStateBucketRegion?: string
+    terraformStateLockTableName: string
+  }
+  parameters?: {[key: string]: string}
+  pkgPath: string
 }
 
-export type ApplyOutput = {
-    env: { [key: string]: string };
-    success: true;
-} | {
-    reason: string;
-    success: false;
-}
+export type ApplyOutput =
+  | {
+      env: {[key: string]: string}
+      success: true
+    }
+  | {
+      reason: string
+      success: false
+    }
 
-export type DestroyInput = ApplyInput;
-export type DestroyOutput = ApplyOutput;
+export type DestroyInput = ApplyInput
+export type DestroyOutput = ApplyOutput

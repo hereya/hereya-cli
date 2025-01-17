@@ -1,18 +1,14 @@
-import {BatchGetBuildsCommand, Build, CodeBuildClient, StartBuildCommand} from '@aws-sdk/client-codebuild'
-import {DeleteObjectsCommand, PutObjectCommand, S3Client} from '@aws-sdk/client-s3'
-import {GetSecretValueCommand, SecretsManagerClient} from '@aws-sdk/client-secrets-manager'
-import {DeleteParameterCommand, GetParameterCommand, PutParameterCommand, SSMClient} from '@aws-sdk/client-ssm'
-import {GetCallerIdentityCommand, STSClient} from '@aws-sdk/client-sts'
-import {glob} from 'glob'
-import ignore from 'ignore'
-import {randomUUID} from 'node:crypto'
+import { GetSecretValueCommand, SecretsManagerClient } from '@aws-sdk/client-secrets-manager'
+import { DeleteParameterCommand, GetParameterCommand, PutParameterCommand, SSMClient } from '@aws-sdk/client-ssm'
+import { GetCallerIdentityCommand, STSClient } from '@aws-sdk/client-sts'
+import { randomUUID } from 'node:crypto'
 import fs from 'node:fs/promises'
+import os from 'node:os'
 import path from 'node:path'
 
-import {IacType} from '../iac/common.js'
-import {fileExists, getAnyPath} from '../lib/filesystem.js'
-import {objectToBase64} from '../lib/object-utils.js'
-import {runShell} from '../lib/shell.js'
+import { getIac } from '../iac/index.js'
+import { downloadPackage } from '../lib/package/index.js'
+import { runShell } from '../lib/shell.js'
 import {
   BootstrapInput,
   DeployInput,
@@ -20,7 +16,6 @@ import {
   DestroyInput,
   DestroyOutput,
   Infrastructure,
-  InfrastructureType,
   ProvisionInput,
   ProvisionOutput,
   ResolveEnvInput,
@@ -32,11 +27,13 @@ import {
   UndeployInput,
   UndeployOutput,
   UnstoreEnvInput,
-  UnstoreEnvOutput,
+  UnstoreEnvOutput
 } from './common.js'
-import {destroyPackage, provisionPackage} from './index.js'
+import { destroyPackage, provisionPackage } from './index.js'
 
 export class AwsInfrastructure implements Infrastructure {
+  private configKey = '/hereya-bootstrap/config'
+
   async bootstrap(_: BootstrapInput): Promise<void> {
     const stsClient = new STSClient({})
     const {Account: accountId} = await stsClient.send(new GetCallerIdentityCommand({}))
@@ -52,7 +49,7 @@ export class AwsInfrastructure implements Infrastructure {
     }
 
     const {env} = output
-    const key = '/hereya-bootstrap/config'
+    const key = this.configKey
     const ssmClient = new SSMClient({})
     const value = JSON.stringify(env)
     await ssmClient.send(
@@ -66,64 +63,88 @@ export class AwsInfrastructure implements Infrastructure {
   }
 
   async deploy(input: DeployInput): Promise<DeployOutput> {
-    let files: string[] = []
-    let s3Bucket = ''
-    let s3Client = new S3Client({})
-    let s3Key = ''
-
-    try {
-      ;({files, s3Bucket, s3Client, s3Key} = await this.uploadProjectFiles(input))
-      input.parameters = {
-        ...input.parameters,
-        hereyaProjectEnv: objectToBase64(input.projectEnv),
-      }
-      const output = await this.runCodeBuild({
-        ...input,
-        deploy: true,
-        sourceS3Key: s3Key,
-      })
-      if (!output.success) {
-        return output
-      }
-
-      const env = await this.getEnv(input.id)
-
-      return {env, success: true}
-    } finally {
-      if (s3Key && files.length > 0) {
-        await s3Client.send(
-          new DeleteObjectsCommand({
-            Bucket: s3Bucket,
-            Delete: {
-              Objects: files.map((file) => ({Key: `${s3Key}/${file}`})),
-            },
-          }),
-        )
-      }
+    input.parameters = {
+      ...input.parameters,
+      hereyaProjectEnv: JSON.stringify(input.projectEnv ?? {}),
+      hereyaProjectRootDir: input.projectRootDir,
     }
+    return this.provision(input)
   }
 
   async destroy(input: DestroyInput): Promise<DestroyOutput> {
-    const env = await this.getEnv(input.id)
-    const output = await this.runCodeBuild({...input, destroy: true})
-    if (!output.success) {
-      return output
+    const destPath = path.join(os.homedir(), '.hereya', input.id, input.canonicalName)
+    const downloadPath = await downloadPackage(input.pkgUrl, destPath)
+    const region = process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION
+    const infraConfig = {
+      ...await this.getConfig(),
+      region,
+    }
+    if (!infraConfig.terraformStateBucketName || !infraConfig.terraformStateLockTableName) {
+      return {
+        reason: 'could not find AWS infrastructure config. Did you run `hereya bootstrap aws`?',
+        success: false,
+      }
     }
 
-    await this.removeEnv(input.id)
+    const iac$ = getIac({type: input.iacType})
+    if (!iac$.supported) {
+      return {reason: iac$.reason, success: false}
+    }
 
-    return {env, success: true}
+    const {iac} = iac$
+
+    const output = await iac.destroy({
+      env: input.env ?? {},
+      id: input.id,
+      infraConfig,
+      parameters: input.parameters,
+      pkgPath: downloadPath,
+    })
+    if (!output.success) {
+      return {reason: output.reason, success: false}
+    }
+
+    // Remove downloaded package
+    await fs.rm(downloadPath, {recursive: true})
+
+    return {env: output.env, success: true}
   }
 
   async provision(input: ProvisionInput): Promise<ProvisionOutput> {
-    const output = await this.runCodeBuild(input)
-    if (!output.success) {
-      return output
+    const destPath = path.join(os.homedir(), '.hereya', input.id, input.canonicalName)
+    const downloadPath = await downloadPackage(input.pkgUrl, destPath)
+    const config = await this.getConfig()
+    const terraformStateBucketRegion = config.terraformStateBucketRegion || process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION
+    const infraConfig = {
+      ...config,
+      terraformStateBucketRegion,
+    }
+    if (!infraConfig.terraformStateBucketName || !infraConfig.terraformStateLockTableName) {
+      return {
+        reason: 'could not find AWS infrastructure config. Did you run `hereya bootstrap aws`?',
+        success: false,
+      }
     }
 
-    const env = await this.getEnv(input.id)
+    const iac$ = getIac({type: input.iacType})
+    if (!iac$.supported) {
+      return {reason: iac$.reason, success: false}
+    }
 
-    return {env, success: true}
+    const {iac} = iac$
+
+    const output = await iac.apply({
+      env: input.env ?? {},
+      id: input.id,
+      infraConfig,
+      parameters: input.parameters,
+      pkgPath: downloadPath,
+    })
+    if (!output.success) {
+      return {reason: output.reason, success: false}
+    }
+
+    return {env: output.env, success: true}
   }
 
   async resolveEnv(input: ResolveEnvInput): Promise<ResolveEnvOutput> {
@@ -235,47 +256,12 @@ export class AwsInfrastructure implements Infrastructure {
   }
 
   async undeploy(input: UndeployInput): Promise<UndeployOutput> {
-    let files: string[] = []
-    let s3Bucket = ''
-    let s3Client = new S3Client({})
-    let s3Key = ''
-
-    let env: {[key: string]: string} = {}
-    try {
-      env = await this.getEnv(input.id)
-    } catch (error: any) {
-      console.log(`Could not get env for ${input.id}: ${error.message}. Continuing with undeployment...`)
+    input.parameters = {
+      ...input.parameters,
+      hereyaProjectEnv: JSON.stringify(input.projectEnv ?? {}),
+      hereyaProjectRootDir: input.projectRootDir,
     }
-
-    try {
-      ;({files, s3Bucket, s3Client, s3Key} = await this.uploadProjectFiles(input))
-      input.parameters = {
-        ...input.parameters,
-        hereyaProjectEnv: objectToBase64(input.projectEnv),
-      }
-      const output = await this.runCodeBuild({
-        ...input,
-        deploy: true,
-        destroy: true,
-        sourceS3Key: s3Key,
-      })
-      if (!output.success) {
-        return output
-      }
-
-      return {env, success: true}
-    } finally {
-      if (s3Key && files.length > 0) {
-        await s3Client.send(
-          new DeleteObjectsCommand({
-            Bucket: s3Bucket,
-            Delete: {
-              Objects: files.map((file) => ({Key: `${s3Key}/${file}`})),
-            },
-          }),
-        )
-      }
-    }
+    return this.destroy(input)
   }
 
   async unstoreEnv(input: UnstoreEnvInput): Promise<UnstoreEnvOutput> {
@@ -304,222 +290,17 @@ export class AwsInfrastructure implements Infrastructure {
     return {success: true}
   }
 
-  private async getEnv(id: string): Promise<{[key: string]: string}> {
+  private async getConfig(): Promise<{
+    terraformStateBucketName: string
+    terraformStateBucketRegion?: string
+    terraformStateLockTableName: string
+  }> {
     const ssmClient = new SSMClient({})
-    const ssmParameterName = `/hereya/${id}`
-    try {
-      const ssmParameter = await ssmClient.send(
-        new GetParameterCommand({
-          Name: ssmParameterName,
-        }),
-      )
-      return JSON.parse(ssmParameter.Parameter?.Value ?? '{}')
-    } catch (error: any) {
-      if (error.name === 'ParameterNotFound') {
-        console.debug(`Parameter "${ssmParameterName}" does not exist.`)
-
-        return {}
-      }
-
-      throw error
-    }
-  }
-
-  private async getFilesToUpload(rootDir: string): Promise<string[]> {
-    const ig = ignore.default()
-    const ignoreFilePath = await getAnyPath(`${rootDir}/.hereyaignore`, `${rootDir}/.gitignore`)
-    if (await fileExists(ignoreFilePath)) {
-      const ignoreFileContent = await fs.readFile(ignoreFilePath, 'utf8')
-      ig.add(ignoreFileContent)
-    }
-
-    const files = glob.sync('**/*', {cwd: rootDir, nodir: true})
-    return files.filter((file) => !ig.ignores(file))
-  }
-
-  private async removeEnv(id: string): Promise<void> {
-    const ssmClient = new SSMClient({})
-    const ssmParameterName = `/hereya/${id}`
-    await ssmClient.send(
-      new DeleteParameterCommand({
-        Name: ssmParameterName,
-      }),
-    )
-  }
-
-  private async runCodeBuild(
-    input: {destroy?: boolean} & (
-      | {
-          deploy?: false
-        }
-      | {deploy: true; sourceS3Key: string}
-    ) &
-      ProvisionInput,
-  ): Promise<
-    | {
-        reason: string
-        success: false
-      }
-    | {success: true}
-  > {
-    const codebuildClient = new CodeBuildClient({})
-    let codebuildProjectName = ''
-    switch (input.iacType) {
-      case IacType.cdk: {
-        codebuildProjectName = 'hereyaCdk'
-        break
-      }
-
-      case IacType.terraform: {
-        codebuildProjectName = 'hereyaTerraform'
-        break
-      }
-
-      default: {
-        return {reason: `IAC type ${input.iacType} is not supported yet!`, success: false}
-      }
-    }
-
-    const ssmClient = new SSMClient({})
-    const parameterName = `/hereya/package-parameters/${input.id}`
-    const parameterValue = Object.entries(input.parameters ?? {})
-      .map(([key, value]) => `${key}=${typeof value === 'object' ? objectToBase64(value) : value}`)
-      .join(',')
-    if (parameterValue) {
-      await ssmClient.send(
-        new PutParameterCommand({
-          Name: parameterName,
-          Overwrite: true,
-          Type: 'SecureString',
-          Value: parameterValue,
-        }),
-      )
-    }
-
-    const response = await codebuildClient.send(
-      new StartBuildCommand({
-        environmentVariablesOverride: [
-          {
-            name: 'HEREYA_ID',
-            type: 'PLAINTEXT',
-            value: input.id,
-          },
-          {
-            name: 'HEREYA_IAC_TYPE',
-            type: 'PLAINTEXT',
-            value: input.iacType,
-          },
-          {
-            name: 'HEREYA_INFRA_TYPE',
-            type: 'PLAINTEXT',
-            value: InfrastructureType.aws,
-          },
-          {
-            name: 'HEREYA_PARAMETERS',
-            type: parameterValue ? 'PARAMETER_STORE' : 'PLAINTEXT',
-            value: parameterValue ? parameterName : '',
-          },
-          {
-            name: 'HEREYA_WORKSPACE_ENV',
-            type: 'PLAINTEXT',
-            value: Object.entries(input.env ?? {})
-              .map(([key, value]) => `${key}=${typeof value === 'object' ? objectToBase64(value) : value}`)
-              .join(','),
-          },
-          {
-            name: 'PKG_REPO_URL',
-            type: 'PLAINTEXT',
-            value: input.pkgUrl,
-          },
-          {
-            name: 'HEREYA_DESTROY',
-            type: 'PLAINTEXT',
-            value: input.destroy ? 'true' : '',
-          },
-          {
-            name: 'HEREYA_DEPLOY',
-            type: 'PLAINTEXT',
-            value: input.deploy ? 'true' : '',
-          },
-          {
-            name: 'HEREYA_PROJECT_S3_KEY',
-            type: 'PLAINTEXT',
-            value: input.deploy ? input.sourceS3Key : '',
-          },
-        ],
-        projectName: codebuildProjectName,
-      }),
-    )
-    console.log(`Deployment ${response.build?.id} started successfully.`)
-    const command = new BatchGetBuildsCommand({
-      ids: [response.build?.id ?? ''],
-    })
-
-    const deploymentResult = await new Promise<Build | undefined>((resolve) => {
-      const handle = setInterval(async () => {
-        const buildResponse = await codebuildClient.send(command)
-        const build = buildResponse.builds?.[0]
-
-        if (build?.buildStatus === 'IN_PROGRESS') {
-          console.log(`Deployment ${response.build?.id} still in progress...`)
-          return
-        }
-
-        clearInterval(handle)
-        console.log(`Deployment ${response.build?.id} finished with status ${build?.buildStatus}.`)
-        resolve(build)
-      }, 10_000) // 10 seconds
-    })
-    if (deploymentResult?.buildStatus !== 'SUCCEEDED') {
-      return {reason: `Deployment failed with status ${deploymentResult?.buildStatus}`, success: false}
-    }
-
-    // remove the parameter
-    if (parameterValue) {
-      await ssmClient.send(
-        new DeleteParameterCommand({
-          Name: parameterName,
-        }),
-      )
-    }
-
-    return {success: true}
-  }
-
-  private async uploadProjectFiles(
-    input: {
-      projectEnv: {[p: string]: string}
-      projectRootDir: string
-    } & ProvisionInput,
-  ) {
-    const key = '/hereya-bootstrap/config'
-    const ssmClient = new SSMClient({})
-    const response = await ssmClient.send(
+    const ssmParameter = await ssmClient.send(
       new GetParameterCommand({
-        Name: key,
+        Name: this.configKey,
       }),
     )
-    const bootstrapConfig = JSON.parse(response.Parameter?.Value ?? '{}')
-    if (!bootstrapConfig.hereyaSourceCodeBucketName) {
-      throw new Error('hereyaSourceCodeBucketName not found in bootstrap config')
-    }
-
-    const s3Key = `${input.id}/${randomUUID()}`
-    const s3Bucket = bootstrapConfig.hereyaSourceCodeBucketName
-    const files = await this.getFilesToUpload(input.projectRootDir)
-    const s3Client = new S3Client({})
-    await Promise.all(
-      files.map(async (file) => {
-        console.log(`Uploading ${file} to s3://${s3Bucket}/${s3Key}`)
-        await s3Client.send(
-          new PutObjectCommand({
-            Body: await fs.readFile(path.join(input.projectRootDir, file)),
-            Bucket: s3Bucket,
-            Key: `${s3Key}/${file}`,
-          }),
-        )
-      }),
-    )
-    return {files, s3Bucket, s3Client, s3Key}
+    return JSON.parse(ssmParameter.Parameter?.Value ?? '{}')
   }
 }
