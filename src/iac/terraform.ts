@@ -1,13 +1,14 @@
 import fs from 'node:fs'
+import { IncomingMessage } from 'node:http'
 import https from 'node:https'
 import os from 'node:os'
 import path from 'node:path'
-import {pipeline} from 'node:stream/promises'
-import {Extract as decompress} from 'unzip-stream'
+import { pipeline } from 'node:stream/promises'
+import { Extract as decompress } from 'unzip-stream'
 
-import {mapObject} from '../lib/object-utils.js'
-import {runShell} from '../lib/shell.js'
-import {ApplyInput, ApplyOutput, DestroyInput, DestroyOutput, Iac} from './common.js'
+import { mapObject } from '../lib/object-utils.js'
+import { runShell } from '../lib/shell.js'
+import { ApplyInput, ApplyOutput, DestroyInput, DestroyOutput, Iac } from './common.js'
 
 export class Terraform implements Iac {
   async apply(input: ApplyInput): Promise<ApplyOutput> {
@@ -119,22 +120,22 @@ export class Terraform implements Iac {
     }
   }
 
-  private async downloadTerraform(): Promise<boolean> {
+  async downloadTerraform(): Promise<boolean> {
     const TERRAFORM_DOWNLOAD_URLS = new Map<string, string>([
-      ['darwin_arm64', 'https://releases.hashicorp.com/terraform/1.5.7/terraform_1.5.7_darwin_arm64.zip'],
-      ['darwin_x64', 'https://releases.hashicorp.com/terraform/1.5.7/terraform_1.5.7_darwin_amd64.zip'],
-      ['freebsd_arm', 'https://releases.hashicorp.com/terraform/1.5.7/terraform_1.5.7_freebsd_arm.zip'],
-      ['freebsd_ia32', 'https://releases.hashicorp.com/terraform/1.5.7/terraform_1.5.7_freebsd_386.zip'],
-      ['freebsd_x64', 'https://releases.hashicorp.com/terraform/1.5.7/terraform_1.5.7_freebsd_amd64.zip'],
-      ['linux_arm', 'https://releases.hashicorp.com/terraform/1.5.7/terraform_1.5.7_linux_arm.zip'],
-      ['linux_arm64', 'https://releases.hashicorp.com/terraform/1.5.7/terraform_1.5.7_linux_arm64.zip'],
-      ['linux_ia32', 'https://releases.hashicorp.com/terraform/1.5.7/terraform_1.5.7_linux_386.zip'],
-      ['linux_x64', 'https://releases.hashicorp.com/terraform/1.5.7/terraform_1.5.7_linux_amd64.zip'],
-      ['openbsd_ia32', 'https://releases.hashicorp.com/terraform/1.5.7/terraform_1.5.7_openbsd_386.zip'],
-      ['openbsd_x64', 'https://releases.hashicorp.com/terraform/1.5.7/terraform_1.5.7_openbsd_amd64.zip'],
-      ['sunos_x64', 'https://releases.hashicorp.com/terraform/1.5.7/terraform_1.5.7_solaris_amd64.zip'],
-      ['win32_ia32', 'https://releases.hashicorp.com/terraform/1.5.7/terraform_1.5.7_windows_386.zip'],
-      ['win32_x64', 'https://releases.hashicorp.com/terraform/1.5.7/terraform_1.5.7_windows_amd64.zip'],
+      ['darwin_arm64', 'https://github.com/opentofu/opentofu/releases/download/v1.9.0/tofu_1.9.0_darwin_arm64.zip'],
+      ['darwin_x64', 'https://github.com/opentofu/opentofu/releases/download/v1.9.0/tofu_1.9.0_darwin_amd64.zip'],
+      ['freebsd_arm', 'https://github.com/opentofu/opentofu/releases/download/v1.9.0/tofu_1.9.0_freebsd_arm.zip'],
+      ['freebsd_ia32', 'https://github.com/opentofu/opentofu/releases/download/v1.9.0/tofu_1.9.0_freebsd_386.zip'],
+      ['freebsd_x64', 'https://github.com/opentofu/opentofu/releases/download/v1.9.0/tofu_1.9.0_freebsd_amd64.zip'],
+      ['linux_arm', 'https://github.com/opentofu/opentofu/releases/download/v1.9.0/tofu_1.9.0_linux_arm.zip'],
+      ['linux_arm64', 'https://github.com/opentofu/opentofu/releases/download/v1.9.0/tofu_1.9.0_linux_arm64.zip'],
+      ['linux_ia32', 'https://github.com/opentofu/opentofu/releases/download/v1.9.0/tofu_1.9.0_linux_386.zip'],
+      ['linux_x64', 'https://github.com/opentofu/opentofu/releases/download/v1.9.0/tofu_1.9.0_linux_amd64.zip'],
+      ['openbsd_ia32', 'https://github.com/opentofu/opentofu/releases/download/v1.9.0/tofu_1.9.0_openbsd_386.zip'],
+      ['openbsd_x64', 'https://github.com/opentofu/opentofu/releases/download/v1.9.0/tofu_1.9.0_openbsd_amd64.zip'],
+      ['sunos_x64', 'https://github.com/opentofu/opentofu/releases/download/v1.9.0/tofu_1.9.0_solaris_amd64.zip'],
+      ['win32_ia32', 'https://github.com/opentofu/opentofu/releases/download/v1.9.0/tofu_1.9.0_windows_386.zip'],
+      ['win32_x64', 'https://github.com/opentofu/opentofu/releases/download/v1.9.0/tofu_1.9.0_windows_amd64.zip'],
     ])
 
     const tfPath = this.terraformBinPath()
@@ -167,18 +168,20 @@ export class Terraform implements Iac {
     }
 
     await new Promise((resolve, reject) => {
-      https
-        .get(url, async (response) => {
+      this.getWithRedirect(
+        url,
+        async (response) => {
           try {
-            await pipeline(response, decompress({path: path.dirname(tfPath)}))
+            await pipeline(response,  decompress({path: path.dirname(tfPath)}))
             await fs.promises.chmod(tfPath, '0755')
           } catch (error) {
             throw new Error(`could not download terraform: ${error}`)
           }
 
           resolve(null)
-        })
-        .on('error', (error) => reject(error))
+        },
+        reject,
+      )
     })
 
     return true
@@ -213,13 +216,33 @@ export class Terraform implements Iac {
     return this.terraformBinPath()
   }
 
+  private async getWithRedirect(
+    url: string,
+    handler: (response: IncomingMessage) => void,
+    reject: (error: Error) => void,
+  ) {
+    https
+      .get(url, (response) => {
+        if (response.statusCode === 302) {
+          const {location} = response.headers
+          if (location) {
+            this.getWithRedirect(location, handler, reject)
+          }
+        } else {
+          handler(response)
+        }
+      })
+      .on('error', (error) => reject(error))
+  }
+
   private terraformBinPath() {
     return path.join(
       os.homedir(),
       '.hereya',
       'iac',
       'terraform',
-      os.platform() === 'win32' ? 'terraform.exe' : 'terraform',
+      'tofu_1',
+      os.platform() === 'win32' ? 'tofu.exe' : 'tofu',
     )
   }
 }

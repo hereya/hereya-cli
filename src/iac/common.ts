@@ -6,7 +6,10 @@ export interface Iac {
 
 export enum IacType {
   cdk = 'cdk',
+  opentf = 'opentf',
+  opentofu = 'opentofu',
   terraform = 'terraform',
+  tofu = 'tofu',
 }
 
 export type ApplyInput = {

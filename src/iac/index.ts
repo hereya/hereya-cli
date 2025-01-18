@@ -11,6 +11,18 @@ export function getIac({ type }: GetIacInput): GetIacOutput {
             return { iac: terraform, supported: true }
         }
 
+        case IacType.opentofu: {
+            return { iac: terraform, supported: true }
+        }
+
+        case IacType.opentf: {
+            return { iac: terraform, supported: true }
+        }
+
+        case IacType.tofu: {
+            return { iac: terraform, supported: true }
+        }
+
         case IacType.cdk: {
             return { iac: cdk, supported: true }
         }
