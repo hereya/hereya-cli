@@ -1,3 +1,12 @@
+# [0.12.0](https://github.com/hereya/hereya-cli/compare/0.11.0...0.12.0) (2025-01-18)
+
+
+### Features
+
+* replace terraform with opentofu to avoid licencing issues ([502f8ed](https://github.com/hereya/hereya-cli/commit/502f8edd8755b9e2ab2eb6b65830376649db0153))
+
+
+
 # [0.11.0](https://github.com/hereya/hereya-cli/compare/0.10.0...0.11.0) (2025-01-17)
 
 
