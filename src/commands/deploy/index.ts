@@ -1,4 +1,4 @@
-import { Command, Flags } from '@oclif/core'
+import { Command, Flags } from '@oclif/core';
 import path from 'node:path';
 
 import { getBackend } from '../../backend/index.js';
@@ -6,7 +6,9 @@ import { destroyPackage, provisionPackage } from '../../infrastructure/index.js'
 import { getConfigManager } from '../../lib/config/index.js';
 import { getEnvManager } from '../../lib/env/index.js';
 import { logEnv } from '../../lib/env-utils.js';
+import { getLogger } from '../../lib/log.js';
 import { getParameterManager } from '../../lib/parameter/index.js';
+import { setDebug } from '../../lib/shell.js';
 import Up from '../up/index.js';
 
 export default class Deploy extends Command {
@@ -21,6 +23,10 @@ export default class Deploy extends Command {
             description: 'directory to run command in',
             required: false,
         }),
+        debug: Flags.boolean({
+            default: false,
+            description: 'enable debug mode',
+        }),
         workspace: Flags.string({
             char: 'w',
             description: 'name of the workspace to deploy the packages for',
@@ -30,6 +36,10 @@ export default class Deploy extends Command {
 
     public async run(): Promise<void> {
         const { flags } = await this.parse(Deploy)
+        
+        setDebug(flags.debug)
+
+        const logger = getLogger()
 
         const projectRootDir = path.resolve(flags.chdir || process.env.HEREYA_PROJECT_ROOT_DIR || process.cwd())
         const configManager = getConfigManager()
@@ -68,6 +78,11 @@ export default class Deploy extends Command {
             projectRootDir,
             workspace,
         })
+
+        if (removedPackages.length > 0) {
+            logger.log(`Destroying ${removedPackages.length} removed packages`)
+        }
+
         await Promise.all(removedPackages.map(async (packageName) => {
             const { parameters } = await parameterManager.getPackageParameters({
                 package: packageName,
@@ -88,11 +103,16 @@ export default class Deploy extends Command {
                 this.error(destroyOutput.reason)
             }
 
-            this.log(`Package ${packageName} un-deployed successfully`)
         }))
+
+        if (removedPackages.length > 0) {
+            logger.done(`Destroyed ${removedPackages.length} removed packages`)
+        }
 
         await Up.run(['--chdir', projectRootDir, '--workspace', workspace, '--deploy'])
 
+
+        logger.log(`Provisioning ${deployPackages.length} deployment packages`)
         const { env: newProjectEnv } = await envManager.getProjectEnv({
             markSecret: true,
             projectRootDir,
@@ -122,5 +142,7 @@ export default class Deploy extends Command {
             this.log(`Package ${packageName} deployed successfully`)
             logEnv(provisionOutput.env, this.log.bind(this))
         }))
+
+        logger.done(`Provisioned ${deployPackages.length} deployment packages`)
     }
 }

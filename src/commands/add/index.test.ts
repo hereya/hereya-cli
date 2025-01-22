@@ -1,5 +1,5 @@
-import { runCommand } from '@oclif/test'
-import { expect } from 'chai'
+import { runCommand } from '@oclif/test';
+import { expect } from 'chai';
 import { randomUUID } from 'node:crypto';
 import fs from 'node:fs/promises';
 import os from 'node:os';

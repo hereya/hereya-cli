@@ -70,12 +70,10 @@ export function getPackageCanonicalName(packageName: string): string {
 
 export async function downloadPackage(pkgUrl: string, destPath: string) {
   if (await isNotEmpty(destPath)) {
-    console.log(`Package already downloaded at ${destPath}`)
     return destPath
   }
 
   await fs.mkdir(destPath, {recursive: true})
-  console.log(`Downloading package from ${pkgUrl}`)
 
   // Initialize simple-git
   const git = simpleGit()

@@ -1,10 +1,12 @@
-import { Command, Flags } from '@oclif/core'
+import { Command, Flags } from '@oclif/core';
 
 import { getBackend } from '../../backend/index.js';
 import { destroyPackage } from '../../infrastructure/index.js';
 import { getConfigManager } from '../../lib/config/index.js';
 import { getEnvManager } from '../../lib/env/index.js';
+import { getLogger } from '../../lib/log.js';
 import { getParameterManager } from '../../lib/parameter/index.js';
+import { setDebug } from '../../lib/shell.js';
 
 export default class Down extends Command {
     static override description = 'Destroy all packages in the project.'
@@ -18,6 +20,10 @@ export default class Down extends Command {
             description: 'directory to run command in',
             required: false,
         }),
+        debug: Flags.boolean({
+            default: false,
+            description: 'enable debug mode',
+        }),
         deploy: Flags.boolean({
             description: 'destroy deployment companion packages',
             required: false,
@@ -30,7 +36,11 @@ export default class Down extends Command {
     }
 
     public async run(): Promise<void> {
-        const { flags } = await this.parse(Down)
+        const {flags} = await this.parse(Down)
+
+        setDebug(flags.debug)
+
+        const logger = getLogger()
 
         const projectRootDir = flags.chdir || process.env.HEREYA_PROJECT_ROOT_DIR
 
@@ -58,6 +68,7 @@ export default class Down extends Command {
 
         const parameterManager = getParameterManager()
 
+        logger.log(`Destroying ${packages.length} packages`)
         const result = await Promise.all(packages.map(async (packageName) => {
             const { parameters } = await parameterManager.getPackageParameters({
                 package: packageName,
@@ -76,10 +87,11 @@ export default class Down extends Command {
                 this.error(destroyOutput.reason)
             }
 
-            this.log(`Package ${packageName} destroyed successfully`)
             const { env, metadata } = destroyOutput
             return { env, metadata, packageName }
         }))
+
+        logger.done(`Destroyed ${packages.length} packages`)
 
         const envManager = getEnvManager()
         for (const { env, metadata } of result) {
@@ -92,7 +104,9 @@ export default class Down extends Command {
             })
         }
 
-        const { config: newConfig } = await configManager.loadConfig({ projectRootDir })
+        logger.done(`Removed environment variables of ${packages.length} packages`)
+
+        const {config: newConfig} = await configManager.loadConfig({projectRootDir})
         await backend.saveState(newConfig)
     }
 }
