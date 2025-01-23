@@ -36,14 +36,14 @@ describe('remove', () => {
     });
 
     it('does not work on uninitialized projects', async () => {
-        const { stderr } = await runCommand(['remove', 'cloudy/docker_postgres'])
-        expect(stderr).to.contain(`Project not initialized. Run 'hereya init' first.`)
+        const { stdout } = await runCommand(['remove', 'cloudy/docker_postgres'])
+        expect(stdout).to.contain(`Project not initialized. Run 'hereya init' first.`)
     })
 
     it('does nothing if the package is not in the project', async () => {
         await fs.writeFile(path.join(rootDir, 'hereya.yaml'), 'project: test-project\nworkspace: test-workspace\n')
-        const { stderr } = await runCommand(['remove', 'notin/project'])
-        expect(stderr).to.contain('Package notin/project not found in project')
+        const { stdout } = await runCommand(['remove', 'notin/project'])
+        expect(stdout).to.contain('Package notin/project not found in project')
     })
 
     it('fails if the package cannot be resolved', async () => {
@@ -79,6 +79,7 @@ describe('remove', () => {
             infra: invalid
             `,
             found: true,
+            pkgUrl: 'https://github.com/wrong/infra',
         })
         const { error } = await runCommand(['remove', 'wrong/infra'])
         expect(error?.oclif?.exit).to.equal(2)
@@ -101,6 +102,7 @@ describe('remove', () => {
             infra: not-supported
             `,
             found: true,
+            pkgUrl: 'https://github.com/unsupported/infra',
         })
         const { error } = await runCommand(['remove', 'unsupported/infra'])
         expect(error?.oclif?.exit).to.equal(2)
@@ -162,6 +164,7 @@ describe('remove', () => {
                 infra: local
                 `,
                 found: true,
+                pkgUrl: 'https://github.com/cloudy/docker_postgres',
             })
             await runCommand(['remove', 'cloudy/docker_postgres'])
             const envFile = await fs.readFile(path.join(rootDir, '.hereya', 'env.dev.yaml'), 'utf8')
@@ -183,6 +186,7 @@ describe('remove', () => {
                 deploy: true
                 `,
                 found: true,
+                pkgUrl: 'https://github.com/cloudy/fake-deploy',
             })
             await runCommand(['remove', 'cloudy/fake-deploy'])
             sinon.assert.notCalled(localInfrastructure.destroy as SinonStub)
@@ -197,6 +201,7 @@ describe('remove', () => {
                 deploy: true
                 `,
                 found: true,
+                pkgUrl: 'https://github.com/cloudy/fake-deploy',
             })
             await runCommand(['remove', 'cloudy/fake-deploy'])
             const hereyaYaml = await fs.readFile(path.join(rootDir, 'hereya.yaml'), 'utf8')

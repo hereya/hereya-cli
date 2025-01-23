@@ -70,6 +70,7 @@ describe('workspace:uninstall', () => {
                 infra: invalid
                 `,
                 found: true,
+                pkgUrl: 'https://github.com/org/myPkg',
             })
             const { error } = await runCommand(['workspace:uninstall', 'cloud/postgres', '-w', 'test-workspace'])
             expect(error?.oclif?.exit).to.equal(2)
@@ -85,6 +86,7 @@ describe('workspace:uninstall', () => {
                 infra: local
                 `,
                 found: true,
+                pkgUrl: 'https://github.com/org/myPkg',
             })
             sinon.stub(localInfrastructure, 'destroy').resolves({
                 env: { FOO: "BAR" },

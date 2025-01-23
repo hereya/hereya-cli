@@ -1,33 +1,14 @@
-import cliSpinners from 'cli-spinners'
-import ora, {Ora} from 'ora'
+import {ListrLogLevels, ListrLogger} from 'listr2'
 
-let spinner: Ora | null = null
+const myLogger = new ListrLogger({useIcons: false})
 
 const logger = {
   done(message: string) {
-    if (!spinner) {
-      spinner = ora({
-        spinner: cliSpinners.aesthetic,
-        text: message,
-      })
-    }
-
-    spinner.succeed(message)
-    spinner = null
+    myLogger.log(ListrLogLevels.COMPLETED, message)
   },
 
   log(message: string) {
-    if (spinner) {
-      spinner.text = message
-      return
-    }
-
-    spinner = ora({
-      spinner: cliSpinners.aesthetic,
-      text: message,
-    })
-
-    spinner.start()
+    myLogger.log(ListrLogLevels.OUTPUT, message)
   },
 }
 

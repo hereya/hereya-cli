@@ -38,13 +38,13 @@ describe('add', () => {
     })
 
     it('does not add a package if the project is not initialized', async () => {
-        const { stderr } = await runCommand(['add', 'cloudy/docker_postgres'])
-        expect(stderr).to.contain(`Project not initialized. Run 'hereya init' first.`)
+        const { stdout } = await runCommand(['add', 'cloudy/docker_postgres'])
+        expect(stdout).to.contain(`Project not initialized. Run 'hereya init' first.`)
     })
 
     it('does not add a package if the project is not initialized', async () => {
-        const { stderr } = await runCommand(['add', 'cloudy/docker_postgres'])
-        expect(stderr).to.contain(`Project not initialized. Run 'hereya init' first.`)
+        const { stdout } = await runCommand(['add', 'cloudy/docker_postgres'])
+        expect(stdout).to.contain(`Project not initialized. Run 'hereya init' first.`)
     })
 
     it('fails if the package cannot be resolved', async () => {
@@ -63,6 +63,7 @@ describe('add', () => {
             infra: invalid
             `,
             found: true,
+            pkgUrl: 'https://github.com/wrong/infra',
         })
         const { error } = await runCommand(['add', 'wrong/infra'])
         expect(error?.oclif?.exit).to.equal(2)
@@ -77,6 +78,7 @@ describe('add', () => {
             infra: not-supported
             `,
             found: true,
+            pkgUrl: 'https://github.com/unsupported/infra',
         })
         const { error } = await runCommand(['add', 'unsupported/infra'])
         expect(error?.oclif?.exit).to.equal(2)
@@ -121,6 +123,7 @@ describe('add', () => {
                           infra: local
                           `,
                     found: true,
+                    pkgUrl: 'https://github.com/cloudy/docker_postgres',
                 })
             });
 
@@ -176,6 +179,7 @@ describe('add', () => {
                        version: 1.0.0
                     `,
                     found: true,
+                    pkgUrl: 'https://github.com/cloudy/docker_postgres',
                 })
                 await runCommand(['add', 'cloudy/docker_postgres'])
                 const { data: hereyaYaml } = await load<Config>(path.join(rootDir, 'hereya.yaml'))
@@ -197,6 +201,7 @@ describe('add', () => {
                     deploy: true
                     `,
                     found: true,
+                    pkgUrl: 'https://github.com/cloudy/fake-deploy',
                 })
                 sinon.stub(awsInfrastructure, 'provision').resolves({
                     env: {},

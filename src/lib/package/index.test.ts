@@ -32,6 +32,7 @@ describe('package', () => {
                         infra: local
                         `,
             found: true,
+            pkgUrl: 'https://github.com/org/myPkg',
           }
         }
 
@@ -59,6 +60,7 @@ describe('package', () => {
                   version: 1.0.0
                 `,
         found: true,
+        pkgUrl: 'https://github.com/org/myPkg',
       })
       const output = await resolvePackage({package: 'org/myPkg'})
       expect(output).to.have.property('found', true)
@@ -84,6 +86,7 @@ describe('package', () => {
                     dep2: 2.0.0
                 `,
         found: true,
+        pkgUrl: 'https://github.com/org/myPkg',
       })
       const output = await resolvePackage({package: 'org/myPkg'})
       expect(output).to.have.property('found', true)
@@ -108,6 +111,7 @@ describe('package', () => {
                     dep2: 2.0.0
                 `,
         found: true,
+        pkgUrl: 'https://github.com/org/myPkg',
       })
       const output = await resolvePackage({package: 'org/myPkg'})
       expect(output).to.have.property('found', false)
@@ -122,6 +126,7 @@ describe('package', () => {
                         infra: aws
                         `,
             found: true,
+            pkgUrl: 'https://github.com/org/myPkg',
           }
         }
 

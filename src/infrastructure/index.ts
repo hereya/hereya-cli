@@ -232,3 +232,6 @@ export type GetInfrastructureOutput =
       supported: false
     }
   | {infrastructure: Infrastructure; supported: true}
+
+
+  export type PackageMetadata = z.infer<typeof PackageMetadata>

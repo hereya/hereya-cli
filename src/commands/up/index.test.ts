@@ -45,6 +45,7 @@ describe('up', () => {
                 infra: local
                 `,
             found: true,
+            pkgUrl: 'https://github.com/cloudy/docker_postgres',
         })
         sinon.stub(localInfrastructure, 'provision').resolves({
             env: {},
@@ -64,8 +65,8 @@ describe('up', () => {
 
     it('fails if the project is not initialized', async () => {
         await fs.rm(path.join(rootDir, 'hereya.yaml'))
-        const { stderr } = await runCommand(['up'])
-        expect(stderr).to.contain(`Project not initialized. Run 'hereya init' first.`)
+        const { stdout } = await runCommand(['up'])
+        expect(stdout).to.contain(`Project not initialized. Run 'hereya init' first.`)
     })
 
     it('provisions all packages in the project', async () => {

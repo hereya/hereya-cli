@@ -60,6 +60,7 @@ describe('deploy', () => {
                        cloudy/deploy-dep2: '0.1.0'
                     `,
                     found: true,
+                    pkgUrl: 'https://github.com/cloudy/fake-deploy',
                 }
             }
 
@@ -74,6 +75,7 @@ describe('deploy', () => {
                         version: ''
                     `,
                     found: true,
+                    pkgUrl: 'https://github.com/cloudy/docker_postgres',
                 }
             }
 
@@ -84,6 +86,7 @@ describe('deploy', () => {
                 infra: local
                 `,
                 found: true,
+                pkgUrl: 'https://github.com/cloudy/docker_postgres',
             }
         })
 

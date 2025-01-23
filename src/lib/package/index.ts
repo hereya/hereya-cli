@@ -1,11 +1,8 @@
-import * as fs from 'node:fs/promises'
-import { simpleGit } from 'simple-git'
 import * as yaml from 'yaml'
 import { z } from 'zod'
 
 import { IacType } from '../../iac/common.js'
 import { InfrastructureType } from '../../infrastructure/common.js'
-import { isNotEmpty } from '../filesystem.js'
 import { PackageManager } from './common.js'
 import { GitHubPackageManager } from './github.js'
 
@@ -22,7 +19,6 @@ export async function resolvePackage(input: ResolvePackageInput): Promise<Resolv
   }
 
   const [owner, repo] = pkgParts
-  const pkgUrl = `https://github.com/${input.package}`
   const packageManager = getPackageManager()
   const metadataContentCandidates = (
     await Promise.all([
@@ -32,10 +28,10 @@ export async function resolvePackage(input: ResolvePackageInput): Promise<Resolv
   ).filter((content$) => content$.found)
 
   if (metadataContentCandidates.length === 0) {
-    return {found: false, reason: `No hereya metadata file found in ${pkgUrl}`}
+    return {found: false, reason: `No hereya metadata file found in ${input.package}`}
   }
 
-  const metadataContent$ = metadataContentCandidates[0] as {content: string}
+  const metadataContent$ = metadataContentCandidates[0] as {content: string, pkgUrl: string}
   try {
     const metadata = PackageMetadata.parse(yaml.parse(metadataContent$.content))
 
@@ -47,16 +43,11 @@ export async function resolvePackage(input: ResolvePackageInput): Promise<Resolv
       return resolvePackage({package: metadata.onDeploy.pkg})
     }
 
-    // if (process.env.HEREYA_OVERRIDE_INFRA) {
-    //   metadata.originalInfra = metadata.infra
-    //   metadata.infra = process.env.HEREYA_OVERRIDE_INFRA as InfrastructureType
-    // }
-
     return {
       canonicalName: getPackageCanonicalName(input.package),
       found: true,
       metadata,
-      packageUri: pkgUrl,
+      packageUri: metadataContent$.pkgUrl,
       pkgName: input.package,
     }
   } catch (error: any) {
@@ -69,18 +60,8 @@ export function getPackageCanonicalName(packageName: string): string {
 }
 
 export async function downloadPackage(pkgUrl: string, destPath: string) {
-  if (await isNotEmpty(destPath)) {
-    return destPath
-  }
-
-  await fs.mkdir(destPath, {recursive: true})
-
-  // Initialize simple-git
-  const git = simpleGit()
-
-  // Clone repository into temp directory
-  await git.clone(pkgUrl, destPath, ['--depth=1'])
-  return destPath
+  const packageManager = getPackageManager()
+  return packageManager.downloadPackage(pkgUrl, destPath)
 }
 
 export type ResolvePackageInput = {

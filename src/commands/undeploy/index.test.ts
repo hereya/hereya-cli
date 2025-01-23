@@ -57,6 +57,7 @@ describe('undeploy', () => {
                    cloudy/dep2: '0.1.0'
                 `,
                     found: true,
+                    pkgUrl: 'https://github.com/cloudy/fake-deploy',
                 }
             }
 
@@ -71,6 +72,7 @@ describe('undeploy', () => {
                     version: ''
                 `,
                     found: true,
+                    pkgUrl: 'https://github.com/cloudy/docker_postgres',
                 }
 
             }
@@ -82,6 +84,7 @@ describe('undeploy', () => {
             infra: local
             `,
                 found: true,
+                pkgUrl: 'https://github.com/cloudy/fake-deploy',
             }
         })
         sinon.stub(localInfrastructure, 'provision').resolves({

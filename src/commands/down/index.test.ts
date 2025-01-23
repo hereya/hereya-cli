@@ -47,6 +47,7 @@ describe('down', () => {
                 infra: local
                 `,
             found: true,
+            pkgUrl: 'https://github.com/cloudy/fake-deploy',
         })
         sinon.stub(localInfrastructure, 'provision').resolves({
             env: {},

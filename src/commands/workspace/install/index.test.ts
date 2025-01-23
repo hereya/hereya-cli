@@ -50,6 +50,7 @@ describe('workspace:install', () => {
                 infra: invalid
                 `,
                 found: true,
+                pkgUrl: 'https://github.com/org/myPkg',
             })
             const { error } = await runCommand(['workspace:install', 'wrong/infra', '-w', 'test-workspace'])
             expect(error?.oclif?.exit).to.equal(2)
@@ -62,6 +63,7 @@ describe('workspace:install', () => {
                 infra: local
                 `,
                 found: true,
+                pkgUrl: 'https://github.com/org/myPkg',
             })
             await fs.rm(path.join(homeDir, '.hereya', 'state', 'workspaces'), { force: true, recursive: true })
             const { error } = await runCommand(['workspace:install', 'workspace/notfound', '-w', 'notfound'])
@@ -77,6 +79,7 @@ describe('workspace:install', () => {
             infra: local
             `,
                 found: true,
+                pkgUrl: 'https://github.com/org/myPkg',
             })
             await fs.writeFile(
                 path.join(homeDir, '.hereya', 'state', 'workspaces', 'my-dev.yaml'),

@@ -33,3 +33,13 @@ export function runShell(cmd: string, args: string[], options: RunShellOptions =
 
   return result
 }
+
+export function delay(ms: number) {
+  if (process.env.NODE_ENV === 'test') {
+    return
+  }
+
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms)
+  })
+}
