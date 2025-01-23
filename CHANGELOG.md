@@ -1,3 +1,12 @@
+## [0.13.1](https://github.com/hereya/hereya-cli/compare/0.13.0...0.13.1) (2025-01-23)
+
+
+### Bug Fixes
+
+* Remove Octokit dependency and enhance GitHub content retrieval ([5a819c6](https://github.com/hereya/hereya-cli/commit/5a819c6fa08e021fe2335cc1b0e150b673edb4ce))
+
+
+
 # [0.13.0](https://github.com/hereya/hereya-cli/compare/0.12.0...0.13.0) (2025-01-22)
 
 
