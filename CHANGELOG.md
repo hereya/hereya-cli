@@ -1,3 +1,12 @@
+# [0.13.0](https://github.com/hereya/hereya-cli/compare/0.12.0...0.13.0) (2025-01-22)
+
+
+### Features
+
+* Update dependencies, improve command structure, and enhance logging ([c4637f8](https://github.com/hereya/hereya-cli/commit/c4637f8c254da4e831d74606622d62eef0e0b7ce))
+
+
+
 # [0.12.0](https://github.com/hereya/hereya-cli/compare/0.11.0...0.12.0) (2025-01-18)
 
 
