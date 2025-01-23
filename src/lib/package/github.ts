@@ -1,37 +1,37 @@
-import { Octokit } from '@octokit/rest';
+import fs from 'node:fs/promises'
+import os from 'node:os'
+import path from 'node:path'
 
-import type { GetRepoContentInput, GetRepoContentOutput, PackageManager } from './common.js';
+import type { GetRepoContentInput, GetRepoContentOutput, PackageManager } from './common.js'
 
+import { downloadPackage } from './index.js'
 
 export class GitHubPackageManager implements PackageManager {
-    async getRepoContent({ owner, path, repo }: GetRepoContentInput): Promise<GetRepoContentOutput> {
-        const octokit = new Octokit();
-        try {
-            const response = await octokit.rest.repos.getContent({
-                headers: {
-                    'Accept': 'application/vnd.github.raw+json'
-                },
-                owner,
-                path,
-                repo
-            });
+  async getRepoContent({owner, path: filePath, repo}: GetRepoContentInput): Promise<GetRepoContentOutput> {
+    const pkgUrl = `https://github.com/${owner}/${repo}`
+    const tmpFolder = path.join(os.tmpdir(), 'hereya', 'github', owner, repo)
 
-            if (response.status !== 200) {
-                return {
-                    found: false,
-                    reason: `Failed to fetch content: ${response.status}`
-                }
-            }
-
-            return {
-                content: response.data as unknown as string,
-                found: true
-            }
-        } catch (error: any) {
-            return {
-                found: false,
-                reason: error.message
-            }
+    try {
+      const destPath = await downloadPackage(pkgUrl, tmpFolder)
+      if (await fs.stat(path.join(destPath, filePath))) {
+        const content = await fs.readFile(path.join(destPath, filePath), 'utf8')
+        // remove the tmp folder
+        await fs.rm(destPath, {recursive: true})
+        return {
+          content,
+          found: true,
         }
+      }
+
+      return {
+        found: false,
+        reason: `File ${filePath} not found in ${pkgUrl}`,
+      }
+    } catch (error: any) {
+      return {
+        found: false,
+        reason: error.message,
+      }
     }
+  }
 }

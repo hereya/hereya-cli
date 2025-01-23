@@ -19,7 +19,6 @@
     "@oclif/core": "^3",
     "@oclif/plugin-help": "^6",
     "@oclif/plugin-plugins": "^5",
-    "@octokit/rest": "^20.1.1",
     "cli-spinners": "^3.2.0",
     "glob": "^10.4.1",
     "ignore": "^5.3.1",
