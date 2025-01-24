@@ -1,3 +1,12 @@
+## [0.15.1](https://github.com/hereya/hereya-cli/compare/0.15.0...0.15.1) (2025-01-24)
+
+
+### Bug Fixes
+
+* environment handling in deploy command ([0fbc477](https://github.com/hereya/hereya-cli/commit/0fbc4779a27441b5c43c566f3ea8e285cfe744f7))
+
+
+
 # [0.15.0](https://github.com/hereya/hereya-cli/compare/0.14.0...0.15.0) (2025-01-24)
 
 
