@@ -1,3 +1,12 @@
+# [0.14.0](https://github.com/hereya/hereya-cli/compare/0.13.1...0.14.0) (2025-01-24)
+
+
+### Features
+
+* Refactor deploy, down, and undeploy commands to use Listr2 for improved task management and logging ([300d38d](https://github.com/hereya/hereya-cli/commit/300d38d6d5132086351b5f323e9b7c8500d1bc5e))
+
+
+
 ## [0.13.1](https://github.com/hereya/hereya-cli/compare/0.13.0...0.13.1) (2025-01-23)
 
 
