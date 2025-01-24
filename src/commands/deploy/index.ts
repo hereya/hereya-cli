@@ -74,17 +74,16 @@ export default class Deploy extends Command {
       {
         async task(ctx) {
           const backend = await getBackend()
-          const {workspace} = flags
           const getWorkspaceEnvOutput = await backend.getWorkspaceEnv({
             project: ctx.configOutput.config.project,
-            workspace,
+            workspace: flags.workspace,
           })
           if (!getWorkspaceEnvOutput.success) {
             throw new Error(getWorkspaceEnvOutput.reason)
           }
 
           ctx.workspaceEnv = getWorkspaceEnvOutput.env
-          ctx.workspace = workspace
+          ctx.workspace = flags.workspace
 
           await delay(500)
         },
@@ -304,7 +303,13 @@ export default class Deploy extends Command {
       },
       {
         skip: (ctx) => ctx.deployPackages.length === 0,
-        task(ctx, task) {
+        async task(ctx, task) {
+          const envManager = getEnvManager()
+          const {env: projectEnv} = await envManager.getProjectEnv({
+            markSecret: true,
+            projectRootDir,
+            workspace: ctx.workspace,
+          })
           return task.newListr(
             ctx.deployPackages.map((packageName) => ({
               async task() {
@@ -320,13 +325,19 @@ export default class Deploy extends Command {
                   package: packageName,
                   parameters,
                   project: ctx.configOutput.config.project,
-                  projectEnv: ctx.projectEnv,
+                  projectEnv,
                   projectRootDir,
                   workspace: ctx.workspace,
                 })
                 if (!provisionOutput.success) {
                   throw new Error(provisionOutput.reason)
                 }
+
+                console.log(
+                  Object.entries(provisionOutput.env)
+                    .map(([key, value]) => `${key}=${value}`)
+                    .join('\n'),
+                )
               },
               title: `Provisioning package ${packageName}`,
             })),
