@@ -1,3 +1,12 @@
+# [0.15.0](https://github.com/hereya/hereya-cli/compare/0.14.0...0.15.0) (2025-01-24)
+
+
+### Features
+
+* Enhance state management for workspace support in backend commands ([2a90d7a](https://github.com/hereya/hereya-cli/commit/2a90d7a32f17e54514533cc4db1598b92698f815))
+
+
+
 # [0.14.0](https://github.com/hereya/hereya-cli/compare/0.13.1...0.14.0) (2025-01-24)
 
 
