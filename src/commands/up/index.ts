@@ -161,34 +161,33 @@ export default class Up extends Command {
               {
                 skip: (ctx) => !ctx.packages || ctx.packages.length === 0,
                 async task(ctx) {
-                  const {added, configOutput, packages, workspace, workspaceEnvOutput} = ctx
-                  if (!packages || packages.length === 0) {
+                  if (!ctx.packages || ctx.packages.length === 0) {
                     return
                   }
 
                   return task.newListr(
-                    packages.map((packageName) => ({
+                    ctx.packages.map((packageName) => ({
                       async task() {
                         const parameterManager = getParameterManager()
                         const {parameters} = await parameterManager.getPackageParameters({
                           package: packageName,
                           projectRootDir,
-                          workspace,
+                          workspace: ctx.workspace,
                         })
                         const provisionOutput = await provisionPackage({
-                          env: workspaceEnvOutput.env,
+                          env: ctx.workspaceEnvOutput.env,
                           isDeploying: flags.deploy,
                           package: packageName,
                           parameters,
-                          project: configOutput.config.project,
-                          workspace,
+                          project: ctx.configOutput.config.project,
+                          workspace: ctx.workspace,
                         })
                         if (!provisionOutput.success) {
                           throw new Error(provisionOutput.reason)
                         }
 
                         const {env, metadata} = provisionOutput
-                        const output = added || []
+                        const output = ctx.added || []
                         output.push({env, metadata, packageName})
                         ctx.added = output
                       },
@@ -227,26 +226,25 @@ export default class Up extends Command {
               {
                 skip: (ctx) => !ctx.added || ctx.added.length === 0,
                 async task(ctx) {
-                  const {added, workspace} = ctx
-                  if (!added || added.length === 0) {
+                  if (!ctx.added || ctx.added.length === 0) {
                     return
                   }
 
                   const envManager = getEnvManager()
 
-                  for (const {env, metadata} of added) {
+                  for (const {env, metadata} of ctx.added) {
                     // eslint-disable-next-line no-await-in-loop
                     await envManager.addProjectEnv({
                       env,
                       infra: metadata.originalInfra ?? metadata.infra,
                       projectRootDir,
-                      workspace,
+                      workspace: ctx.workspace,
                     })
                   }
 
                   await delay(500)
                 },
-                title: 'Adding env vars to added packages',
+                title: 'Adding env vars from added packages',
               },
               {
                 async task() {
@@ -274,130 +272,5 @@ export default class Up extends Command {
       myLogger.log(ListrLogLevels.FAILED, error)
       this.error(error.message)
     }
-
-    // const configManager = getConfigManager()
-
-    // const loadConfigOutput = await configManager.loadConfig({projectRootDir})
-    // if (!loadConfigOutput.found) {
-    //   this.warn(`Project not initialized. Run 'hereya init' first.`)
-    //   return
-    // }
-
-    // const {config} = loadConfigOutput
-    // const packages = Object.keys(config.packages ?? {})
-    // const backend = await getBackend()
-    // const savedStateOutput = await backend.getState({
-    //   project: config.project,
-    // })
-    // let savedPackages: string[] = []
-    // if (savedStateOutput.found) {
-    //   savedPackages = Object.keys(savedStateOutput.config.packages ?? {})
-    // }
-
-    // const removedPackages = savedPackages.filter((packageName) => !packages.includes(packageName))
-
-    // const workspace = flags.workspace || config.workspace
-    // const getWorkspaceEnvOutput = await backend.getWorkspaceEnv({
-    //   project: config.project,
-    //   workspace,
-    // })
-    // if (!getWorkspaceEnvOutput.success) {
-    //   this.error(getWorkspaceEnvOutput.reason)
-    // }
-
-    // const {env: workspaceEnv} = getWorkspaceEnvOutput
-
-    // const parameterManager = getParameterManager()
-
-    // if (removedPackages.length > 0) {
-    //   logger.log(`Destroying ${removedPackages.length} removed packages`)
-    // }
-
-    // const removed = await Promise.all(
-    //   removedPackages.map(async (packageName) => {
-    //     const {parameters} = await parameterManager.getPackageParameters({
-    //       package: packageName,
-    //       projectRootDir,
-    //       workspace,
-    //     })
-    //     const destroyOutput = await destroyPackage({
-    //       env: workspaceEnv,
-    //       isDeploying: flags.deploy,
-    //       package: packageName,
-    //       parameters,
-    //       project: config.project,
-    //       workspace,
-    //     })
-    //     if (!destroyOutput.success) {
-    //       this.error(destroyOutput.reason)
-    //     }
-
-    //     const {env, metadata} = destroyOutput
-    //     return {env, metadata, packageName}
-    //   }),
-    // )
-
-    // if (removedPackages.length > 0) {
-    //   logger.done(`Destroyed ${removedPackages.length} removed packages`)
-    // }
-
-    // logger.log(`Provisioning ${packages.length} packages`)
-    // const added = await Promise.all(
-    //   packages.map(async (packageName) => {
-    //     const {parameters} = await parameterManager.getPackageParameters({
-    //       package: packageName,
-    //       projectRootDir,
-    //       workspace,
-    //     })
-    //     const provisionOutput = await provisionPackage({
-    //       env: workspaceEnv,
-    //       isDeploying: flags.deploy,
-    //       package: packageName,
-    //       parameters,
-    //       project: config.project,
-    //       workspace,
-    //     })
-    //     if (!provisionOutput.success) {
-    //       this.error(provisionOutput.reason)
-    //     }
-
-    //     const {env, metadata} = provisionOutput
-    //     return {env, metadata, packageName}
-    //   }),
-    // )
-
-    // logger.done(`Provisioned ${packages.length} packages`)
-
-    // const envManager = getEnvManager()
-    // for (const {env, metadata} of removed) {
-    //   // eslint-disable-next-line no-await-in-loop
-    //   await Promise.all([
-    //     envManager.removeProjectEnv({
-    //       env,
-    //       infra: metadata.originalInfra ?? metadata.infra,
-    //       projectRootDir,
-    //       workspace,
-    //     }),
-    //   ])
-    // }
-
-    // if (removedPackages.length > 0) {
-    //   logger.done(`Removed env vars from ${removedPackages.length} removed packages`)
-    // }
-
-    // for (const {env, metadata} of added) {
-    //   // eslint-disable-next-line no-await-in-loop
-    //   await envManager.addProjectEnv({
-    //     env,
-    //     infra: metadata.originalInfra ?? metadata.infra,
-    //     projectRootDir,
-    //     workspace,
-    //   })
-    // }
-
-    // logger.done('Saved exported environment variables')
-
-    // const {config: newConfig} = await configManager.loadConfig({projectRootDir})
-    // await backend.saveState(newConfig)
   }
 }

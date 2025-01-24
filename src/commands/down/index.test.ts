@@ -70,8 +70,8 @@ describe('down', () => {
 
     it('fails if the project is not initialized', async () => {
         await fs.rm(path.join(rootDir, 'hereya.yaml'))
-        const { stderr } = await runCommand(['down'])
-        expect(stderr).to.contain(`Project not initialized. Run 'hereya init' first.`)
+        const { stdout } = await runCommand(['down'])
+        expect(stdout).to.contain(`Project not initialized. Run 'hereya init' first.`)
     })
 
     it('destroys all packages in the project', async () => {
@@ -103,6 +103,29 @@ describe('down', () => {
         sinon.assert.calledWithMatch(
             envManager.removeProjectEnv as SinonStub,
             sinon.match.has('workspace', 'another-workspace')
+        )
+    })
+
+    it("destroys removed packages", async () => {
+        await fs.mkdir(path.join(homeDir, '.hereya', 'state', 'projects'), { recursive: true })
+        await fs.writeFile(
+            path.join(homeDir, '.hereya', 'state', 'projects', 'test-project.yaml'),
+            `
+            project: test-project
+            packages:
+              cloudy/docker_postgres:
+                version: ''
+              removed/package:
+                version: ''
+              another/package:
+                version: ''
+            `
+        )
+        await runCommand(['down'])
+        sinon.assert.calledThrice(localInfrastructure.destroy as SinonStub)
+        sinon.assert.calledWithMatch(
+            localInfrastructure.destroy as SinonStub,
+            sinon.match.has('pkgName', 'removed/package')
         )
     })
 
