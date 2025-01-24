@@ -94,6 +94,7 @@ export default class Down extends Command {
                                     const backend = await getBackend()
                                     const savedStateOutput = await backend.getState({
                                         project: ctx.configOutput.config.project,
+                                        workspace: ctx.workspace,
                                     })
                                     let removedPackages: string[] = []
                                     if (savedStateOutput.found) {
@@ -172,11 +173,11 @@ export default class Down extends Command {
                                 title: 'Removing env vars from destroyed packages',
                             },
                             {
-                                async task() {
+                                async task(ctx) {
                                     const backend = await getBackend()
                                     const configManager = getConfigManager()
                                     const { config: newConfig } = await configManager.loadConfig({ projectRootDir })
-                                    await backend.saveState(newConfig)
+                                    await backend.saveState(newConfig, ctx.workspace)
                                     await delay(500)
                                 },
                                 title: 'Saving state',

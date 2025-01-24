@@ -175,7 +175,8 @@ export class LocalBackend implements Backend {
   }
 
   async getState(input: GetStateInput): Promise<GetStateOutput> {
-    const projectStatePath = await this.getProjectStatePath(input.project)
+    await this.migrateProjectState(input)
+    const projectStatePath = await this.getProjectStatePath(input)
     const {data, found} = await load<Config>(projectStatePath)
 
     if (found) {
@@ -291,9 +292,16 @@ export class LocalBackend implements Backend {
     }
   }
 
-  async saveState(config: Omit<Config, 'workspace'>): Promise<void> {
-    const projectStatePath = await this.getProjectStatePath(config.project)
-    await save(config, projectStatePath)
+  async saveState(config: Config, workspace?: string): Promise<void> {
+    await this.migrateProjectState({
+      project: config.project,
+      workspace: workspace ?? config.workspace,
+    })
+    const projectStatePath = await this.getProjectStatePath({
+      project: config.project,
+      workspace: workspace ?? config.workspace,
+    })
+    await save({...config, workspace: workspace ?? config.workspace}, projectStatePath)
   }
 
   async setEnvVar(input: SetEnvVarInput): Promise<SetEnvVarOutput> {
@@ -400,10 +408,17 @@ export class LocalBackend implements Backend {
     }
   }
 
-  private async getProjectStatePath(project: string): Promise<string> {
+  private async getOldProjectStatePath(input: GetStateInput): Promise<string> {
     return getAnyPath(
-      path.join(os.homedir(), '.hereya', 'state', 'projects', `${project}.yaml`),
-      path.join(os.homedir(), '.hereya', 'state', 'projects', `${project}.yml`),
+      path.join(os.homedir(), '.hereya', 'state', 'projects', `${input.project}.yaml`),
+      path.join(os.homedir(), '.hereya', 'state', 'projects', `${input.project}.yml`),
+    )
+  }
+
+  private async getProjectStatePath(input: GetStateInput): Promise<string> {
+    return getAnyPath(
+      path.join(os.homedir(), '.hereya', 'state', 'projects', input.workspace, `${input.project}.yaml`),
+      path.join(os.homedir(), '.hereya', 'state', 'projects', input.workspace, `${input.project}.yml`),
     )
   }
 
@@ -412,6 +427,21 @@ export class LocalBackend implements Backend {
       path.join(os.homedir(), '.hereya', 'state', 'workspaces', `${name}.yaml`),
       path.join(os.homedir(), '.hereya', 'state', 'workspaces', `${name}.yml`),
     )
+  }
+
+  private async migrateProjectState(input: GetStateInput): Promise<void> {
+    const oldProjectStatePath = await this.getOldProjectStatePath(input)
+    const newProjectStatePath = await this.getProjectStatePath(input)
+    const newProjectStateDir = path.dirname(newProjectStatePath)
+    await fs.mkdir(newProjectStateDir, { recursive: true })
+    try {
+      await fs.access(oldProjectStatePath)
+      await fs.rename(oldProjectStatePath, newProjectStatePath)
+    } catch (error: any) {
+      if (error.code !== 'ENOENT') {
+        throw error
+      }
+    }
   }
 
   private async saveWorkspace(data: z.infer<typeof WorkspaceSchema>, name: string) {

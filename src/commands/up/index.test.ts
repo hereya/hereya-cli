@@ -102,11 +102,12 @@ describe('up', () => {
     })
 
     it('destroys removed packages', async () => {
-        await fs.mkdir(path.join(homeDir, '.hereya', 'state', 'projects'), { recursive: true })
+        await fs.mkdir(path.join(homeDir, '.hereya', 'state', 'projects', 'my-workspace'), { recursive: true })
         await fs.writeFile(
-            path.join(homeDir, '.hereya', 'state', 'projects', 'test-project.yaml'),
+            path.join(homeDir, '.hereya', 'state', 'projects', 'my-workspace', 'test-project.yaml'),
             `
             project: test-project
+            workspace: my-workspace
             packages:
               cloudy/docker_postgres:
                 version: ''
@@ -126,11 +127,12 @@ describe('up', () => {
     })
 
     it('updates the project state file', async () => {
-        await fs.mkdir(path.join(homeDir, '.hereya', 'state', 'projects'), { recursive: true })
+        await fs.mkdir(path.join(homeDir, '.hereya', 'state', 'projects', 'my-workspace'), { recursive: true })
         await fs.writeFile(
-            path.join(homeDir, '.hereya', 'state', 'projects', 'test-project.yaml'),
+            path.join(homeDir, '.hereya', 'state', 'projects', 'my-workspace', 'test-project.yaml'),
             `
             project: test-project
+            workspace: my-workspace
             packages:
               cloudy/docker_postgres:
                 version: ''
@@ -141,7 +143,7 @@ describe('up', () => {
             `
         )
         await runCommand(['up'])
-        const projectState = await fs.readFile(path.join(homeDir, '.hereya', 'state', 'projects', 'test-project.yaml'), { encoding: 'utf8' })
+        const projectState = await fs.readFile(path.join(homeDir, '.hereya', 'state', 'projects', 'my-workspace', 'test-project.yaml'), { encoding: 'utf8' })
         expect(projectState).to.contain('cloudy/docker_postgres')
         expect(projectState).to.contain('another/package')
         expect(projectState).not.to.contain('removed/package')

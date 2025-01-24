@@ -107,6 +107,7 @@ export default class Undeploy extends Command {
                   const backend = await getBackend()
                   const savedStateOutput = await backend.getState({
                     project: ctx.configOutput.config.project,
+                    workspace: ctx.workspace,
                   })
                   if (savedStateOutput.found) {
                     ctx.savedStateOutput = savedStateOutput
@@ -228,11 +229,11 @@ export default class Undeploy extends Command {
                 title: 'Removing env vars from destroyed packages',
               },
               {
-                async task() {
+                async task(ctx) {
                   const backend = await getBackend()
                   const configManager = getConfigManager()
                   const {config: newConfig} = await configManager.loadConfig({projectRootDir})
-                  await backend.saveState(newConfig)
+                  await backend.saveState(newConfig, ctx.workspace)
                   await delay(500)
                 },
                 title: 'Saving state',

@@ -11,7 +11,7 @@ export interface Backend {
   getWorkspaceEnv(input: GetWorkspaceEnvInput): Promise<GetWorkspaceEnvOutput>
   init(options: InitProjectInput): Promise<InitProjectOutput>
   removePackageFromWorkspace(input: RemovePackageFromWorkspaceInput): Promise<RemovePackageFromWorkspaceOutput>
-  saveState(config: Omit<Config, 'workspace'>): Promise<void>
+  saveState(config: Config, workspace?: string): Promise<void>
   setEnvVar(input: SetEnvVarInput): Promise<SetEnvVarOutput>
   unsetEnvVar(input: UnsetEnvVarInput): Promise<UnsetEnvVarOutput>
 }
@@ -117,11 +117,12 @@ export type GetWorkspaceOutput =
 
 export type GetStateInput = {
   project: string
+  workspace: string
 }
 
 export type GetStateOutput =
   | {
-      config: Omit<Config, 'workspace'>
+      config: Config
       found: true
     }
   | {
