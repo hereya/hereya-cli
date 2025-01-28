@@ -43,7 +43,7 @@ describe('remove', () => {
     it('does nothing if the package is not in the project', async () => {
         await fs.writeFile(path.join(rootDir, 'hereya.yaml'), 'project: test-project\nworkspace: test-workspace\n')
         const { stdout } = await runCommand(['remove', 'notin/project'])
-        expect(stdout).to.contain('Package notin/project not found in project')
+        expect(stdout).to.contain('Package notin/project not found in the project')
     })
 
     it('fails if the package cannot be resolved', async () => {

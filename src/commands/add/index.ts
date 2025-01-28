@@ -49,8 +49,10 @@ export default class Add extends Command {
 
     interface Ctx {
       configOutput: Extract<LoadConfigOutput, {found: true}>
+      package: string
       parametersOutput: GetPackageParametersOutput
       provisionOutput: Extract<ProvisionPackageOutput, {success: true}>
+      userSpecifiedParameters: string[]
       workspaceEnvOutput: Extract<GetWorkspaceEnvOutput, {success: true}>
     }
 
@@ -62,6 +64,12 @@ export default class Add extends Command {
           async task(ctx, task) {
             return task.newListr(
               [
+                {
+                  async task(ctx) {
+                    ctx.package = args.package
+                    ctx.userSpecifiedParameters = flags.parameter
+                  },
+                },
                 {
                   async task(ctx) {
                     const configManager = getConfigManager()
@@ -94,10 +102,10 @@ export default class Add extends Command {
                 },
                 {
                   async task(ctx) {
-                    const userSpecifiedParameters = arrayOfStringToObject(flags.parameter)
+                    const userSpecifiedParameters = arrayOfStringToObject(ctx.userSpecifiedParameters)
                     const parameterManager = getParameterManager()
                     const parametersOutput = await parameterManager.getPackageParameters({
-                      package: args.package,
+                      package: ctx.package,
                       projectRootDir,
                       userSpecifiedParameters,
                       workspace: ctx.configOutput.config.workspace,
@@ -111,7 +119,7 @@ export default class Add extends Command {
                   async task(ctx) {
                     const provisionOutput = await provisionPackage({
                       env: ctx.workspaceEnvOutput.env,
-                      package: args.package,
+                      package: ctx.package,
                       parameters: ctx.parametersOutput.parameters,
                       project: ctx.configOutput.config.project,
                       skipDeploy: true,
@@ -144,7 +152,7 @@ export default class Add extends Command {
                     const configManager = getConfigManager()
                     await configManager.addPackage({
                       metadata: ctx.provisionOutput.metadata,
-                      package: args.package,
+                      package: ctx.package,
                       projectRootDir,
                     })
                     await delay(500)
@@ -159,14 +167,14 @@ export default class Add extends Command {
                     await backend.saveState(newConfig)
                     const parameterManager = getParameterManager()
                     const {filePath, saved} = await parameterManager.savePackageParameters({
-                      package: args.package,
+                      package: ctx.package,
                       parameters: ctx.parametersOutput.parameters,
                       projectRootDir,
                       workspace: ctx.configOutput.config.workspace,
                     })
 
                     await delay(500)
-
+                    
                     if (saved) {
                       myLogger.log(
                         ListrLogLevels.COMPLETED,

@@ -42,6 +42,7 @@ export default class Remove extends Command {
     interface Ctx {
       configOutput: Extract<LoadConfigOutput, {found: true}>
       destroyOutput: Extract<DestroyPackageOutput, {success: true}>
+      package: string
       parametersOutput: GetPackageParametersOutput
       workspaceEnvOutput: Extract<GetWorkspaceEnvOutput, {success: true}>
     }
@@ -54,6 +55,11 @@ export default class Remove extends Command {
           return task.newListr([
             {
               async task(ctx) {
+                ctx.package = args.package
+              },
+            },
+            {
+              async task(ctx) {
                 const configManager = getConfigManager()
                 const loadConfigOutput = await configManager.loadConfig({projectRootDir})
                 if (!loadConfigOutput.found) {
@@ -62,8 +68,8 @@ export default class Remove extends Command {
 
                 ctx.configOutput = loadConfigOutput
                 const {config} = loadConfigOutput
-                if (!(args.package in (config.packages ?? {})) && !(args.package in (config.deploy ?? {}))) {
-                  throw new Error(`Package ${args.package} not found in project.`)
+                if (!(ctx.package in (config.packages ?? {})) && !(ctx.package in (config.deploy ?? {}))) {
+                  throw new Error(`Package ${ctx.package} not found in the project.`)
                 }
 
                 await delay(500)
@@ -90,7 +96,7 @@ export default class Remove extends Command {
               async task(ctx) {
                 const parameterManager = getParameterManager()
                 const parametersOutput = await parameterManager.getPackageParameters({
-                  package: args.package,
+                  package: ctx.package,
                   projectRootDir,
                   workspace: ctx.configOutput.config.workspace,
                 })
@@ -103,7 +109,7 @@ export default class Remove extends Command {
               async task(ctx) {
                 const destroyOutput = await destroyPackage({
                   env: ctx.workspaceEnvOutput.env,
-                  package: args.package,
+                  package: ctx.package,
                   parameters: ctx.parametersOutput.parameters,
                   project: ctx.configOutput.config.project,
                   skipDeploy: true,
@@ -136,7 +142,7 @@ export default class Remove extends Command {
                 const configManager = getConfigManager()
                 await configManager.removePackage({
                   metadata: ctx.destroyOutput.metadata,
-                  package: args.package,
+                  package: ctx.package,
                   projectRootDir,
                 })
                 await delay(500)
