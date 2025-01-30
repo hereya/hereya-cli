@@ -96,7 +96,7 @@ describe('workspace:uninstall', () => {
 
         it('removes a package and its env from a workspace', async () => {
             const { stdout } = await runCommand(['workspace:uninstall', 'cloud/postgres', '-w', 'test-workspace'])
-            expect(stdout).to.contain('Package cloud/postgres removed from workspace test-workspace')
+            expect(stdout).to.contain('Package cloud/postgres uninstalled successfully from workspace test-workspace')
             const workspaceContent = await fs.readFile(path.join(homeDir, '.hereya', 'state', 'workspaces', 'test-workspace.yaml'), 'utf8')
             expect(workspaceContent).to.not.contain('cloud/postgres')
             expect(workspaceContent).to.not.contain('FOO: BAR')

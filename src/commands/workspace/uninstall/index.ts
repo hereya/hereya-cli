@@ -1,102 +1,152 @@
-import { Args, Command, Flags } from '@oclif/core'
+import {Args, Command, Flags} from '@oclif/core'
+import {Listr, ListrLogLevels, ListrLogger} from 'listr2'
 
-import { getBackend } from '../../../backend/index.js';
-import { destroyPackage } from '../../../infrastructure/index.js';
-import { arrayOfStringToObject } from '../../../lib/object-utils.js';
-import { load } from '../../../lib/yaml-utils.js';
+import {GetWorkspaceOutput} from '../../../backend/common.js'
+import {getBackend} from '../../../backend/index.js'
+import {DestroyPackageOutput, destroyPackage} from '../../../infrastructure/index.js'
+import {arrayOfStringToObject} from '../../../lib/object-utils.js'
+import {delay, setDebug} from '../../../lib/shell.js'
+import {load} from '../../../lib/yaml-utils.js'
 
 export default class WorkspaceUninstall extends Command {
-    static override args = {
-        package: Args.string({
-            description: 'The package to remove. Packages are gitHub repositories. Use the format owner/repository',
-            required: true
-        }),
+  static override args = {
+    package: Args.string({
+      description: 'The package to remove. Packages are gitHub repositories. Use the format owner/repository',
+      required: true,
+    }),
+  }
+
+  static override description = 'Remove a package from a workspace.'
+
+  static override examples = ['<%= config.bin %> <%= command.id %> hereya/aws-cognito']
+
+  static flags = {
+    debug: Flags.boolean({
+      default: false,
+      description: 'enable debug mode',
+    }),
+    parameter: Flags.string({
+      char: 'p',
+      default: [],
+      description: "parameter for the package, in the form of 'key=value'. Can be specified multiple times.",
+      multiple: true,
+    }),
+    'parameter-file': Flags.string({
+      char: 'f',
+      description: 'path to a file containing parameters for the package',
+    }),
+    workspace: Flags.string({
+      char: 'w',
+      description: 'name of the workspace to remove the package from',
+      required: true,
+    }),
+  }
+
+  public async run(): Promise<void> {
+    const {args, flags} = await this.parse(WorkspaceUninstall)
+
+    setDebug(flags.debug)
+
+    interface Ctx {
+      destroyOutput: Extract<DestroyPackageOutput, {success: true}>
+      parameters: {[key: string]: string}
+      workspace: Extract<GetWorkspaceOutput, {found: true; hasError: false}>
     }
 
-    static override description = 'Remove a package from a workspace.'
+    const myLogger = new ListrLogger({useIcons: false})
 
-    static override examples = [
-        '<%= config.bin %> <%= command.id %> hereya/aws-cognito',
-    ]
+    const task: Listr<Ctx> = new Listr([
+      {
+        async task(ctx, task) {
+          return task.newListr([
+            {
+              async task(ctx) {
+                const backend = await getBackend()
+                const loadWorkspaceOutput = await backend.getWorkspace(flags.workspace)
+                if (!loadWorkspaceOutput.found || loadWorkspaceOutput.hasError) {
+                  throw new Error(`Workspace ${flags.workspace} not found`)
+                }
 
-    static flags = {
-        parameter: Flags.string({
-            char: 'p',
-            default: [],
-            description: 'parameter for the package, in the form of \'key=value\'. Can be specified multiple times.',
-            multiple: true,
-        }),
-        'parameter-file': Flags.string({
-            char: 'f',
-            description: 'path to a file containing parameters for the package',
-        }),
-        workspace: Flags.string({
-            char: 'w',
-            description: 'name of the workspace to remove the package from',
-            required: true,
-        }),
+                if (!(args.package in (loadWorkspaceOutput.workspace.packages ?? {}))) {
+                  throw new Error(`Package ${args.package} not found in workspace ${flags.workspace}`)
+                }
+
+                ctx.workspace = loadWorkspaceOutput
+                await delay(500)
+              },
+              title: `Loading workspace ${flags.workspace}`,
+            },
+            {
+              async task(ctx) {
+                const parametersInCmdline = arrayOfStringToObject(flags.parameter)
+                let parametersFromFile = {}
+                if (flags['parameter-file']) {
+                  const {data, found} = await load(flags['parameter-file'])
+                  if (!found) {
+                    throw new Error(`Parameter file ${flags['parameter-file']} not found`)
+                  }
+
+                  parametersFromFile = data
+                }
+
+                const parameters = {
+                  ...ctx.workspace.workspace.packages?.[args.package].parameters,
+                  ...parametersFromFile,
+                  ...parametersInCmdline,
+                }
+
+                ctx.parameters = parameters
+                await delay(500)
+              },
+              title: 'Resolving parameters',
+            },
+            {
+              async task(ctx) {
+                const destroyOutput = await destroyPackage({
+                  package: args.package,
+                  parameters: ctx.parameters,
+                  workspace: flags.workspace,
+                })
+                if (!destroyOutput.success) {
+                  throw new Error(destroyOutput.reason)
+                }
+
+                ctx.destroyOutput = destroyOutput
+              },
+              title: 'Destroying package',
+            },
+            {
+              async task(ctx) {
+                const {env, metadata} = ctx.destroyOutput
+                const backend = await getBackend()
+                const output = await backend.removePackageFromWorkspace({
+                  env,
+                  infra: metadata.infra,
+                  package: args.package,
+                  workspace: flags.workspace,
+                })
+                if (!output.success) {
+                  throw new Error(output.reason)
+                }
+              },
+              title: 'Removing exported environment variables from workspace',
+            },
+          ])
+        },
+        title: `Uninstalling package ${args.package} from workspace ${flags.workspace}`,
+      },
+    ])
+
+    try {
+      await task.run()
+
+      myLogger.log(
+        ListrLogLevels.COMPLETED,
+        `Package ${args.package} uninstalled successfully from workspace ${flags.workspace}`,
+      )
+    } catch (error: any) {
+      myLogger.log(ListrLogLevels.FAILED, error)
+      this.error(error.message)
     }
-
-    public async run(): Promise<void> {
-        const { args, flags } = await this.parse(WorkspaceUninstall)
-
-        const backend = await getBackend()
-        const loadWorkspaceOutput = await backend.getWorkspace(flags.workspace)
-        if (!loadWorkspaceOutput.found) {
-            this.error(`Workspace ${flags.workspace} not found`)
-        }
-
-        if (loadWorkspaceOutput.hasError) {
-            this.error(`Error loading workspace ${flags.workspace}: ${loadWorkspaceOutput.error}`)
-        }
-
-        const { workspace } = loadWorkspaceOutput
-        if (!(args.package in (workspace.packages ?? {}))) {
-            this.log(`Package ${args.package} not found in workspace ${flags.workspace}`)
-            return
-        }
-
-        const parametersInCmdline = arrayOfStringToObject(flags.parameter)
-        let parametersFromFile = {}
-        if (flags['parameter-file']) {
-            const { data, found } = await load(flags['parameter-file'])
-            if (!found) {
-                this.error(`Parameter file ${flags['parameter-file']} not found`)
-            }
-
-            parametersFromFile = data
-        }
-
-        const parameters = {
-            ...workspace.packages?.[args.package].parameters,
-            ...parametersFromFile,
-            ...parametersInCmdline
-        }
-
-        const destroyOutput = await destroyPackage({
-            package: args.package,
-            parameters,
-            workspace: flags.workspace,
-        })
-        if (!destroyOutput.success) {
-            this.error(destroyOutput.reason)
-        }
-
-        const { env, metadata } = destroyOutput
-        this.log(`Package ${args.package} removed successfully`)
-        this.log(`removing exported environment variables from workspace ${flags.workspace}...`)
-
-        const output = await backend.removePackageFromWorkspace({
-            env,
-            infra: metadata.infra,
-            package: args.package,
-            workspace: flags.workspace,
-        })
-        if (!output.success) {
-            this.error(output.reason)
-        }
-
-        this.log(`Package ${args.package} removed from workspace ${flags.workspace}`)
-
-    }
+  }
 }

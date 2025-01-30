@@ -101,7 +101,7 @@ describe('workspace:install', () => {
 
         it('adds a package to the workspace and saves exported env to workspace', async () => {
             const { stdout } = await runCommand(['workspace:install', 'mynew/package', '-w', 'my-dev'])
-            expect(stdout).to.contain('Package mynew/package added to workspace my-dev')
+            expect(stdout).to.contain('Package mynew/package installed successfully into workspace my-dev')
             const workspaceContent = await fs.readFile(path.join(homeDir, '.hereya', 'state', 'workspaces', 'my-dev.yaml'), 'utf8')
             expect(workspaceContent).to.contain('mynew/package')
             expect(workspaceContent).to.contain('NEW_ENV: local:new-var')
