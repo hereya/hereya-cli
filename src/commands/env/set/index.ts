@@ -10,7 +10,7 @@ export default class EnvSet extends Command {
     name: Args.string({description: 'name of the environment variable to set'}),
   }
 
-  static override description = 'Set an environment variable for the current workspace'
+  static override description = 'Set an user-defined environment variable for the project'
 
   static override examples = ['<%= config.bin %> <%= command.id %> FOO bar']
 
