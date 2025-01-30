@@ -1,3 +1,12 @@
+## [0.17.1](https://github.com/hereya/hereya-cli/compare/0.17.0...0.17.1) (2025-01-30)
+
+
+### Bug Fixes
+
+* Update env set command description for clarity ([e16adae](https://github.com/hereya/hereya-cli/commit/e16adae9be77498f02f5f5235a3583837869bd65))
+
+
+
 # [0.17.0](https://github.com/hereya/hereya-cli/compare/0.16.0...0.17.0) (2025-01-30)
 
 
