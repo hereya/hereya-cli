@@ -1,3 +1,12 @@
+# [0.16.0](https://github.com/hereya/hereya-cli/compare/0.15.1...0.16.0) (2025-01-30)
+
+
+### Features
+
+* Improve workspace install and uninstall commands with Listr2 task management ([a9e9e50](https://github.com/hereya/hereya-cli/commit/a9e9e50f72a606632bce5d82e56642e9bdd16d8f))
+
+
+
 ## [0.15.1](https://github.com/hereya/hereya-cli/compare/0.15.0...0.15.1) (2025-01-24)
 
 
