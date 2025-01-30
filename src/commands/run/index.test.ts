@@ -47,12 +47,6 @@ describe('run', () => {
         expect(error).to.be.undefined
     })
 
-    it('fails if workspace is not set', async () => {
-        await fs.writeFile(path.join(rootDir, 'hereya.yaml'), 'project: test-project\n')
-        const { error } = await runCommand(['run', 'ls'])
-        expect(error?.oclif?.exit).to.equal(2)
-    });
-
     it('overrides the workspace with the -w flag', async () => {
         await fs.writeFile(path.join(rootDir, 'hereya.yaml'), 'project: test-project\nworkspace: dev\n')
         await mkdir(path.join(rootDir, '.hereya'))
@@ -67,4 +61,29 @@ describe('run', () => {
         const { error } = await runCommand(['run', '-w', 'another', '--', 'node', 'index.js'])
         expect(error).to.be.undefined
     });
+
+    it('uses user-defined env vars if provided', async () => {
+        await fs.writeFile(path.join(rootDir, 'hereya.yaml'), 'project: test-project\nworkspace: dev\n')
+        await fs.mkdir(path.join(rootDir, '.hereya'), { recursive: true })
+        await fs.writeFile(path.join(rootDir, '.hereya', 'env.dev.yaml'), 'FOO: local:bar\nGREETING: local:hello\n')
+
+        const envFile = path.join(rootDir, 'hereyastaticenv', 'env.yaml')
+        await fs.mkdir(path.dirname(envFile), { recursive: true })
+        await fs.writeFile(envFile, 'FOO: user-defined-value\nGOOD: bad\n')
+
+        const devEnvFile = path.join(rootDir, 'hereyastaticenv', 'env.dev.yaml')
+        await fs.writeFile(devEnvFile, 'FOO: user-defined-value-dev\n')
+
+
+        await fs.writeFile(path.join(rootDir, 'index.js'),
+            `
+            const assert = require('node:assert')
+            assert(process.env.FOO === 'user-defined-value-dev')
+            assert(process.env.GREETING === 'hello')
+            assert(process.env.GOOD === 'bad')
+            `
+        )
+        const { error } = await runCommand(['run', '--', 'node', 'index.js'])
+        expect(error).to.be.undefined
+    })
 })

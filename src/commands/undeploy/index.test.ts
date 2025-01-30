@@ -137,6 +137,20 @@ describe('undeploy', () => {
         )
     })
 
+    it('provides user-defined env vars if provided to the deploy package', async () => {
+        await fs.mkdir(path.join(rootDir, 'hereyastaticenv'), { recursive: true })
+        await fs.writeFile(path.join(rootDir, 'hereyastaticenv', 'env.yaml'), 'FOO: bar\n')
+        await fs.writeFile(path.join(rootDir, 'hereyastaticenv', 'env.my-workspace.yaml'), 'GOOD: bad\n')
+        
+        sinon.stub(envManager, 'removeProjectEnv').resolves()
+        await runCommand(['undeploy', '-w', 'my-workspace'])
+       
+        sinon.assert.calledWithMatch(
+            localInfrastructure.undeploy as SinonStub,
+            sinon.match.has('projectEnv', {FOO: 'bar', GOOD: 'bad'})
+        )
+    })
+
     it('destroys all packages in the project for the specified workspace', async () => {
         await fs.writeFile(
             path.join(homeDir, '.hereya', 'state', 'workspaces', 'another-workspace.yaml'),
