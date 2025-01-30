@@ -1,3 +1,12 @@
+# [0.17.0](https://github.com/hereya/hereya-cli/compare/0.16.0...0.17.0) (2025-01-30)
+
+
+### Features
+
+* Add support for user-defined environment variables ([35343b2](https://github.com/hereya/hereya-cli/commit/35343b2fd01848af982be95661f1319431f635d6))
+
+
+
 # [0.16.0](https://github.com/hereya/hereya-cli/compare/0.15.1...0.16.0) (2025-01-30)
 
 
