@@ -1,3 +1,12 @@
+# [0.18.0](https://github.com/hereya/hereya-cli/compare/0.17.2...0.18.0) (2025-02-03)
+
+
+### Features
+
+* Add support for local package management and custom registry URLs ([c5d0dba](https://github.com/hereya/hereya-cli/commit/c5d0dbab94d27ec7a4da0726a22ea8e10a5bda05))
+
+
+
 ## [0.17.2](https://github.com/hereya/hereya-cli/compare/0.17.1...0.17.2) (2025-01-30)
 
 
