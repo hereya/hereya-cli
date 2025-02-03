@@ -9,6 +9,8 @@ import type {GetRepoContentInput, GetRepoContentOutput, PackageManager} from './
 import {isNotEmpty} from '../filesystem.js'
 
 export class GitHubPackageManager implements PackageManager {
+  constructor(private readonly registryUrl: string = process.env.HEREYA_REGISTRY_URL || 'https://github.com') {}
+
   // eslint-disable-next-line new-cap
   @Retryable({
     backOff: 1000,
@@ -32,7 +34,7 @@ export class GitHubPackageManager implements PackageManager {
   }
 
   async getRepoContent({owner, path: filePath, repo}: GetRepoContentInput): Promise<GetRepoContentOutput> {
-    const pkgUrl = `https://github.com/${owner}/${repo}`
+    const pkgUrl = `${this.registryUrl}/${owner}/${repo}`
     const tmpFolder = path.join(os.tmpdir(), 'hereya', 'github', owner, repo)
 
     try {

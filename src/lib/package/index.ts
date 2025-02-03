@@ -1,25 +1,40 @@
 import * as yaml from 'yaml'
-import { z } from 'zod'
+import {z} from 'zod'
 
-import { IacType } from '../../iac/common.js'
-import { InfrastructureType } from '../../infrastructure/common.js'
-import { PackageManager } from './common.js'
-import { GitHubPackageManager } from './github.js'
+import {IacType} from '../../iac/common.js'
+import {InfrastructureType} from '../../infrastructure/common.js'
+import {PackageManager} from './common.js'
+import {GitHubPackageManager} from './github.js'
+import {LocalPackageManager} from './local.js'
 
 export const packageManager: PackageManager = new GitHubPackageManager()
+export const localPackageManager = new LocalPackageManager()
 
-export function getPackageManager(): PackageManager {
+export function getPackageManager(protocol: string): PackageManager {
+  if (protocol === 'local') {
+    return localPackageManager
+  }
+
   return packageManager
 }
 
 export async function resolvePackage(input: ResolvePackageInput): Promise<ResolvePackageOutput> {
-  const pkgParts = input.package.split('/')
-  if (pkgParts.length !== 2) {
-    return {found: false, reason: 'Invalid package format. Use owner/repository'}
+  const isLocal = input.package.startsWith('local://')
+
+  let [owner, repo] = ['', '']
+
+  if (isLocal) {
+    ;[owner, repo] = input.package.split('://')
+  } else {
+    const pkgParts = input.package.split('/')
+    if (pkgParts.length !== 2) {
+      return {found: false, reason: 'Invalid package format. Use owner/repository'}
+    }
+
+    ;[owner, repo] = pkgParts
   }
 
-  const [owner, repo] = pkgParts
-  const packageManager = getPackageManager()
+  const packageManager = getPackageManager(isLocal ? 'local' : '')
   const metadataContentCandidates = (
     await Promise.all([
       packageManager.getRepoContent({owner, path: 'hereyarc.yaml', repo}),
@@ -31,7 +46,7 @@ export async function resolvePackage(input: ResolvePackageInput): Promise<Resolv
     return {found: false, reason: `No hereya metadata file found in ${input.package}`}
   }
 
-  const metadataContent$ = metadataContentCandidates[0] as {content: string, pkgUrl: string}
+  const metadataContent$ = metadataContentCandidates[0] as {content: string; pkgUrl: string}
   try {
     const metadata = PackageMetadata.parse(yaml.parse(metadataContent$.content))
 
@@ -56,11 +71,16 @@ export async function resolvePackage(input: ResolvePackageInput): Promise<Resolv
 }
 
 export function getPackageCanonicalName(packageName: string): string {
+  const isLocal = packageName.startsWith('local://')
+  if (isLocal) {
+    return packageName.replace('local://', 'local--').replace('/', '-')
+  }
+
   return packageName.replace('/', '-')
 }
 
 export async function downloadPackage(pkgUrl: string, destPath: string) {
-  const packageManager = getPackageManager()
+  const packageManager = getPackageManager(pkgUrl.startsWith('local://') ? 'local' : '')
   return packageManager.downloadPackage(pkgUrl, destPath)
 }
 

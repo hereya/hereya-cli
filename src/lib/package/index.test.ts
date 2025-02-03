@@ -1,7 +1,7 @@
 import {expect} from 'chai'
 import sinon from 'sinon'
 
-import {packageManager, resolvePackage} from './index.js'
+import {localPackageManager, packageManager, resolvePackage} from './index.js'
 
 describe('package', () => {
   describe('resolvePackage', () => {
@@ -9,7 +9,20 @@ describe('package', () => {
       sinon.restore()
     })
 
-    it('requires package name to be in the format owner/repository', async () => {
+    it('accepts local packages with local:// prefix', async () => {
+      sinon.stub(localPackageManager, 'getRepoContent').resolves({
+        content: `
+                iac: terraform
+                infra: local
+                `,
+        found: true,
+        pkgUrl: 'local://./my/local/pkg/path',
+      })
+      const output = await resolvePackage({package: 'local://my/local/pkg/path'})
+      expect(output).to.have.property('found', true)
+    })
+
+    it('requires package name to be in the format owner/repository for non local packages', async () => {
       const output = await resolvePackage({package: 'invalid'})
       expect(output).to.have.property('found', false)
     })
