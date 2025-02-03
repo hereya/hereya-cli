@@ -1,3 +1,12 @@
+## [0.17.2](https://github.com/hereya/hereya-cli/compare/0.17.1...0.17.2) (2025-01-30)
+
+
+### Bug Fixes
+
+* Update env set examples to match the command api ([e2f9b19](https://github.com/hereya/hereya-cli/commit/e2f9b19b5e2542371a50408c820822901ebc02ea))
+
+
+
 ## [0.17.1](https://github.com/hereya/hereya-cli/compare/0.17.0...0.17.1) (2025-01-30)
 
 
