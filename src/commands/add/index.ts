@@ -71,7 +71,7 @@ export default class Add extends Command {
                   },
                 },
                 {
-                  async task(ctx) {
+                  async task(ctx, task) {
                     const configManager = getConfigManager()
 
                     const loadConfigOutput = await configManager.loadConfig({projectRootDir})
@@ -80,6 +80,8 @@ export default class Add extends Command {
                     }
 
                     ctx.configOutput = loadConfigOutput
+
+                    task.output = `Loaded project config`
                     await delay(500)
                   },
                   title: 'Loading project config',
@@ -174,7 +176,7 @@ export default class Add extends Command {
                     })
 
                     await delay(500)
-                    
+
                     if (saved) {
                       myLogger.log(
                         ListrLogLevels.COMPLETED,
