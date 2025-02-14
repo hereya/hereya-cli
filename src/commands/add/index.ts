@@ -1,9 +1,9 @@
 import {Args, Command, Flags} from '@oclif/core'
 import {Listr, ListrLogger, ListrLogLevels} from 'listr2'
 
-import {GetWorkspaceEnvOutput} from '../../backend/common.js'
 import {getBackend} from '../../backend/index.js'
-import {provisionPackage, ProvisionPackageOutput} from '../../infrastructure/index.js'
+import {getExecutor} from '../../executor/index.js'
+import {ExecutorProvisionOutput} from '../../executor/interface.js'
 import {LoadConfigOutput} from '../../lib/config/common.js'
 import {getConfigManager} from '../../lib/config/index.js'
 import {logEnv} from '../../lib/env-utils.js'
@@ -19,9 +19,9 @@ export default class Add extends Command {
       required: true,
     }),
   }
-static override description = 'Add a package to the project.'
-static override examples = ['<%= config.bin %> <%= command.id %> cloudy/docker_postgres']
-static override flags = {
+  static override description = 'Add a package to the project.'
+  static override examples = ['<%= config.bin %> <%= command.id %> cloudy/docker_postgres']
+  static override flags = {
     chdir: Flags.string({
       description: 'directory to run command in',
       required: false,
@@ -48,9 +48,8 @@ static override flags = {
       configOutput: Extract<LoadConfigOutput, {found: true}>
       package: string
       parametersOutput: GetPackageParametersOutput
-      provisionOutput: Extract<ProvisionPackageOutput, {success: true}>
+      provisionOutput: Extract<ExecutorProvisionOutput, {success: true}>
       userSpecifiedParameters: string[]
-      workspaceEnvOutput: Extract<GetWorkspaceEnvOutput, {success: true}>
     }
 
     const myLogger = new ListrLogger({useIcons: false})
@@ -85,22 +84,6 @@ static override flags = {
                 },
                 {
                   async task(ctx) {
-                    const backend = await getBackend()
-                    const getWorkspaceEnvOutput = await backend.getWorkspaceEnv({
-                      project: ctx.configOutput.config.project,
-                      workspace: ctx.configOutput.config.workspace,
-                    })
-                    if (!getWorkspaceEnvOutput.success) {
-                      throw new Error(getWorkspaceEnvOutput.reason)
-                    }
-
-                    ctx.workspaceEnvOutput = getWorkspaceEnvOutput
-                    await delay(500)
-                  },
-                  title: 'Loading Workspace environment variables',
-                },
-                {
-                  async task(ctx) {
                     const userSpecifiedParameters = arrayOfStringToObject(ctx.userSpecifiedParameters)
                     const parameterManager = getParameterManager()
                     const parametersOutput = await parameterManager.getPackageParameters({
@@ -116,8 +99,14 @@ static override flags = {
                 },
                 {
                   async task(ctx) {
-                    const provisionOutput = await provisionPackage({
-                      env: ctx.workspaceEnvOutput.env,
+                    const executor$ = getExecutor()
+                    if (!executor$.success) {
+                      throw new Error(executor$.reason)
+                    }
+
+                    const {executor} = executor$
+
+                    const provisionOutput = await executor.provision({
                       package: ctx.package,
                       parameters: ctx.parametersOutput.parameters,
                       project: ctx.configOutput.config.project,
