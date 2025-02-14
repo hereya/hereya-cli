@@ -11,16 +11,16 @@ export const awsInfrastructure = new AwsInfrastructure()
 
 export function getInfrastructure(input: GetInfrastructureInput): GetInfrastructureOutput {
   switch (input.type) {
-    case InfrastructureType.local: {
+    case InfrastructureType.aws: {
       return {
-        infrastructure: localInfrastructure,
+        infrastructure: awsInfrastructure,
         supported: true,
       }
     }
 
-    case InfrastructureType.aws: {
+    case InfrastructureType.local: {
       return {
-        infrastructure: awsInfrastructure,
+        infrastructure: localInfrastructure,
         supported: true,
       }
     }
@@ -227,11 +227,11 @@ export type GetInfrastructureInput = {
 }
 
 export type GetInfrastructureOutput =
+  | {infrastructure: Infrastructure; supported: true}
   | {
       reason: string
       supported: false
     }
-  | {infrastructure: Infrastructure; supported: true}
 
 
   export type PackageMetadata = z.infer<typeof PackageMetadata>

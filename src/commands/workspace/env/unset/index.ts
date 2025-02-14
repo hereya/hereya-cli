@@ -4,10 +4,8 @@ import {getBackend} from '../../../../backend/index.js'
 
 export default class WorkspaceEnvUnset extends Command {
   static override description = 'unset an env var for a workspace'
-
-  static override examples = ['<%= config.bin %> <%= command.id %> -w my-workspace -n myVar']
-
-  static override flags = {
+static override examples = ['<%= config.bin %> <%= command.id %> -w my-workspace -n myVar']
+static override flags = {
     name: Flags.string({char: 'n', description: 'name of the env var to unset', required: true}),
     workspace: Flags.string({
       char: 'w',

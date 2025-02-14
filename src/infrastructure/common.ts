@@ -49,10 +49,10 @@ export type DestroyInput = ProvisionInput
 
 export type DestroyOutput = ProvisionOutput
 
-export type DeployInput = {
+export type DeployInput = ProvisionInput & {
   projectEnv: {[key: string]: string}
   projectRootDir: string
-} & ProvisionInput
+}
 
 export type DeployOutput = ProvisionOutput
 

@@ -10,15 +10,12 @@ export default class Unbootstrap extends Command {
             required: true
         })
     }
-
-    static override description = 'Uninstall hereya resources deployed with bootstrap command.'
-
-    static override examples = [
+static override description = 'Uninstall hereya resources deployed with bootstrap command.'
+static override examples = [
         '<%= config.bin %> <%= command.id %> aws',
         '<%= config.bin %> <%= command.id %> local',
     ]
-
-    static override flags = {
+static override flags = {
         force: Flags.boolean({ char: 'f', description: 'try to delete hereya resources even if not deployed' }),
     }
 

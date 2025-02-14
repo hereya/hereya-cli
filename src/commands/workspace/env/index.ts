@@ -7,15 +7,12 @@ export default class WorkspaceEnv extends Command {
   static override args = {
     name: Args.string({description: 'name of the env to display', required: false}),
   }
-
-  static override description = 'Print workspace env vars.'
-
-  static override examples = [
+static override description = 'Print workspace env vars.'
+static override examples = [
     '<%= config.bin %> <%= command.id %> -w dev',
     '<%= config.bin %> <%= command.id %> myEnv -w dev',
   ]
-
-  static override flags = {
+static override flags = {
     list: Flags.boolean({
       char: 'l',
       description: 'list only the env vars without values',

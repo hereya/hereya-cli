@@ -1,10 +1,10 @@
 import {Command, Flags} from '@oclif/core'
-import {Listr, ListrLogLevels, ListrLogger} from 'listr2'
+import {Listr, ListrLogger, ListrLogLevels} from 'listr2'
 import path from 'node:path'
 
 import {GetStateOutput} from '../../backend/common.js'
 import {getBackend} from '../../backend/index.js'
-import {PackageMetadata, destroyPackage} from '../../infrastructure/index.js'
+import {destroyPackage, PackageMetadata} from '../../infrastructure/index.js'
 import {LoadConfigOutput} from '../../lib/config/common.js'
 import {getConfigManager} from '../../lib/config/index.js'
 import {getEnvManager} from '../../lib/env/index.js'
@@ -13,10 +13,8 @@ import {delay, setDebug} from '../../lib/shell.js'
 
 export default class Undeploy extends Command {
   static override description = 'Undeploy a hereya project by removing all resources.'
-
-  static override examples = ['<%= config.bin %> <%= command.id %>']
-
-  static override flags = {
+static override examples = ['<%= config.bin %> <%= command.id %>']
+static override flags = {
     chdir: Flags.string({
       description: 'directory to run command in',
       required: false,

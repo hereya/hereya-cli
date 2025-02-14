@@ -6,10 +6,8 @@ export default class WorkspaceDelete extends Command {
     static override args = {
         name: Args.string({ description: 'name of the workspace to delete', required: true }),
     }
-
-    static override description = 'Delete a workspace if it exists.'
-
-    static override examples = [
+static override description = 'Delete a workspace if it exists.'
+static override examples = [
         '<%= config.bin %> <%= command.id %> dev',
     ]
 

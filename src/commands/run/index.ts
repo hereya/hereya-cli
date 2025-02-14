@@ -8,15 +8,12 @@ export default class Run extends Command {
     static args = {
         cmd: Args.string({ description: 'command to run', required: true }),
     }
-
-    static override description = 'Run a command with hereya env vars.'
-
-    static override examples = [
+static override description = 'Run a command with hereya env vars.'
+static override examples = [
         '<%= config.bin %> <%= command.id %> -- npm run dev',
         '<%= config.bin %> <%= command.id %> -w uat -- node index.js',
     ]
-
-    static flags = {
+static flags = {
         chdir: Flags.string({
             description: 'directory to run command in',
             required: false,
@@ -27,8 +24,7 @@ export default class Run extends Command {
             required: false,
         }),
     }
-
-    static strict = false
+static strict = false
 
     public async run(): Promise<void> {
         const { args, argv, flags } = await this.parse(Run)

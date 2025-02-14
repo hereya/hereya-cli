@@ -5,10 +5,8 @@ import {InfrastructureType} from '../../../../infrastructure/common.js'
 
 export default class WorkspaceEnvSet extends Command {
   static override description = 'set an env var for a workspace'
-
-  static override examples = ['<%= config.bin %> <%= command.id %> -w my-workspace -n myVar -v my-value -i aws -s']
-
-  static override flags = {
+static override examples = ['<%= config.bin %> <%= command.id %> -w my-workspace -n myVar -v my-value -i aws -s']
+static override flags = {
     infra: Flags.string({char: 'i', description: 'the infrastructure to store the env var in', required: true}),
     name: Flags.string({char: 'n', description: 'name of the env var to set', required: true}),
     sensitive: Flags.boolean({char: 's', description: 'whether the env var is sensitive'}),

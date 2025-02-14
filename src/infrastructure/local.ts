@@ -1,6 +1,6 @@
 import * as fs from 'node:fs/promises'
 import * as os from 'node:os'
-import * as path from 'node:path'
+import path from 'node:path'
 
 import { getIac } from '../iac/index.js'
 import { downloadPackage } from '../lib/package/index.js'

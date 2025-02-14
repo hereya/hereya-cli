@@ -7,7 +7,11 @@ export const cdk = new Cdk();
 
 export function getIac({ type }: GetIacInput): GetIacOutput {
     switch (type) {
-        case IacType.terraform: {
+        case IacType.cdk: {
+            return { iac: cdk, supported: true }
+        }
+
+        case IacType.opentf: {
             return { iac: terraform, supported: true }
         }
 
@@ -15,16 +19,12 @@ export function getIac({ type }: GetIacInput): GetIacOutput {
             return { iac: terraform, supported: true }
         }
 
-        case IacType.opentf: {
+        case IacType.terraform: {
             return { iac: terraform, supported: true }
         }
 
         case IacType.tofu: {
             return { iac: terraform, supported: true }
-        }
-
-        case IacType.cdk: {
-            return { iac: cdk, supported: true }
         }
 
         default: {

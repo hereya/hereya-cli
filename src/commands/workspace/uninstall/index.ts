@@ -1,9 +1,9 @@
 import {Args, Command, Flags} from '@oclif/core'
-import {Listr, ListrLogLevels, ListrLogger} from 'listr2'
+import {Listr, ListrLogger, ListrLogLevels} from 'listr2'
 
 import {GetWorkspaceOutput} from '../../../backend/common.js'
 import {getBackend} from '../../../backend/index.js'
-import {DestroyPackageOutput, destroyPackage} from '../../../infrastructure/index.js'
+import {destroyPackage, DestroyPackageOutput} from '../../../infrastructure/index.js'
 import {arrayOfStringToObject} from '../../../lib/object-utils.js'
 import {delay, setDebug} from '../../../lib/shell.js'
 import {load} from '../../../lib/yaml-utils.js'
@@ -15,12 +15,9 @@ export default class WorkspaceUninstall extends Command {
       required: true,
     }),
   }
-
-  static override description = 'Remove a package from a workspace.'
-
-  static override examples = ['<%= config.bin %> <%= command.id %> hereya/aws-cognito']
-
-  static flags = {
+static override description = 'Remove a package from a workspace.'
+static override examples = ['<%= config.bin %> <%= command.id %> hereya/aws-cognito']
+static flags = {
     debug: Flags.boolean({
       default: false,
       description: 'enable debug mode',

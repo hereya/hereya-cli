@@ -1,15 +1,16 @@
 import { runCommand } from '@oclif/test';
 import { expect } from 'chai';
-import { randomUUID } from 'node:crypto';
-import fs from 'node:fs/promises';
-import os from 'node:os';
-import path from 'node:path';
-import sinon, { SinonStub } from 'sinon';
+import { randomUUID } from 'node:crypto'
+import fs from 'node:fs/promises'
+import os from 'node:os'
+import path from 'node:path'
+import * as sinon from 'sinon'
+import { SinonStub } from 'sinon'
 
-import { localBackend } from '../../backend/index.js';
-import { awsInfrastructure, localInfrastructure } from '../../infrastructure/index.js';
-import { Config } from '../../lib/config/common.js';
-import { packageManager } from '../../lib/package/index.js';
+import { localBackend } from '../../backend/index.js'
+import { awsInfrastructure, localInfrastructure } from '../../infrastructure/index.js'
+import { Config } from '../../lib/config/common.js'
+import { packageManager } from '../../lib/package/index.js'
 import { load } from '../../lib/yaml-utils.js';
 
 describe('add', () => {
@@ -115,6 +116,7 @@ describe('add', () => {
 
         describe('standard package', () => {
             let getRepoContentStub: SinonStub
+
             beforeEach(async () => {
                 getRepoContentStub = sinon.stub(packageManager, 'getRepoContent').resolves({
                     content:
@@ -158,7 +160,7 @@ describe('add', () => {
                     override: 'you',
                     param1: 'value1',
                     param2: 'value2',
-                }))).to.be.true
+                }))).to.equal(true)
             })
 
             it('save user provided parameters', async () => {

@@ -97,6 +97,7 @@ export type GetWorkspaceEnvOutput =
 export type GetWorkspaceOutput =
   | {found: false}
   | (
+      | {error: string; found: true; hasError: true}
       | {
           found: true
           hasError: false
@@ -112,7 +113,6 @@ export type GetWorkspaceOutput =
             }
           }
         }
-      | {error: string; found: true; hasError: true}
     )
 
 export type GetStateInput = {

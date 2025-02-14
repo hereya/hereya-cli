@@ -9,15 +9,12 @@ export default class EnvSet extends Command {
   static override args = {
     name: Args.string({description: 'name of the environment variable to set'}),
   }
-
-  static override description = 'Set an user-defined environment variable for the project'
-
-  static override examples = [
+static override description = 'Set an user-defined environment variable for the project'
+static override examples = [
     '<%= config.bin %> <%= command.id %> FOO -v bar',
     '<%= config.bin %> <%= command.id %> FOO -v bar -w dev',
   ]
-
-  static flags = {
+static flags = {
     chdir: Flags.string({
       description: 'project root directory',
       required: false,

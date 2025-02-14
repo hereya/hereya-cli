@@ -1,9 +1,9 @@
 import {Command, Flags} from '@oclif/core'
-import {Listr, ListrLogLevels, ListrLogger} from 'listr2'
+import {Listr, ListrLogger, ListrLogLevels} from 'listr2'
 
 import {GetStateOutput, GetWorkspaceEnvOutput} from '../../backend/common.js'
 import {getBackend} from '../../backend/index.js'
-import {PackageMetadata, destroyPackage, provisionPackage} from '../../infrastructure/index.js'
+import {destroyPackage, PackageMetadata, provisionPackage} from '../../infrastructure/index.js'
 import {LoadConfigOutput} from '../../lib/config/common.js'
 import {getConfigManager} from '../../lib/config/index.js'
 import {getEnvManager} from '../../lib/env/index.js'
@@ -12,10 +12,8 @@ import {delay, setDebug} from '../../lib/shell.js'
 
 export default class Up extends Command {
   static override description = 'Provision all packages in the project.'
-
-  static override examples = ['<%= config.bin %> <%= command.id %>']
-
-  static override flags = {
+static override examples = ['<%= config.bin %> <%= command.id %>']
+static override flags = {
     chdir: Flags.string({
       description: 'directory to run command in',
       required: false,
@@ -210,14 +208,12 @@ export default class Up extends Command {
                   const envManager = getEnvManager()
                   for (const {env, metadata} of removed) {
                     // eslint-disable-next-line no-await-in-loop
-                    await Promise.all([
-                      envManager.removeProjectEnv({
+                    await envManager.removeProjectEnv({
                         env,
                         infra: metadata.originalInfra ?? metadata.infra,
                         projectRootDir,
                         workspace,
-                      }),
-                    ])
+                      })
                   }
 
                   await delay(500)

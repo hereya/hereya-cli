@@ -1,5 +1,5 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import * as path from 'node:path';
+import path from 'node:path';
 import { parse, stringify } from 'yaml';
 
 export async function save<T extends object>(content: T, file: string) {

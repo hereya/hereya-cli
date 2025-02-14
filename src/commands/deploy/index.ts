@@ -1,10 +1,10 @@
 import {Command, Flags} from '@oclif/core'
-import {Listr, ListrLogLevels, ListrLogger} from 'listr2'
+import {Listr, ListrLogger, ListrLogLevels} from 'listr2'
 import path from 'node:path'
 
 import {GetStateOutput} from '../../backend/common.js'
 import {getBackend} from '../../backend/index.js'
-import {PackageMetadata, destroyPackage, provisionPackage} from '../../infrastructure/index.js'
+import {destroyPackage, PackageMetadata, provisionPackage} from '../../infrastructure/index.js'
 import {getConfigManager} from '../../lib/config/index.js'
 import {getEnvManager} from '../../lib/env/index.js'
 import {getParameterManager} from '../../lib/parameter/index.js'
@@ -12,10 +12,8 @@ import {delay, setDebug} from '../../lib/shell.js'
 
 export default class Deploy extends Command {
   static override description = 'Deploy a hereya project using the project deployment package'
-
-  static override examples = ['<%= config.bin %> <%= command.id %>']
-
-  static override flags = {
+static override examples = ['<%= config.bin %> <%= command.id %>']
+static override flags = {
     chdir: Flags.string({
       description: 'directory to run command in',
       required: false,
@@ -254,14 +252,12 @@ export default class Deploy extends Command {
           const envManager = getEnvManager()
           for (const {env, metadata} of ctx.removed) {
             // eslint-disable-next-line no-await-in-loop
-            await Promise.all([
-              envManager.removeProjectEnv({
+            await envManager.removeProjectEnv({
                 env,
                 infra: metadata.originalInfra ?? metadata.infra,
                 projectRootDir,
                 workspace: ctx.workspace,
-              }),
-            ])
+              })
           }
 
           await delay(500)

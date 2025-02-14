@@ -1,4 +1,4 @@
-import {ListrLogLevels, ListrLogger} from 'listr2'
+import {ListrLogger, ListrLogLevels} from 'listr2'
 
 const myLogger = new ListrLogger({useIcons: false})
 

@@ -1,10 +1,11 @@
-import { runCommand } from '@oclif/test';
-import { expect } from 'chai';
-import { randomUUID } from 'node:crypto';
-import fs from 'node:fs/promises';
-import os from 'node:os';
-import path from 'node:path';
-import sinon, { SinonStub } from 'sinon';
+import { runCommand } from '@oclif/test'
+import { expect } from 'chai'
+import { randomUUID } from 'node:crypto'
+import fs from 'node:fs/promises'
+import os from 'node:os'
+import path from 'node:path'
+import * as sinon from 'sinon'
+import { SinonStub } from 'sinon'
 
 import { localInfrastructure } from '../../../infrastructure/index.js';
 import { packageManager } from '../../../lib/package/index.js';

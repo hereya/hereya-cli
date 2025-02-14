@@ -1,4 +1,4 @@
-import {StdioOptions, spawnSync} from 'node:child_process'
+import {spawnSync, StdioOptions} from 'node:child_process'
 
 let debug = false
 

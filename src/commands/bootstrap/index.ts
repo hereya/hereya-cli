@@ -10,15 +10,12 @@ export default class Bootstrap extends Command {
             required: true
         })
     }
-
-    static override description = 'Install necessary resources for hereya operations in an infrastructure.'
-
-    static override examples = [
+static override description = 'Install necessary resources for hereya operations in an infrastructure.'
+static override examples = [
         '<%= config.bin %> <%= command.id %> aws',
         '<%= config.bin %> <%= command.id %> local'
     ]
-
-    static override flags = {
+static override flags = {
         force: Flags.boolean({ char: 'f', description: 'redeploy hereya resources if already deployed' }),
     }
 

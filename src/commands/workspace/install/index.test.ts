@@ -1,14 +1,15 @@
 import { runCommand } from '@oclif/test';
 import { expect } from 'chai';
-import { randomUUID } from 'node:crypto';
-import fs from 'node:fs/promises';
-import os from 'node:os';
-import path from 'node:path';
-import sinon, { SinonStub } from 'sinon';
+import { randomUUID } from 'node:crypto'
+import fs from 'node:fs/promises'
+import os from 'node:os'
+import path from 'node:path'
+import * as sinon from 'sinon'
+import { SinonStub } from 'sinon'
 
-import { localInfrastructure } from '../../../infrastructure/index.js';
-import { packageManager } from '../../../lib/package/index.js';
-import { load } from '../../../lib/yaml-utils.js';
+import { localInfrastructure } from '../../../infrastructure/index.js'
+import { packageManager } from '../../../lib/package/index.js'
+import { load } from '../../../lib/yaml-utils.js'
 
 describe('workspace:install', () => {
     let homeDir: string;
@@ -113,7 +114,7 @@ describe('workspace:install', () => {
             await runCommand(['workspace:install', 'mynew/package', '-w', 'my-dev', '-p', 'PARAM=VALUE', '-p', 'ANOTHER=VALUE'])
             expect((localInfrastructure.provision as SinonStub).calledWithMatch(
                 sinon.match.has('parameters', { ANOTHER: 'VALUE', PARAM: 'VALUE' })
-            )).to.be.true
+            )).to.equal(true)
             const { data: workspaceContent } = await load<any>(path.join(homeDir, '.hereya', 'state', 'workspaces', 'my-dev.yaml'))
             expect(workspaceContent.packages['mynew/package'].parameters).to.deep.equal({
                 ANOTHER: 'VALUE',
